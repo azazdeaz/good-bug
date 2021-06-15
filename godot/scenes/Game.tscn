@@ -139,6 +139,28 @@ margin_right = 357.0
 margin_bottom = 65.0
 text = "TERMINATE"
 script = ExtResource( 12 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="EstimateScaleBtn" type="Button" parent="GUI"]
+margin_left = 273.0
+margin_top = 75.4057
+margin_right = 357.0
+margin_bottom = 95.4057
+text = "Estimate Scale"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ConnectionBtn" type="CheckButton" parent="GUI"]
+margin_left = 260.923
+margin_top = 106.066
+margin_right = 407.923
+margin_bottom = 146.066
+pressed = true
+text = "connected"
+flat = true
 
 [node name="Spatial" type="Spatial" parent="."]
 script = ExtResource( 4 )
@@ -192,6 +214,12 @@ transform = Transform( -1, -3.25841e-07, 0, 3.25841e-07, -1, 0, 0, 0, 1, 0, 0, 0
 radius = 0.1
 
 [node name="CurrentPose" parent="Spatial/Frames" instance=ExtResource( 16 )]
+
+[node name="BasePose" type="CSGBox" parent="Spatial/Frames"]
+material_override = ExtResource( 15 )
+width = 0.325132
+height = 0.0786763
+depth = 0.5
 
 [node name="RosFrame" type="Spatial" parent="Spatial"]
 visible = false

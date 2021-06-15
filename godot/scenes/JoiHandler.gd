@@ -8,7 +8,6 @@ var right_reversed = false
 func report():
 	var l = -left if left_reversed else left
 	var r = -right if right_reversed else right
-	print(l,r)
 	get_node("/root/Game").set_speed(l, r)
 
 var speed_go = 0.4

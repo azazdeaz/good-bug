@@ -29,6 +29,8 @@ pub mod items {
 }
 use std::collections::HashMap;
 
+extern crate yaml_rust;
+
 const URL_IMAGE_PUB: &str = "tcp://192.168.50.234:5560";
 
 // #[derive(PartialEq, Clone)]
@@ -435,7 +437,6 @@ impl Game {
         if let Some(ground_level) = ground_level {
             unsafe {
                 let t = Transform::translate(Vector3::new(0.0, -ground_level, 0.0));
-                godot_print!(" {:?}", t);
                 _owner
                     .find_node("Ground", true, true)
                     .unwrap()
@@ -449,6 +450,7 @@ impl Game {
             }
         }
     }
+
 
     // In order to make a method known to Godot, the #[export] attribute has to be used.
     // In Godot script-classes do not actually inherit the parent class.
@@ -844,7 +846,7 @@ impl Game {
                         landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());
                         // landmark_mesh.set_color(Colors::LANDMARK1.as_godot());
                         for (v, c, num_obs) in self.values.landmarks.values() {
-                            if num_obs >= &self.values.min_lm_obs && v.y.is_sign_positive() {
+                            if num_obs >= &self.values.min_lm_obs {
                                 landmark_mesh.set_color(*c);
                                 landmark_mesh.add_vertex(*v);
                             }
@@ -905,28 +907,28 @@ impl Game {
                             marker.set_transform(iso3_to_gd(&base_pose));
                         }
 
-                        if let Some(ground_truth_pose) = self.values.ground_truth_pose {
-                            let marker = _owner
-                                .get_node("Spatial/Frames/GTPose")
-                                .unwrap()
-                                .assume_safe()
-                                .cast::<Spatial>()
-                                .unwrap();
+                        // if let Some(ground_truth_pose) = self.values.ground_truth_pose {
+                        //     let marker = _owner
+                        //         .get_node("Spatial/Frames/GTPose")
+                        //         .unwrap()
+                        //         .assume_safe()
+                        //         .cast::<Spatial>()
+                        //         .unwrap();
 
-                            marker.set_transform(ground_truth_pose);
-                        }
+                        //     marker.set_transform(ground_truth_pose);
+                        // }
 
-                        if let Some(marked_keyframe) = &self.values.marked_keyframe {
-                            if let Some(vertices) = &self.values.keyframes.get(marked_keyframe) {
-                                let marker = _owner
-                                    .get_node("Spatial/Marker")
-                                    .unwrap()
-                                    .assume_safe()
-                                    .cast::<CSGBox>()
-                                    .unwrap();
-                                marker.set_translation(vertices[0]);
-                            }
-                        }
+                        // if let Some(marked_keyframe) = &self.values.marked_keyframe {
+                        //     if let Some(vertices) = &self.values.keyframes.get(marked_keyframe) {
+                        //         let marker = _owner
+                        //             .get_node("Spatial/Marker")
+                        //             .unwrap()
+                        //             .assume_safe()
+                        //             .cast::<CSGBox>()
+                        //             .unwrap();
+                        //         marker.set_translation(vertices[0]);
+                        //     }
+                        // }
                     }
                 }
             }

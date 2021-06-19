@@ -9,4 +9,3 @@ edition = "2018"
 [dependencies]
 linux-embedded-hal = "0.3.0"
 pwm-pca9685 = "0.3.0"
-sysfs_gpio = "0.5"

@@ -34,3 +34,4 @@ rust/Cargo.lock
 rust/debug/
 target/
 tramp
+lib/

@@ -19,10 +19,26 @@ struct SetSpeedPwm {
 
 impl SetSpeed for SetSpeedPwm {
     fn set(&mut self, left: f64, right: f64) {
-        let left_channel = if left > 0.0 { LEFT_FORWARD } else { LEFT_BACKWARD };
-        let right_channel = if right > 0.0 { RIGHT_FORWARD } else { RIGHT_BACKWARD };
-        self.pwm.set_channel_on_off(left_channel, 0, (4095.0 * left.abs()) as u16).unwrap();
-        self.pwm.set_channel_on_off(right_channel, 0, (4095.0 * right.abs()) as u16).unwrap();
+        let left = if left.abs() < 0.01 { 0.0 } else { left };
+        let right = if right.abs() < 0.01 { 0.0 } else { right };
+        let (left_channel, left_stop) = if left > 0.0 { (LEFT_FORWARD, LEFT_BACKWARD) } else { (LEFT_BACKWARD, LEFT_FORWARD) };
+        let (right_channel, right_stop) = if right > 0.0 { (RIGHT_FORWARD, RIGHT_BACKWARD) } else { (RIGHT_BACKWARD, RIGHT_FORWARD) };
+        self.pwm.set_channel_full_off(left_stop).unwrap();
+        self.pwm.set_channel_full_off(right_stop).unwrap();
+        if left  == 0.0 {
+            // println!("left off");
+            self.pwm.set_channel_full_off(left_channel).unwrap();
+        }
+        else {
+            self.pwm.set_channel_on_off(left_channel, 0, (4095.0 * left.abs()) as u16).unwrap();
+        }
+        if right  == 0.0 {
+            // println!("right off");
+            self.pwm.set_channel_full_off(right_channel).unwrap();
+        }
+        else {
+            self.pwm.set_channel_on_off(right_channel, 0, (4095.0 * right.abs()) as u16).unwrap();
+        }
     }
 }
 

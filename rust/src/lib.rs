@@ -1,6 +1,7 @@
 mod game;
 mod navigator;
 mod types;
+mod grpc_client;
 
 use gdnative::prelude::{godot_init, InitHandle};
 

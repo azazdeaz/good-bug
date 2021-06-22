@@ -7,16 +7,6 @@ shaft_outer_d = 7;
 
 rim_d = 28;
 
-pick_width = 3.78;
-pick_diameter = 5.67;
-PICK_DEPTH = 10;
-PW_START = pick_width + 0.05;
-PW_END = pick_width - 0.15;
-PICK_TIGHT_ANGLE = atan2(PW_START-PW_END, PICK_DEPTH);
-echo(PICK_TIGHT_ANGLE);
-R1 = pick_diameter / 2;
-R2 = 6;
-R3 = R2 + 24;
 teeth_depth = 6;
 teeth_width = 8;
 teeth_twist=30;
@@ -37,7 +27,7 @@ teeth_stand_out_angle = 8;
 
 fasten_hole_shaft_d = 2.8;
 fasten_hole_tire_d = 3.5;
-fasten_hole_height = 3;
+fasten_hole_height = 1.5;
 
 // Small settings
 //WIDTH = 12;
@@ -125,9 +115,9 @@ module tire() {
         }
         
         // hole for accessing the fastening screw
-        translate([0,rim_d/2,fasten_hole_tire_d])
+        translate([0,rim_d/2,fasten_hole_height])
         rotate([-90,0,0])
-        cylinder(shaft_outer_d/2, d=fasten_hole_height, center=true);
+        cylinder(shaft_outer_d/2, d=fasten_hole_tire_d, center=true);
     }
 }
 

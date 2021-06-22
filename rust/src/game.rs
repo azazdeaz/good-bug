@@ -11,10 +11,11 @@ pub struct Game {
     name: String,
     values: Values,
     // pub_vel: zmq::Socket,
-    req_slam: zmq::Socket,
+    // req_slam: zmq::Socket,
     rx: Option<Receiver<Incoming>>,
     sub_tf_gt: Option<rosrust::Subscriber>,
     navigator: navigator::Navigator,
+    client: grpc_client::GrpcClient,
 }
 
 enum Incoming {
@@ -31,7 +32,13 @@ use std::collections::HashMap;
 
 extern crate yaml_rust;
 
-const URL_IMAGE_PUB: &str = "tcp://192.168.50.234:5560";
+use hello_world::greeter_client::GreeterClient;
+use hello_world::{HelloRequest, Speed};
+
+pub mod hello_world {
+    tonic::include_proto!("helloworld");
+}
+
 
 // #[derive(PartialEq, Clone)]
 // struct Pose {
@@ -80,6 +87,7 @@ use zmq;
 
 use crate::navigator;
 use crate::types::*;
+use crate::grpc_client;
 
 extern crate nalgebra as na;
 
@@ -306,20 +314,20 @@ impl Game {
 
     /// The "constructor" of the class.
     fn new(_owner: &Node) -> Self {
-        godot_print!("Game is created!");
+        godot_print!("Game is created!!!");
 
-        let context = zmq::Context::new();
+        // let context = zmq::Context::new();
         // let publisher = context.socket(zmq::PUB).unwrap();
         // publisher
         //     .bind("tcp://*:5567")
         //     .expect("failed binding publisher");
         // let context = zmq::Context::new();
-        let req_slam = context.socket(zmq::REQ).unwrap();
-        req_slam
-            .connect("tcp://localhost:5561")
-            .expect("failed connecting requester");
-
-        Game {
+        // let req_slam = context.socket(zmq::REQ).unwrap();
+        // req_slam
+        //     .connect("tcp://192.168.50.19:5561")
+        //     .expect("failed connecting requester");
+        godot_print!("building game");
+        let game = Game {
             name: "".to_string(),
             values: Values {
                 max_lm_obs: 1,
@@ -344,11 +352,14 @@ impl Game {
                 slam_scale: 1.0,
             },
             // pub_vel: publisher,
-            req_slam,
+            // req_slam,
             rx: None,
             sub_tf_gt: None,
             navigator: navigator::Navigator::new(),
-        }
+            client: grpc_client::GrpcClient::new(),
+        };
+        godot_print!("build game");
+        game
     }
 
     #[export]
@@ -373,10 +384,13 @@ impl Game {
 
     #[export]
     fn set_speed(&mut self, _owner: TRef<Node>, left: f64, right: f64) {
+
+        println!("-REQUESTING {} {}", left, right);
         let left = (left * 100.).floor() / 100.;
         let right = (right * 100.).floor() / 100.;
-        self.navigator.send_teleop_speed.send((left, right));
-        self.values.speed = Some((left, right));
+        // self.navigator.send_teleop_speed.send((left, right));
+        // self.values.speed = Some((left, right));
+        self.client.set_speed(left, right);
     }
 
     #[export]
@@ -402,21 +416,21 @@ impl Game {
             "pause_publisher"
         };
         godot_print!("tell {}", msg);
-        self.req_slam
-            .send(&msg, 0)
-            .expect("failed to send cmd");
-        let response = self.req_slam.recv_msg(0).unwrap();
-        println!("Received reply {}", response.as_str().unwrap());
+        // self.req_slam
+        //     .send(&msg, 0)
+        //     .expect("failed to send cmd");
+        // let response = self.req_slam.recv_msg(0).unwrap();
+        // println!("Received reply {}", response.as_str().unwrap());
     }
 
     #[export]
     fn request_slam_terminate(&mut self, _owner: TRef<Node>) {
         godot_print!("request terminate");
-        self.req_slam
-            .send(&"terminate", 0)
-            .expect("failed to send cmd");
-        let response = self.req_slam.recv_msg(0).unwrap();
-        println!("Received reply {}", response.as_str().unwrap());
+        // self.req_slam
+        //     .send(&"terminate", 0)
+        //     .expect("failed to send cmd");
+        // let response = self.req_slam.recv_msg(0).unwrap();
+        // println!("Received reply {}", response.as_str().unwrap());
     }
 
     #[export]
@@ -475,7 +489,7 @@ impl Game {
                 // let connection = connect(Url::parse("ws://localhost:3012/socket").unwrap());
                 let subscriber = context.socket(zmq::SUB).unwrap();
                 subscriber
-                    .connect("tcp://127.0.0.1:5566")
+                    .connect("tcp://192.168.50.19:5566")
                     .expect("failed connecting subscriber");
                 subscriber.set_subscribe(b"").expect("failed subscribing");
                 loop {

@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 linux-embedded-hal = "0.3.0"
 pwm-pca9685 = "0.3.0"
+crossbeam-channel = "0.5"

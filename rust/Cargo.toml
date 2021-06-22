@@ -26,12 +26,17 @@ rosrust = "0.9"
 rosrust_msg = "0.1"
 crossbeam-channel = "0.5"
 yaml-rust = "0.4.5"
+tarpc = { version = "0.26", features = ["full"] }
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
+tonic = "0.4"
 # gdnative = { path = "../../godot-rust/gdnative" }
 
 [build-dependencies]
 protoc-rust = "2.22.1"
 prost-build = { version = "0.7.0" }
 protobuf-codegen-pure = "2.22.1"
+tonic-build = "0.4"
+
 
 # [[bin]]
 # name = "proto-gen"

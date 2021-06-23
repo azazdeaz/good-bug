@@ -35,3 +35,5 @@ rust/debug/
 target/
 tramp
 lib/
+calib_images/
+.vscode/

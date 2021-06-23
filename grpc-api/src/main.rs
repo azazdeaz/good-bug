@@ -16,10 +16,10 @@ pub struct MyGreeter {
 }
 
 impl MyGreeter {
-    fn new() -> Self {
-        MyGreeter { 
-            wheels: Arc::new(Wheels::new()),
-        }
+    async fn new() -> tokio::io::Result<Self> {
+        Ok(MyGreeter { 
+            wheels: Arc::new(Wheels::new().await?),
+        })
     }
 }
 
@@ -44,7 +44,7 @@ impl Greeter for MyGreeter {
     ) -> Result<Response<Empty>, Status> {
         let speed = request.into_inner();
         println!("{} {} {:?}", speed.left, speed.right, std::time::Instant::now());
-        self.wheels.speed_sender.send((speed.left as f64, speed.right as f64)).unwrap();
+        self.wheels.speed_sender.send((speed.left as f64, speed.right as f64)).await.unwrap();
         Ok(Response::new(Empty::default()))
     }
 }
@@ -54,12 +54,12 @@ impl Greeter for MyGreeter {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:50051".parse()?;
-    let greeter = MyGreeter::new();
-
+    let greeter = MyGreeter::new().await?;
+    println!("greeter is running");
     Server::builder()
         .add_service(GreeterServer::new(greeter))
         .serve(addr)
         .await?;
-
+    println!("server is done");
     Ok(())
 }

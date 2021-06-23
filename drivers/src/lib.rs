@@ -1,8 +1,8 @@
 
 use linux_embedded_hal::I2cdev;
 use pwm_pca9685::{Address, Channel, Pca9685};
-use std::{thread, boxed::Box};
-use crossbeam_channel::{bounded, Sender};
+use std::{boxed::Box};
+use tokio::{self, sync::mpsc};
 
 const RIGHT_BACKWARD: Channel = Channel::C12;
 const RIGHT_FORWARD: Channel = Channel::C13;
@@ -52,11 +52,11 @@ impl SetSpeed for SetSpeedNoop {
 
 #[derive(Debug)]
 pub struct Wheels {
-    pub speed_sender: Sender<(f64, f64)>,
+    pub speed_sender: mpsc::Sender<(f64, f64)>,
 }
 
 impl Wheels {
-    pub fn new() -> Self {
+    pub async fn new() -> tokio::io::Result<Self> {
         let mut set_speed: Box<dyn SetSpeed + Send> = if let Ok(dev) = I2cdev::new("/dev/i2c-0") {
             let address = Address::default();
             let mut pwm = Pca9685::new(dev, address).unwrap();
@@ -70,14 +70,14 @@ impl Wheels {
             Box::new(SetSpeedNoop {})
         };
 
-        let (speed_sender, speed_receiver) = bounded(0);
+        let (speed_sender, mut speed_receiver) = mpsc::channel(1);
 
-        thread::spawn(move || {
-            for (left, right) in speed_receiver.iter() {
+        tokio::spawn(async move {
+            while let Some((left, right)) = speed_receiver.recv().await {
                 set_speed.set(left, right);
             }
         });
 
-        Wheels { speed_sender }
+        Ok(Wheels { speed_sender })
     }
 }

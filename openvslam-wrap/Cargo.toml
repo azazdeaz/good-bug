@@ -11,7 +11,7 @@ anyhow = "1"
 tokio = { version = "1", features = ["macros", "sync", "process", "rt-multi-thread", "time", "rt"] }
 tonic = "0.4"
 prost = "0.7"
-async_zmq = "0.3.2"
+zmq = "0.9"
 
 [build-dependencies]
 tonic-build = "0.4"

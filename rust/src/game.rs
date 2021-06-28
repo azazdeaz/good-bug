@@ -410,6 +410,7 @@ impl Game {
 
     #[export]
     fn toggle_connection(&mut self, _owner: TRef<Node>, on: bool) {
+        self.client.stream_camera_pose();
         let msg = if on {
             "start_publisher"
         } else {

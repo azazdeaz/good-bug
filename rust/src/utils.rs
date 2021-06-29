@@ -16,3 +16,15 @@ pub fn iso3_to_gd(iso: &na::Isometry3<f64>) -> Transform {
     ]);
     Transform { origin, basis }
 }
+
+// TODO make path: &str
+pub fn get_node< T: SubClass<Node>>(owner: &Node, path: String) -> TRef<T> {
+    unsafe {
+        owner
+            .get_node(&path)
+            .expect(&format!("can't find node on path {}", path))
+            .assume_safe()
+            .cast::<T>()
+            .expect(&format!("failed to cast {}", path))
+    }
+}

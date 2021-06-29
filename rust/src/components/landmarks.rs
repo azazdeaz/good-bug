@@ -9,6 +9,7 @@ use scarlet::colormap::ListedColorMap;
 
 use common::types::Landmark;
 use crate::components::traits::Updatable;
+use crate::utils::get_node;
 
 pub struct Landmarks {
     landmarks: Receiver<Vec<Landmark>>,
@@ -28,15 +29,8 @@ impl Landmarks {
         material.set_flag(SpatialMaterial::FLAG_USE_POINT_SIZE, true);
         material.set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
         geometry.set_material_override(material);
-        unsafe {
-            owner
-                .get_node(path)
-                .unwrap()
-                .assume_safe()
-                .cast::<Node>()
-                .unwrap()
-                .add_child(geometry, false);
-        }
+        
+        get_node::<Node>(&*owner, path).add_child(geometry, false);
 
         let landmarks = Landmarks {
             landmarks,
@@ -51,14 +45,15 @@ impl Updatable for Landmarks {
     fn update(&self, owner: &Node) {
         let landmarks = &*self.landmarks.borrow();
         let colormap: ListedColorMap = ListedColorMap::plasma();
-        let landmark_mesh = unsafe {
-            owner
-                .get_node(&self.geometry_path)
-                .unwrap()
-                .assume_safe()
-                .cast::<ImmediateGeometry>()
-                .unwrap()
-        };
+        let landmark_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
+        // let landmark_mesh = unsafe {
+        //     owner
+        //         .get_node(&self.geometry_path)
+        //         .unwrap()
+        //         .assume_safe()
+        //         .cast::<ImmediateGeometry>()
+        //         .unwrap()
+        // };
         
 
 

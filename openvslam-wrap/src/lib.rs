@@ -59,23 +59,31 @@ impl OpenVSlamWrapper {
             let bin = Path::new("./openvslam-wrap/openvslam/build/run_api")
                 .canonicalize()
                 .expect("can't find OpenVSlam run_api binary");
+
+            let mut cmd = Command::new(bin.to_str().unwrap());
+            cmd.stdin(Stdio::null());
             
-            let config = Path::new("./openvslam-wrap/config/cfg.yaml")
+            let config = Path::new("./openvslam-wrap/config/dataset/aist_living_lab_1/config.yaml")
+            // let config = Path::new("./openvslam-wrap/config/cfg.yaml")
                 .canonicalize()
                 .expect("can't find OpenVSlam config file");
+
+            cmd.arg("-c").arg(config.to_str().unwrap());
 
             let vocab = Path::new("./openvslam-wrap/config/orb_vocab.fbow")
                 .canonicalize()
                 .expect("can't find vocabulary file");
 
-            Command::new(bin.to_str().unwrap())
-                .stdin(Stdio::null())
-                .arg("-c")
-                .arg(config.to_str().unwrap())
-                .arg("-v")
-                .arg(vocab.to_str().unwrap())
-                .spawn()
-                .expect("failed to start OpenVSlam")
+            cmd.arg("-v").arg(vocab.to_str().unwrap());
+
+
+            let video = Path::new("./openvslam-wrap/config/dataset/aist_living_lab_1/video.mp4")
+                .canonicalize()
+                .expect("can't find video file");
+
+            cmd.arg("-m").arg(video.to_str().unwrap());
+                
+            cmd.spawn().expect("failed to start OpenVSlam")
         };
 
         let context = zmq::Context::new();
@@ -128,7 +136,7 @@ impl OpenVSlamWrapper {
                 if let Some(msg) = message.msg {
                     match msg {
                         openvslam_api::stream::Msg::CameraPosition(transform) => {
-                            println!("got transform!");
+                            println!("got transform! {:?}", transform);
                             camera_position_sender.send(Some(mat44_to_iso3(transform))).unwrap();
                         }
                     }

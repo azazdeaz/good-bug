@@ -4,7 +4,8 @@ package helloworld;
 service Greeter {
     // Our SayHello rpc accepts HelloRequests and returns HelloReplies
     rpc SayHello (HelloRequest) returns (HelloReply);
-    rpc SetSpeed(Speed) returns (Empty) {}
+    rpc SetSpeed(Speed) returns (Empty);
+    rpc StreamCameraPosition(Empty) returns  (stream Serde);
 }
 
 message HelloRequest {
@@ -20,6 +21,10 @@ message HelloReply {
 message Speed {
     float left = 1;
     float right = 2;
+}
+
+message Serde {
+    string json = 1;
 }
 
 message Empty {};

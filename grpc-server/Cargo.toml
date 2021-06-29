@@ -16,7 +16,7 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 
 async-stream = "0.2"
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde_json = "1"
 rand = "0.7"
 drivers = { path = "../drivers" }
 openvslam-wrap = { path = "../openvslam-wrap" }

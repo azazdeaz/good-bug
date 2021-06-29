@@ -1,7 +1,9 @@
-mod game;
-mod navigator;
-mod types;
-mod grpc_client;
+pub mod game;
+pub mod navigator;
+pub mod types;
+pub mod grpc_client;
+pub mod components;
+pub mod utils;
 
 use gdnative::prelude::{godot_init, InitHandle};
 

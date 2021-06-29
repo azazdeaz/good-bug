@@ -16,6 +16,7 @@ pub struct Game {
     sub_tf_gt: Option<rosrust::Subscriber>,
     navigator: navigator::Navigator,
     client: grpc_client::GrpcClient,
+    components: Vec<components::camera_pose::CameraPose>,
 }
 
 enum Incoming {
@@ -88,6 +89,7 @@ use zmq;
 use crate::navigator;
 use crate::types::*;
 use crate::grpc_client;
+use crate::components;
 
 extern crate nalgebra as na;
 
@@ -357,6 +359,7 @@ impl Game {
             sub_tf_gt: None,
             navigator: navigator::Navigator::new(),
             client: grpc_client::GrpcClient::new(),
+            components: Vec::new(),
         };
         godot_print!("build game");
         game
@@ -410,7 +413,7 @@ impl Game {
 
     #[export]
     fn toggle_connection(&mut self, _owner: TRef<Node>, on: bool) {
-        self.client.stream_camera_pose();
+        self.client.watch_camera_pose();
         let msg = if on {
             "start_publisher"
         } else {
@@ -478,40 +481,42 @@ impl Game {
         self.name = "Game".to_string();
         godot_print!("{} is ready!!!mak", self.name);
 
-        let context = zmq::Context::new();
+        self.components.push(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client));
 
-        let (tx, rx): (Sender<Incoming>, Receiver<Incoming>) = mpsc::channel();
-        self.rx = Some(rx);
-        let thread_tx = tx.clone();
+        // let context = zmq::Context::new();
 
-        spawn(move || {
-            loop {
-                println!("Connecting...");
-                // let connection = connect(Url::parse("ws://localhost:3012/socket").unwrap());
-                let subscriber = context.socket(zmq::SUB).unwrap();
-                subscriber
-                    .connect("tcp://192.168.50.19:5566")
-                    .expect("failed connecting subscriber");
-                subscriber.set_subscribe(b"").expect("failed subscribing");
-                loop {
-                    let envelope = subscriber
-                        .recv_string(0)
-                        .expect("failed receiving envelope")
-                        .unwrap();
-                    let message = subscriber.recv_bytes(0).expect("failed receiving message");
-                    // println!("{:?}", message);
-                    let message = ::base64::decode(message).unwrap();
-                    let msg = items::VSlamMap::decode(&mut std::io::Cursor::new(message)).unwrap();
+        // let (tx, rx): (Sender<Incoming>, Receiver<Incoming>) = mpsc::channel();
+        // self.rx = Some(rx);
+        // let thread_tx = tx.clone();
 
-                    // println!("{:?}", msg);
-                    // let m = Map::parse_from_bytes(&message);
-                    // m.merge_from(CodedInputStream::from_bytes(&message));
-                    // println!("{:?}", m);
-                    // let msg = format!("[{}] {}", envelope, message);
-                    thread_tx.send(Incoming::OpenVSlamPB(msg)).unwrap();
-                }
-            }
-        });
+        // spawn(move || {
+        //     loop {
+        //         println!("Connecting...");
+        //         // let connection = connect(Url::parse("ws://localhost:3012/socket").unwrap());
+        //         let subscriber = context.socket(zmq::SUB).unwrap();
+        //         subscriber
+        //             .connect("tcp://192.168.50.19:5566")
+        //             .expect("failed connecting subscriber");
+        //         subscriber.set_subscribe(b"").expect("failed subscribing");
+        //         loop {
+        //             let envelope = subscriber
+        //                 .recv_string(0)
+        //                 .expect("failed receiving envelope")
+        //                 .unwrap();
+        //             let message = subscriber.recv_bytes(0).expect("failed receiving message");
+        //             // println!("{:?}", message);
+        //             let message = ::base64::decode(message).unwrap();
+        //             let msg = items::VSlamMap::decode(&mut std::io::Cursor::new(message)).unwrap();
+
+        //             // println!("{:?}", msg);
+        //             // let m = Map::parse_from_bytes(&message);
+        //             // m.merge_from(CodedInputStream::from_bytes(&message));
+        //             // println!("{:?}", m);
+        //             // let msg = format!("[{}] {}", envelope, message);
+        //             thread_tx.send(Incoming::OpenVSlamPB(msg)).unwrap();
+        //         }
+        //     }
+        // });
 
 
         fn find_node<T: SubClass<Node>>(owner: TRef<Node>, mask: String) -> TRef<T> {
@@ -650,6 +655,9 @@ impl Game {
     // This function will be called in every frame
     #[export]
     unsafe fn _process(&mut self, _owner: &Node, _delta: f64) {
+        for component in &self.components {
+            component.update(_owner);
+        }
         // if let Some(rx) = &self.rx_image {
         //     while let Ok(pixels) = rx.try_recv() {
         //         godot_print!("got image");

@@ -1,15 +1,17 @@
 use hello_world::greeter_client::GreeterClient;
-use hello_world::{Speed};
-use tokio::runtime::Runtime;
+use hello_world::{Speed, Empty};
+use tokio::{runtime::Runtime, sync::{watch,Mutex}, time::{sleep, Duration}};
 use std::sync::{Arc,RwLock};
+use tonic::transport::Channel;
 
+type Iso3 = nalgebra::Isometry3<f64>;
 pub mod hello_world {
     tonic::include_proto!("helloworld");
 }
 
 pub struct GrpcClient {
     rt: Runtime,
-    client: Arc<RwLock<GreeterClient<tonic::transport::Channel>>>
+    client: Arc<Mutex<GreeterClient<tonic::transport::Channel>>>,
 }
 
 impl GrpcClient {
@@ -17,9 +19,12 @@ impl GrpcClient {
         println!("Creating GRPC client!!!!");
         let rt = Runtime::new().unwrap();
         let client = rt.block_on(async {
-            let dst = "http://[::1]:50051";
+            // TODO load this from conf
+            let dst = "http://127.0.0.1:50051";
+            // let dst = "http://192.168.50.19:50051";
             let conn = tonic::transport::Endpoint::new(dst).unwrap().connect_lazy().unwrap();
-            Arc::new(RwLock::new(GreeterClient::new(conn)))
+            let client = GreeterClient::new(conn);
+            Arc::new(Mutex::new(client))
         });
         println!("Created GRPC client!!!!");
         
@@ -32,9 +37,35 @@ impl GrpcClient {
             println!("REQUESTING {} {}", left, right);
             let request = tonic::Request::new(Speed { left: left as f32, right: right as f32 });
 
-            let response = client.write().unwrap().set_speed(request).await.unwrap();
+            let response = client.lock().await.set_speed(request).await.unwrap();
 
             println!("RESPONSE={:?}", response);
         });
+    }
+
+    pub fn watch_camera_pose(&self) -> watch::Receiver<Option<Iso3>> {
+        let client = Arc::clone(&self.client);
+        let (sx, rx) = watch::channel(None);
+        self.rt.spawn(async move {
+            println!("REQUESTING stream");
+            let mut response = loop {
+                let request = tonic::Request::new(Empty {});
+                if let Ok(response) = client.lock().await.stream_camera_position(request).await {
+                    break response.into_inner();
+                }
+                else {
+                    sleep(Duration::from_secs(1)).await;
+                }
+            };
+
+            println!("RESPONSE={:?}", response);
+
+            while let Some(iso3) = response.message().await.unwrap() {
+                let iso3: Iso3 = serde_json::from_str(&iso3.json).expect(&format!("Coulnd't parse as Iso3 Serde:{}", iso3.json));
+                sx.send(Some(iso3)).unwrap();
+                println!("{:?}", iso3);
+            }
+        }); 
+        rx
     }
 }

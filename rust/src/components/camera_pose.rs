@@ -7,6 +7,8 @@ use tokio;
 type Iso3 = nalgebra::Isometry3<f64>;
 use tokio::sync::watch::Receiver;
 
+use crate::components::traits::Updatable;
+
 pub struct CameraPose {
     camera_pose: Receiver<Option<Iso3>>,
     btn_path: String,
@@ -53,8 +55,10 @@ impl CameraPose {
 
         camera_pose
     }
+}
 
-    pub fn update(&self, owner: &Node) {
+impl Updatable for CameraPose {
+    fn update(&self, owner: &Node) {
         if let Some(camera_pose) = *self.camera_pose.borrow() {
             let btn = unsafe {
                 owner

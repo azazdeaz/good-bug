@@ -1,16 +1,19 @@
 use prost::Message;
-use std::{io::Cursor, path::Path, process::{Command, Stdio}, sync::{mpsc, Arc, RwLock}};
+use std::{
+    io::Cursor,
+    path::Path,
+    process::{Command, Stdio},
+    sync::{mpsc, Arc, RwLock},
+};
 pub mod openvslam_api {
     tonic::include_proto!("openvslam_api"); // The string specified here must match the proto package name
 }
-use tokio::{
-    sync::{oneshot, watch, Mutex},
-};
-use tokio_stream::{StreamExt, wrappers::WatchStream};
-
+use tokio::sync::{oneshot, watch, Mutex};
+use tokio_stream::{wrappers::WatchStream, StreamExt};
 
 use nalgebra as na;
 type Iso3 = na::Isometry3<f64>;
+use common::types::Landmark;
 
 // fn mat44_to_iso3(m: openvslam_api::stream::Mat44) -> Iso3 {
 //     let translation = na::Translation3::new(m.m14, m.m24, m.m34);
@@ -19,7 +22,6 @@ type Iso3 = na::Isometry3<f64>;
 //     let rotation = na::UnitQuaternion::from_rotation_matrix(&rotation);
 //     na::Isometry3::from_parts(translation, rotation)
 // }
-
 
 fn mat44_to_iso3(m: openvslam_api::stream::Mat44) -> Iso3 {
     let d = m.pose.to_vec();
@@ -48,41 +50,37 @@ pub struct OpenVSlamWrapper {
     thread: Arc<Mutex<std::thread::JoinHandle<()>>>,
 
     camera_position_receiver: watch::Receiver<Option<Iso3>>,
+    landmarks_receiver: watch::Receiver<Vec<Landmark>>,
+}
+
+fn get_path(path: &str) -> String {
+    let path = Path::new("./openvslam-wrap").join(path);
+    path.canonicalize()
+        .expect(&format!("can't find {:?} from {:?}", path, Path::new(".").canonicalize()))
+        .to_str()
+        .unwrap()
+        .into()
 }
 
 impl OpenVSlamWrapper {
     pub fn new() -> Self {
-        
         let (request_sender, mut request_receiver) = mpsc::channel::<ApiRequest>();
-
         let mut openvslam_process = {
-            let bin = Path::new("./openvslam-wrap/openvslam/build/run_api")
-                .canonicalize()
-                .expect("can't find OpenVSlam run_api binary");
+            let bin = get_path("openvslam/build/run_api");
 
-            let mut cmd = Command::new(bin.to_str().unwrap());
+            let mut cmd = Command::new(bin);
             cmd.stdin(Stdio::null());
-            
-            let config = Path::new("./openvslam-wrap/config/dataset/aist_living_lab_1/config.yaml")
-            // let config = Path::new("./openvslam-wrap/config/cfg.yaml")
-                .canonicalize()
-                .expect("can't find OpenVSlam config file");
 
-            cmd.arg("-c").arg(config.to_str().unwrap());
+            let config = get_path("config/dataset/aist_living_lab_1/config.yaml");
+            // let config = get_path("config/cfg.yaml");
+            cmd.arg("-c").arg(config);
 
-            let vocab = Path::new("./openvslam-wrap/config/orb_vocab.fbow")
-                .canonicalize()
-                .expect("can't find vocabulary file");
+            let vocab = get_path("config/orb_vocab.fbow");
+            cmd.arg("-v").arg(vocab);
 
-            cmd.arg("-v").arg(vocab.to_str().unwrap());
+            let video = get_path("config/dataset/aist_living_lab_1/video.mp4");
+            cmd.arg("-m").arg(video);
 
-
-            let video = Path::new("./openvslam-wrap/config/dataset/aist_living_lab_1/video.mp4")
-                .canonicalize()
-                .expect("can't find video file");
-
-            cmd.arg("-m").arg(video.to_str().unwrap());
-                
             cmd.spawn().expect("failed to start OpenVSlam")
         };
 
@@ -94,7 +92,8 @@ impl OpenVSlamWrapper {
                 .expect("failed to connect OpenVSlam response socket");
 
             loop {
-                let api_request = request_receiver.recv() ; {
+                let api_request = request_receiver.recv();
+                {
                     println!("send 0");
                     if let Ok(api_request) = api_request {
                         let mut msg = openvslam_api::Request::default();
@@ -110,9 +109,7 @@ impl OpenVSlamWrapper {
                         let response = openvslam_api::Response::decode(&mut Cursor::new(response))
                             .expect("failed to decode response");
                         let _ = api_request.callback.send(response);
-                        
-                    }
-                    else {
+                    } else {
                         println!("api request channel closed");
                         break;
                     }
@@ -120,27 +117,46 @@ impl OpenVSlamWrapper {
             }
         });
 
-        let (camera_position_sender, camera_position_receiver) = watch::channel::<Option<Iso3>>(None);
+        let (camera_position_sender, camera_position_receiver) =
+            watch::channel::<Option<Iso3>>(None);
+        let (landmarks_sender, landmarks_receiver) =
+            watch::channel::<Vec<Landmark>>(Vec::new());
 
         let stream_handle = std::thread::spawn(move || {
             let context = zmq::Context::new();
             let mut stream = context.socket(zmq::PULL).unwrap();
-            stream.connect("ipc:///tmp/openvslam_wrapper_ipc_stream")
+            stream
+                .connect("ipc:///tmp/openvslam_wrapper_ipc_stream")
                 .expect("failed to connect OpenVSlam response socket");
 
             loop {
-                let message = stream.recv_bytes(0).expect("failed to receive stream message");
+                let message = stream
+                    .recv_bytes(0)
+                    .expect("failed to receive stream message");
                 let message = openvslam_api::Stream::decode(&mut Cursor::new(message))
-                            .expect("failed to decode stream message");
-                
+                    .expect("failed to decode stream message");
+
                 if let Some(msg) = message.msg {
                     match msg {
                         openvslam_api::stream::Msg::CameraPosition(transform) => {
-                            println!("got transform! {:?}", transform);
-                            camera_position_sender.send(Some(mat44_to_iso3(transform))).unwrap();
+                            camera_position_sender
+                                .send(Some(mat44_to_iso3(transform)))
+                                .unwrap();
+                        }
+                        openvslam_api::stream::Msg::Landmarks(landmarks) => {
+                            let landmarks: Vec<Landmark> = landmarks.landmarks.iter().map(|lm| {
+                                Landmark {
+                                    id: lm.id,
+                                    x: lm.x,
+                                    y: lm.y,
+                                    z: lm.z,
+                                    num_observations: lm.num_observations,
+                                }
+                            }).collect();
+                            landmarks_sender.send(landmarks).unwrap();
                         }
                     }
-                }  
+                }
             }
         });
 
@@ -152,25 +168,35 @@ impl OpenVSlamWrapper {
 
         let request_sender = Arc::new(Mutex::new(request_sender));
         let thread = Arc::new(Mutex::new(thread));
-        OpenVSlamWrapper { request_sender, thread, camera_position_receiver }
+        OpenVSlamWrapper {
+            request_sender,
+            thread,
+            camera_position_receiver,
+            landmarks_receiver,
+        }
     }
 
     pub async fn terminate(&self) {
-        let request = openvslam_api::request::Msg::Terminate(openvslam_api::request::Terminate::default());
+        let request =
+            openvslam_api::request::Msg::Terminate(openvslam_api::request::Terminate::default());
         let (callback, rx) = oneshot::channel();
         let sender = self.request_sender.lock().await;
         println!("{:?}", sender.send(ApiRequest { request, callback }));
-        
+
         // tokio::spawn(async move {
-            
+
         //     let sender = asender.lock().await;
-            
+
         // }).await;
-        
+
         println!("{:?}", rx.await);
     }
 
     pub fn stream_position(&self) -> WatchStream<Option<Iso3>> {
         WatchStream::new(self.camera_position_receiver.clone())
+    }
+
+    pub fn stream_landmarks(&self) -> WatchStream<Vec<Landmark>> {
+        WatchStream::new(self.landmarks_receiver.clone())
     }
 }

@@ -16,7 +16,7 @@ pub struct Game {
     sub_tf_gt: Option<rosrust::Subscriber>,
     navigator: navigator::Navigator,
     client: grpc_client::GrpcClient,
-    components: Vec<components::camera_pose::CameraPose>,
+    components: Vec<Box<components::traits::Updatable>>,
 }
 
 enum Incoming {
@@ -32,9 +32,6 @@ pub mod items {
 use std::collections::HashMap;
 
 extern crate yaml_rust;
-
-use hello_world::greeter_client::GreeterClient;
-use hello_world::{HelloRequest, Speed};
 
 pub mod hello_world {
     tonic::include_proto!("helloworld");
@@ -413,7 +410,6 @@ impl Game {
 
     #[export]
     fn toggle_connection(&mut self, _owner: TRef<Node>, on: bool) {
-        self.client.watch_camera_pose();
         let msg = if on {
             "start_publisher"
         } else {
@@ -481,7 +477,8 @@ impl Game {
         self.name = "Game".to_string();
         godot_print!("{} is ready!!!mak", self.name);
 
-        self.components.push(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client));
+        // self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client)));
+        self.components.push(Box::new(components::landmarks::Landmarks::new(_owner, "GUI".into(), &self.client)));
 
         // let context = zmq::Context::new();
 

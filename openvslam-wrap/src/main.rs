@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // tokio::time::sleep(tokio::time::Duration::from_secs(6)).await;
     let mut position = api.lock().await.stream_position();
     while let Some(pos) = position.next().await {
-        println!("streamed position");
+        println!("\n\nstreamed position {:?}", pos);
     }
     Ok(())
 }

@@ -93,7 +93,7 @@ extern crate nalgebra as na;
 use ndarray::prelude::*;
 use ndarray::{stack, Array, Axis};
 
-use scarlet::colormap::ListedColorMap;
+
 
 mod Colors {
     use gdnative::prelude::Color;
@@ -477,8 +477,8 @@ impl Game {
         self.name = "Game".to_string();
         godot_print!("{} is ready!!!mak", self.name);
 
-        // self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client)));
-        self.components.push(Box::new(components::landmarks::Landmarks::new(_owner, "GUI".into(), &self.client)));
+        self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client)));
+        self.components.push(Box::new(components::landmarks::Landmarks::new(_owner, "Spatial".into(), &self.client)));
 
         // let context = zmq::Context::new();
 
@@ -742,37 +742,37 @@ impl Game {
                         imt.create_from_image(im, 7);
                         (*thumb).set_texture(imt);
 
-                        let colormap: ListedColorMap = ListedColorMap::plasma();
-                        for landmark in msg.landmarks.iter() {
-                            if landmark.coords.len() != 0 {
-                                if landmark.num_observations > self.values.max_lm_obs as i32 {
-                                    godot_print!("lm max num ob {}", landmark.num_observations);
-                                    self.values.max_lm_obs = landmark.num_observations as u32;
-                                }
-                                let val =
-                                    0.5 + f64::min(0.5, landmark.num_observations as f64 / 24.0); //self.values.max_lm_obs as f64;
-                                let color = colormap.vals
-                                    [(val * (colormap.vals.len() - 1) as f64) as usize];
-                                let color =
-                                    Color::rgb(color[0] as f32, color[1] as f32, color[2] as f32);
-                                self.values.landmarks.insert(
-                                    landmark.id,
-                                    (
-                                        Vector3::new(
-                                            landmark.coords[0] as f32,
-                                            landmark.coords[1] as f32,
-                                            landmark.coords[2] as f32,
-                                        ),
-                                        color,
-                                        landmark.num_observations as u32,
-                                    ),
-                                );
-                            } else {
-                                self.values.landmarks.remove(&landmark.id);
-                            }
-                            // println!("landmark {:?}", landmark.color);
-                            // vectors.push(landmark.coords);
-                        }
+                        // let colormap: ListedColorMap = ListedColorMap::plasma();
+                        // for landmark in msg.landmarks.iter() {
+                        //     if landmark.coords.len() != 0 {
+                        //         if landmark.num_observations > self.values.max_lm_obs as i32 {
+                        //             godot_print!("lm max num ob {}", landmark.num_observations);
+                        //             self.values.max_lm_obs = landmark.num_observations as u32;
+                        //         }
+                        //         let val =
+                        //             0.5 + f64::min(0.5, landmark.num_observations as f64 / 24.0); //self.values.max_lm_obs as f64;
+                        //         let color = colormap.vals
+                        //             [(val * (colormap.vals.len() - 1) as f64) as usize];
+                        //         let color =
+                        //             Color::rgb(color[0] as f32, color[1] as f32, color[2] as f32);
+                        //         self.values.landmarks.insert(
+                        //             landmark.id,
+                        //             (
+                        //                 Vector3::new(
+                        //                     landmark.coords[0] as f32,
+                        //                     landmark.coords[1] as f32,
+                        //                     landmark.coords[2] as f32,
+                        //                 ),
+                        //                 color,
+                        //                 landmark.num_observations as u32,
+                        //             ),
+                        //         );
+                        //     } else {
+                        //         self.values.landmarks.remove(&landmark.id);
+                        //     }
+                        //     // println!("landmark {:?}", landmark.color);
+                        //     // vectors.push(landmark.coords);
+                        // }
 
                         for message in msg.messages.iter() {
                             let text = format!("[{}]: {}", message.tag, message.txt);
@@ -857,22 +857,22 @@ impl Game {
                             frames_mesh.end();
                         }
 
-                        let landmark_mesh = _owner
-                            .get_node("Spatial/Frames/Landmarks")
-                            .unwrap()
-                            .assume_safe()
-                            .cast::<ImmediateGeometry>()
-                            .unwrap();
-                        landmark_mesh.clear();
-                        landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());
-                        // landmark_mesh.set_color(Colors::LANDMARK1.as_godot());
-                        for (v, c, num_obs) in self.values.landmarks.values() {
-                            if num_obs >= &self.values.min_lm_obs {
-                                landmark_mesh.set_color(*c);
-                                landmark_mesh.add_vertex(*v);
-                            }
-                        }
-                        landmark_mesh.end();
+                        // let landmark_mesh = _owner
+                        //     .get_node("Spatial/Frames/Landmarks")
+                        //     .unwrap()
+                        //     .assume_safe()
+                        //     .cast::<ImmediateGeometry>()
+                        //     .unwrap();
+                        // landmark_mesh.clear();
+                        // landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());
+                        // // landmark_mesh.set_color(Colors::LANDMARK1.as_godot());
+                        // for (v, c, num_obs) in self.values.landmarks.values() {
+                        //     if num_obs >= &self.values.min_lm_obs {
+                        //         landmark_mesh.set_color(*c);
+                        //         landmark_mesh.add_vertex(*v);
+                        //     }
+                        // }
+                        // landmark_mesh.end();
 
                         if let Some(edges_) = edges {
                             let edges_mesh = _owner

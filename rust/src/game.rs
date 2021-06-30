@@ -479,6 +479,7 @@ impl Game {
 
         self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client)));
         self.components.push(Box::new(components::landmarks::Landmarks::new(_owner, "Spatial".into(), &self.client)));
+        self.components.push(Box::new(components::keyframes::Keyframes::new(_owner, "Spatial".into(), &self.client)));
 
         // let context = zmq::Context::new();
 

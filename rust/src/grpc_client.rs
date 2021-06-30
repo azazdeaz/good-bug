@@ -1,9 +1,12 @@
 use hello_world::greeter_client::GreeterClient;
-use hello_world::{Speed, Empty};
-use tokio::{runtime::Runtime, sync::{watch,Mutex}, time::{sleep, Duration}};
-use std::sync::{Arc,RwLock};
-use tonic::transport::Channel;
-use common::types::Landmark;
+use hello_world::{Speed, Empty, Serde};
+use tokio::{runtime::Runtime, sync::{watch,Mutex, MutexGuard}, time::{sleep, Duration}};
+use tonic::Streaming;
+use std::fmt::Debug;
+use std::sync::{Arc};
+use tonic::{transport::Channel, Response, Status};
+use common::types::{Keyframe, Landmark};
+use serde::de::DeserializeOwned;
 
 type Iso3 = nalgebra::Isometry3<f64>;
 pub mod hello_world {
@@ -31,6 +34,34 @@ impl GrpcClient {
         
         GrpcClient { rt, client }
     }
+
+    // fn create_watch<T: Default + DeserializeOwned + Debug + Send + Sync>(&self, send_request: fn(client: MutexGuard<GreeterClient<Channel>>) -> Result<Response<Streaming<Serde>>, Status>) -> watch::Receiver<T> {
+    //     let client = Arc::clone(&self.client);
+    //     let (sx, rx) = watch::channel(Default::default());
+    //     self.rt.spawn(async move {
+    //         println!("REQUESTING stream");
+    //         let mut response = loop {
+    //             let request = tonic::Request::new(Empty {});
+    //             let client = client.lock().await;
+    //             let req = client.landmarks(request).await;
+    //             // let req = send_request(client);
+    //             if let Ok(response) = req {
+    //                 break response.into_inner();
+    //             }
+    //             else {
+    //                 sleep(Duration::from_secs(1)).await;
+    //             }
+    //         };
+
+    //         // println!("RESPONSE={:?}", response);
+
+    //         while let Some(message) = response.message().await.unwrap() {
+    //             let message = serde_json::from_str(&message.json).expect(&format!("Coulnd't parse Serde:{}", message.json));
+    //             sx.send(message).unwrap();
+    //         }
+    //     }); 
+    //     rx
+    // }
 
     pub fn set_speed(&self, left: f64, right: f64) {
         let client = Arc::clone(&self.client);
@@ -78,6 +109,31 @@ impl GrpcClient {
             let mut response = loop {
                 let request = tonic::Request::new(Empty {});
                 if let Ok(response) = client.lock().await.landmarks(request).await {
+                    break response.into_inner();
+                }
+                else {
+                    sleep(Duration::from_secs(1)).await;
+                }
+            };
+
+            println!("RESPONSE={:?}", response);
+
+            while let Some(message) = response.message().await.unwrap() {
+                let message = serde_json::from_str(&message.json).expect(&format!("Coulnd't parse Serde:{}", message.json));
+                sx.send(message).unwrap();
+            }
+        }); 
+        rx
+    }
+
+    pub fn watch_keyframes(&self) -> watch::Receiver<Vec<Keyframe>> {
+        let client = Arc::clone(&self.client);
+        let (sx, rx) = watch::channel(Default::default());
+        self.rt.spawn(async move {
+            println!("REQUESTING stream");
+            let mut response = loop {
+                let request = tonic::Request::new(Empty {});
+                if let Ok(response) = client.lock().await.keyframes(request).await {
                     break response.into_inner();
                 }
                 else {

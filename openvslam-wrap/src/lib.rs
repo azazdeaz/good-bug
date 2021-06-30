@@ -13,7 +13,7 @@ use tokio_stream::{wrappers::WatchStream, StreamExt};
 
 use nalgebra as na;
 type Iso3 = na::Isometry3<f64>;
-use common::types::Landmark;
+use common::types::{Keyframe, Landmark};
 
 // fn mat44_to_iso3(m: openvslam_api::stream::Mat44) -> Iso3 {
 //     let translation = na::Translation3::new(m.m14, m.m24, m.m34);
@@ -23,17 +23,12 @@ use common::types::Landmark;
 //     na::Isometry3::from_parts(translation, rotation)
 // }
 
-fn mat44_to_iso3(m: openvslam_api::stream::Mat44) -> Iso3 {
+fn mat44_to_iso3(m: &openvslam_api::stream::Mat44) -> Iso3 {
     let d = m.pose.to_vec();
     let translation = na::Translation3::new(d[3], d[7], d[11]);
     let rotation = na::Matrix3::new(d[0], d[1], d[2], d[4], d[5], d[6], d[8], d[9], d[10]);
     let rotation = na::Rotation3::from_matrix(&rotation);
     let rotation = na::UnitQuaternion::from_rotation_matrix(&rotation);
-    // let rotation = UnitQuaternion::from_basis_unchecked(&[
-    //     na::Vector3::new(d[0], d[1], d[2]),
-    //     na::Vector3::new(d[4], d[5], d[6]),
-    //     na::Vector3::new(d[8], d[9], d[10]),
-    // ]);
     na::Isometry3::from_parts(translation, rotation)
 }
 
@@ -51,12 +46,17 @@ pub struct OpenVSlamWrapper {
 
     camera_position_receiver: watch::Receiver<Option<Iso3>>,
     landmarks_receiver: watch::Receiver<Vec<Landmark>>,
+    keyframes_receiver: watch::Receiver<Vec<Keyframe>>,
 }
 
 fn get_path(path: &str) -> String {
     let path = Path::new("./openvslam-wrap").join(path);
     path.canonicalize()
-        .expect(&format!("can't find {:?} from {:?}", path, Path::new(".").canonicalize()))
+        .expect(&format!(
+            "can't find {:?} from {:?}",
+            path,
+            Path::new(".").canonicalize()
+        ))
         .to_str()
         .unwrap()
         .into()
@@ -119,8 +119,8 @@ impl OpenVSlamWrapper {
 
         let (camera_position_sender, camera_position_receiver) =
             watch::channel::<Option<Iso3>>(None);
-        let (landmarks_sender, landmarks_receiver) =
-            watch::channel::<Vec<Landmark>>(Vec::new());
+        let (landmarks_sender, landmarks_receiver) = watch::channel::<Vec<Landmark>>(Vec::new());
+        let (keyframes_sender, keyframes_receiver) = watch::channel::<Vec<Keyframe>>(Vec::new());
 
         let stream_handle = std::thread::spawn(move || {
             let context = zmq::Context::new();
@@ -140,20 +140,32 @@ impl OpenVSlamWrapper {
                     match msg {
                         openvslam_api::stream::Msg::CameraPosition(transform) => {
                             camera_position_sender
-                                .send(Some(mat44_to_iso3(transform)))
+                                .send(Some(mat44_to_iso3(&transform)))
                                 .unwrap();
                         }
                         openvslam_api::stream::Msg::Landmarks(landmarks) => {
-                            let landmarks: Vec<Landmark> = landmarks.landmarks.iter().map(|lm| {
-                                Landmark {
+                            let landmarks: Vec<Landmark> = landmarks
+                                .landmarks
+                                .iter()
+                                .map(|lm| Landmark {
                                     id: lm.id,
                                     x: lm.x,
                                     y: lm.y,
                                     z: lm.z,
                                     num_observations: lm.num_observations,
+                                })
+                                .collect();
+                            landmarks_sender.send(landmarks).unwrap();
+                        }
+                        openvslam_api::stream::Msg::Keyframes(keyframes) => {
+                            let keyframes: Vec<Keyframe> = keyframes.keyframes.iter().map(|pb_keyframe| {
+                                let pose_mat = pb_keyframe.pose.as_ref().expect("pose in keyframe can't be empty");
+                                Keyframe {
+                                    id: pb_keyframe.id,
+                                    pose: mat44_to_iso3(pose_mat),
                                 }
                             }).collect();
-                            landmarks_sender.send(landmarks).unwrap();
+                            keyframes_sender.send(keyframes).unwrap();
                         }
                     }
                 }
@@ -173,6 +185,7 @@ impl OpenVSlamWrapper {
             thread,
             camera_position_receiver,
             landmarks_receiver,
+            keyframes_receiver,
         }
     }
 
@@ -198,5 +211,9 @@ impl OpenVSlamWrapper {
 
     pub fn stream_landmarks(&self) -> WatchStream<Vec<Landmark>> {
         WatchStream::new(self.landmarks_receiver.clone())
+    }
+
+    pub fn stream_keyframes(&self) -> WatchStream<Vec<Keyframe>> {
+        WatchStream::new(self.keyframes_receiver.clone())
     }
 }

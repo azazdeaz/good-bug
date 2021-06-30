@@ -82,6 +82,24 @@ impl Greeter for MyGreeter {
         });
         Ok(Response::new(ReceiverStream::new(rx)))
     }
+
+    type KeyframesStream = ReceiverStream<Result<Serde, Status>>;
+    async fn keyframes(
+        &self,
+        _request: Request<Empty>,
+    ) -> Result<Response<Self::KeyframesStream>, Status> {
+        let (tx, rx) = mpsc::channel(4);
+        let mut stream = self.slam.stream_keyframes();
+        tokio::spawn(async move {
+            while let Some(keyframes) = stream.next().await {
+                let json = serde_json::to_string(&keyframes).unwrap();
+                println!("convered {:?} -> {}", keyframes, json);
+                let mut msg = Serde { json };
+                tx.send(Ok(msg)).await.unwrap();
+            }
+        });
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
 }
 
 #[tokio::main]

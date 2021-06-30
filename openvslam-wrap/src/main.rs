@@ -7,7 +7,7 @@ use tokio_stream::StreamExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = Arc::new(Mutex::new(OpenVSlamWrapper::new()));
+    let api = Arc::new(Mutex::new(OpenVSlamWrapper::new()));
     println!("api started");
 
     {
@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     
     // tokio::time::sleep(tokio::time::Duration::from_secs(6)).await;
-    let mut position = api.lock().await.stream_position();
+    let mut position = api.lock().await.stream_tracking_state();
     while let Some(pos) = position.next().await {
         println!("\n\nstreamed position {:?}", pos);
     }

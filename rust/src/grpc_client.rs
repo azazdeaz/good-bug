@@ -1,12 +1,8 @@
 use hello_world::greeter_client::GreeterClient;
-use hello_world::{Speed, Empty, Serde};
-use tokio::{runtime::Runtime, sync::{watch,Mutex, MutexGuard}, time::{sleep, Duration}};
-use tonic::Streaming;
-use std::fmt::Debug;
+use hello_world::{Speed, Empty};
+use tokio::{runtime::Runtime, sync::{watch,Mutex}, time::{sleep, Duration}};
 use std::sync::{Arc};
-use tonic::{transport::Channel, Response, Status};
-use common::types::{Keyframe, Landmark};
-use serde::de::DeserializeOwned;
+use common::types::{Keyframe, Landmark, TrackingState};
 
 type Iso3 = nalgebra::Isometry3<f64>;
 pub mod hello_world {
@@ -17,6 +13,8 @@ pub struct GrpcClient {
     rt: Runtime,
     client: Arc<Mutex<GreeterClient<tonic::transport::Channel>>>,
 }
+
+
 
 impl GrpcClient {
     pub fn new() -> Self {
@@ -95,7 +93,6 @@ impl GrpcClient {
             while let Some(iso3) = response.message().await.unwrap() {
                 let iso3: Iso3 = serde_json::from_str(&iso3.json).expect(&format!("Coulnd't parse as Iso3 Serde:{}", iso3.json));
                 sx.send(Some(iso3)).unwrap();
-                println!("{:?}", iso3);
             }
         }); 
         rx
@@ -142,6 +139,33 @@ impl GrpcClient {
             };
 
             println!("RESPONSE={:?}", response);
+
+            while let Some(message) = response.message().await.unwrap() {
+                let message = serde_json::from_str(&message.json).expect(&format!("Coulnd't parse Serde:{}", message.json));
+                sx.send(message).unwrap();
+            }
+        }); 
+        rx
+    }
+
+    pub fn watch_tracking_state(&self) -> watch::Receiver<TrackingState> {
+        let client = Arc::clone(&self.client);
+        let (sx, rx) = watch::channel(TrackingState::NotInitialized);
+        self.rt.spawn(async move {
+            println!("REQUESTING stream ts");
+            let mut response = loop {
+                let request = tonic::Request::new(Empty {});
+                let response = client.lock().await.tracking_state(request).await;
+                if let Ok(response) = response {
+                    break response.into_inner();
+                }
+                else {
+                    println!("{:?}", response);
+                    sleep(Duration::from_secs(1)).await;
+                }
+            };
+
+            println!("RESPONSE={:?} ts", response);
 
             while let Some(message) = response.message().await.unwrap() {
                 let message = serde_json::from_str(&message.json).expect(&format!("Coulnd't parse Serde:{}", message.json));

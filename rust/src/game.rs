@@ -477,9 +477,10 @@ impl Game {
         self.name = "Game".to_string();
         godot_print!("{} is ready!!!mak", self.name);
 
-        self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "GUI".into(), &self.client)));
+        self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "Spatial".into(), &self.client)));
         self.components.push(Box::new(components::landmarks::Landmarks::new(_owner, "Spatial".into(), &self.client)));
         self.components.push(Box::new(components::keyframes::Keyframes::new(_owner, "Spatial".into(), &self.client)));
+        self.components.push(Box::new(components::status::Status::new(_owner, "GUI".into(), &self.client)));
 
         // let context = zmq::Context::new();
 

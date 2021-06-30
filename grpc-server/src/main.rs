@@ -2,12 +2,11 @@ use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{Empty, Serde, Speed};
 use tokio::sync::mpsc;
 use tokio_stream::{
-    wrappers::{ReceiverStream, WatchStream},
+    wrappers::{ReceiverStream},
     StreamExt,
 };
 use tonic::{transport::Server, Request, Response, Status};
 
-use common::types::Landmark;
 use drivers::Wheels;
 use std::sync::Arc;
 
@@ -58,7 +57,7 @@ impl Greeter for MyGreeter {
         tokio::spawn(async move {
             while let Some(iso3) = stream.next().await {
                 let json = serde_json::to_string(&iso3).unwrap();
-                let mut msg = Serde { json };
+                let msg = Serde { json };
                 tx.send(Ok(msg)).await.unwrap();
             }
         });
@@ -76,7 +75,7 @@ impl Greeter for MyGreeter {
             while let Some(landmarks) = stream.next().await {
                 let json = serde_json::to_string(&landmarks).unwrap();
                 println!("convered {:?} -> {}", landmarks, json);
-                let mut msg = Serde { json };
+                let msg = Serde { json };
                 tx.send(Ok(msg)).await.unwrap();
             }
         });
@@ -94,7 +93,25 @@ impl Greeter for MyGreeter {
             while let Some(keyframes) = stream.next().await {
                 let json = serde_json::to_string(&keyframes).unwrap();
                 println!("convered {:?} -> {}", keyframes, json);
-                let mut msg = Serde { json };
+                let msg = Serde { json };
+                tx.send(Ok(msg)).await.unwrap();
+            }
+        });
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
+
+    type TrackingStateStream = ReceiverStream<Result<Serde, Status>>;
+    async fn tracking_state(
+        &self,
+        _request: Request<Empty>,
+    ) -> Result<Response<Self::TrackingStateStream>, Status> {
+        let (tx, rx) = mpsc::channel(4);
+        let mut stream = self.slam.stream_tracking_state();
+        tokio::spawn(async move {
+            while let Some(tracking_state) = stream.next().await {
+                let json = serde_json::to_string(&tracking_state).unwrap();
+                println!("convered {:?} -> {}", tracking_state, json);
+                let msg = Serde { json };
                 tx.send(Ok(msg)).await.unwrap();
             }
         });

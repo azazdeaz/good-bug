@@ -6,6 +6,7 @@ service Greeter {
     rpc StreamCameraPosition(Empty) returns  (stream Serde);
     rpc Landmarks(Empty) returns  (stream Serde);
     rpc Keyframes(Empty) returns  (stream Serde);
+    rpc TrackingState(Empty) returns  (stream Serde);
 }
 
 message Speed {

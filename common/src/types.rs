@@ -16,3 +16,11 @@ pub struct Keyframe {
     pub id: u32,
     pub pose: Iso3,
 }
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum TrackingState {
+    NotInitialized,
+    Initializing,
+    Tracking,
+    Lost,
+}

@@ -1,21 +1,16 @@
 use prost::Message;
-use std::{
-    io::Cursor,
-    path::Path,
-    process::{Command, Stdio},
-    sync::{mpsc, Arc, RwLock},
-};
-pub mod openvslam_api {
+use std::{io::Cursor, path::Path, process::{Command, Stdio}, sync::{mpsc, Arc}};
+pub mod pb {
     tonic::include_proto!("openvslam_api"); // The string specified here must match the proto package name
 }
 use tokio::sync::{oneshot, watch, Mutex};
-use tokio_stream::{wrappers::WatchStream, StreamExt};
+use tokio_stream::{wrappers::WatchStream};
 
 use nalgebra as na;
 type Iso3 = na::Isometry3<f64>;
-use common::types::{Keyframe, Landmark};
+use common::types::{Keyframe, Landmark, TrackingState};
 
-// fn mat44_to_iso3(m: openvslam_api::stream::Mat44) -> Iso3 {
+// fn mat44_to_iso3(m: pb::stream::Mat44) -> Iso3 {
 //     let translation = na::Translation3::new(m.m14, m.m24, m.m34);
 //     let rotation = na::Matrix3::new(m.m11, m.m12, m.m13, m.m21, m.m22, m.m23, m.m31, m.m32, m.m33);
 //     let rotation = na::Rotation3::from_matrix(&rotation);
@@ -23,7 +18,7 @@ use common::types::{Keyframe, Landmark};
 //     na::Isometry3::from_parts(translation, rotation)
 // }
 
-fn mat44_to_iso3(m: &openvslam_api::stream::Mat44) -> Iso3 {
+fn mat44_to_iso3(m: &pb::stream::Mat44) -> Iso3 {
     let d = m.pose.to_vec();
     let translation = na::Translation3::new(d[3], d[7], d[11]);
     let rotation = na::Matrix3::new(d[0], d[1], d[2], d[4], d[5], d[6], d[8], d[9], d[10]);
@@ -34,8 +29,8 @@ fn mat44_to_iso3(m: &openvslam_api::stream::Mat44) -> Iso3 {
 
 #[derive(Debug)]
 struct ApiRequest {
-    request: openvslam_api::request::Msg,
-    callback: oneshot::Sender<openvslam_api::Response>,
+    request: pb::request::Msg,
+    callback: oneshot::Sender<pb::Response>,
 }
 
 #[derive(Debug)]
@@ -47,6 +42,7 @@ pub struct OpenVSlamWrapper {
     camera_position_receiver: watch::Receiver<Option<Iso3>>,
     landmarks_receiver: watch::Receiver<Vec<Landmark>>,
     keyframes_receiver: watch::Receiver<Vec<Keyframe>>,
+    tracking_state_receiver: watch::Receiver<TrackingState>,
 }
 
 fn get_path(path: &str) -> String {
@@ -96,7 +92,7 @@ impl OpenVSlamWrapper {
                 {
                     println!("send 0");
                     if let Ok(api_request) = api_request {
-                        let mut msg = openvslam_api::Request::default();
+                        let mut msg = pb::Request::default();
                         msg.msg = Some(api_request.request);
                         let mut buf = Vec::new();
                         buf.reserve(msg.encoded_len());
@@ -106,7 +102,7 @@ impl OpenVSlamWrapper {
                         println!("send 2");
                         let response = req.recv_bytes(0).expect("failed to receive response");
                         println!("send 3");
-                        let response = openvslam_api::Response::decode(&mut Cursor::new(response))
+                        let response = pb::Response::decode(&mut Cursor::new(response))
                             .expect("failed to decode response");
                         let _ = api_request.callback.send(response);
                     } else {
@@ -121,6 +117,7 @@ impl OpenVSlamWrapper {
             watch::channel::<Option<Iso3>>(None);
         let (landmarks_sender, landmarks_receiver) = watch::channel::<Vec<Landmark>>(Vec::new());
         let (keyframes_sender, keyframes_receiver) = watch::channel::<Vec<Keyframe>>(Vec::new());
+        let (tracking_state_sender, tracking_state_receiver) = watch::channel::<TrackingState>(TrackingState::NotInitialized);
 
         let stream_handle = std::thread::spawn(move || {
             let context = zmq::Context::new();
@@ -133,17 +130,17 @@ impl OpenVSlamWrapper {
                 let message = stream
                     .recv_bytes(0)
                     .expect("failed to receive stream message");
-                let message = openvslam_api::Stream::decode(&mut Cursor::new(message))
+                let message = pb::Stream::decode(&mut Cursor::new(message))
                     .expect("failed to decode stream message");
 
                 if let Some(msg) = message.msg {
                     match msg {
-                        openvslam_api::stream::Msg::CameraPosition(transform) => {
+                        pb::stream::Msg::CameraPosition(transform) => {
                             camera_position_sender
                                 .send(Some(mat44_to_iso3(&transform)))
                                 .unwrap();
                         }
-                        openvslam_api::stream::Msg::Landmarks(landmarks) => {
+                        pb::stream::Msg::Landmarks(landmarks) => {
                             let landmarks: Vec<Landmark> = landmarks
                                 .landmarks
                                 .iter()
@@ -157,7 +154,7 @@ impl OpenVSlamWrapper {
                                 .collect();
                             landmarks_sender.send(landmarks).unwrap();
                         }
-                        openvslam_api::stream::Msg::Keyframes(keyframes) => {
+                        pb::stream::Msg::Keyframes(keyframes) => {
                             let keyframes: Vec<Keyframe> = keyframes.keyframes.iter().map(|pb_keyframe| {
                                 let pose_mat = pb_keyframe.pose.as_ref().expect("pose in keyframe can't be empty");
                                 Keyframe {
@@ -166,6 +163,16 @@ impl OpenVSlamWrapper {
                                 }
                             }).collect();
                             keyframes_sender.send(keyframes).unwrap();
+                        }
+                        pb::stream::Msg::TrackingState(pb_tracking_state) => {
+                            let pb_tracking_state = pb::stream::TrackingState::from_i32(pb_tracking_state).expect("unknown tracking state");
+                           let tracking_state = match pb_tracking_state {
+                                pb::stream::TrackingState::NotInitialized => TrackingState::NotInitialized,
+                                pb::stream::TrackingState::Initializing => TrackingState::Initializing,
+                                pb::stream::TrackingState::Tracking => TrackingState::Tracking,
+                                pb::stream::TrackingState::Lost => TrackingState::Lost,
+                            };
+                            tracking_state_sender.send(tracking_state).unwrap();
                         }
                     }
                 }
@@ -186,21 +193,16 @@ impl OpenVSlamWrapper {
             camera_position_receiver,
             landmarks_receiver,
             keyframes_receiver,
+            tracking_state_receiver,
         }
     }
 
     pub async fn terminate(&self) {
         let request =
-            openvslam_api::request::Msg::Terminate(openvslam_api::request::Terminate::default());
+            pb::request::Msg::Terminate(pb::request::Terminate::default());
         let (callback, rx) = oneshot::channel();
         let sender = self.request_sender.lock().await;
         println!("{:?}", sender.send(ApiRequest { request, callback }));
-
-        // tokio::spawn(async move {
-
-        //     let sender = asender.lock().await;
-
-        // }).await;
 
         println!("{:?}", rx.await);
     }
@@ -215,5 +217,9 @@ impl OpenVSlamWrapper {
 
     pub fn stream_keyframes(&self) -> WatchStream<Vec<Keyframe>> {
         WatchStream::new(self.keyframes_receiver.clone())
+    }
+
+    pub fn stream_tracking_state(&self) -> WatchStream<TrackingState> {
+        WatchStream::new(self.tracking_state_receiver.clone())
     }
 }

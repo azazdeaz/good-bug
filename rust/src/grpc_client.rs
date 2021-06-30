@@ -174,4 +174,31 @@ impl GrpcClient {
         }); 
         rx
     }
+
+    pub fn watch_frame(&self) -> watch::Receiver<Option<Vec<u8>>> {
+        let client = Arc::clone(&self.client);
+        let (sx, rx) = watch::channel(None);
+        self.rt.spawn(async move {
+            println!("REQUESTING stream ts");
+            let mut response = loop {
+                let request = tonic::Request::new(Empty {});
+                let response = client.lock().await.frame(request).await;
+                if let Ok(response) = response {
+                    break response.into_inner();
+                }
+                else {
+                    println!("{:?}", response);
+                    sleep(Duration::from_secs(1)).await;
+                }
+            };
+
+            println!("RESPONSE={:?} ts", response);
+
+            while let Some(message) = response.message().await.unwrap() {
+                let message = serde_json::from_str(&message.json).expect(&format!("Coulnd't parse Serde:{}", message.json));
+                sx.send(message).unwrap();
+            }
+        }); 
+        rx
+    }
 }

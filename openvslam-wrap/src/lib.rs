@@ -43,6 +43,7 @@ pub struct OpenVSlamWrapper {
     landmarks_receiver: watch::Receiver<Vec<Landmark>>,
     keyframes_receiver: watch::Receiver<Vec<Keyframe>>,
     tracking_state_receiver: watch::Receiver<TrackingState>,
+    frame_receiver: watch::Receiver<Option<Vec<u8>>>,
 }
 
 fn get_path(path: &str) -> String {
@@ -118,6 +119,7 @@ impl OpenVSlamWrapper {
         let (landmarks_sender, landmarks_receiver) = watch::channel::<Vec<Landmark>>(Vec::new());
         let (keyframes_sender, keyframes_receiver) = watch::channel::<Vec<Keyframe>>(Vec::new());
         let (tracking_state_sender, tracking_state_receiver) = watch::channel::<TrackingState>(TrackingState::NotInitialized);
+        let (frame_sender, frame_receiver) = watch::channel::<Option<Vec<u8>>>(None);
 
         let stream_handle = std::thread::spawn(move || {
             let context = zmq::Context::new();
@@ -174,6 +176,9 @@ impl OpenVSlamWrapper {
                             };
                             tracking_state_sender.send(tracking_state).unwrap();
                         }
+                        pb::stream::Msg::Frame(pb_frame) => {
+                            frame_sender.send(Some(pb_frame.jpeg)).unwrap();
+                        }
                     }
                 }
             }
@@ -194,6 +199,7 @@ impl OpenVSlamWrapper {
             landmarks_receiver,
             keyframes_receiver,
             tracking_state_receiver,
+            frame_receiver,
         }
     }
 
@@ -221,5 +227,9 @@ impl OpenVSlamWrapper {
 
     pub fn stream_tracking_state(&self) -> WatchStream<TrackingState> {
         WatchStream::new(self.tracking_state_receiver.clone())
+    }
+
+    pub fn stream_frame(&self) -> WatchStream<Option<Vec<u8>>> {
+        WatchStream::new(self.frame_receiver.clone())
     }
 }

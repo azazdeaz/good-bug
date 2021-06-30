@@ -3,7 +3,6 @@ use gdnative::prelude::*;
 
 use crate::grpc_client::GrpcClient;
 use tokio;
-type Iso3 = nalgebra::Isometry3<f64>;
 use tokio::sync::watch::Receiver;
 use nalgebra as na;
 

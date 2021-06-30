@@ -117,6 +117,23 @@ impl Greeter for MyGreeter {
         });
         Ok(Response::new(ReceiverStream::new(rx)))
     }
+
+    type FrameStream = ReceiverStream<Result<Serde, Status>>;
+    async fn frame(
+        &self,
+        _request: Request<Empty>,
+    ) -> Result<Response<Self::FrameStream>, Status> {
+        let (tx, rx) = mpsc::channel(4);
+        let mut stream = self.slam.stream_frame();
+        tokio::spawn(async move {
+            while let Some(tracking_state) = stream.next().await {
+                let json = serde_json::to_string(&tracking_state).unwrap();
+                let msg = Serde { json };
+                tx.send(Ok(msg)).await.unwrap();
+            }
+        });
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
 }
 
 #[tokio::main]

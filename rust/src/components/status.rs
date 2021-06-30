@@ -11,7 +11,6 @@ use crate::utils::get_node;
 
 pub struct Status {
     tracking_state: Receiver<TrackingState>,
-    panel_path: String,
     track_label_path: String,
 }
 
@@ -37,7 +36,6 @@ impl Status {
 
         Status {
             tracking_state,
-            panel_path,
             track_label_path,
         }
     }

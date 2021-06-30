@@ -480,6 +480,7 @@ impl Game {
         self.components.push(Box::new(components::camera_pose::CameraPose::new(_owner, "Spatial".into(), &self.client)));
         self.components.push(Box::new(components::landmarks::Landmarks::new(_owner, "Spatial".into(), &self.client)));
         self.components.push(Box::new(components::keyframes::Keyframes::new(_owner, "Spatial".into(), &self.client)));
+        self.components.push(Box::new(components::frame::Frame::new(_owner, "GUI".into(), &self.client)));
         self.components.push(Box::new(components::status::Status::new(_owner, "GUI".into(), &self.client)));
 
         // let context = zmq::Context::new();
@@ -740,7 +741,6 @@ impl Game {
                         im.load_jpg_from_buffer(TypedArray::from_vec(last_image));
                         // im.create_from_data(1280, 960, true, Image::FORMAT_RGB8, TypedArray::from_vec(pixels));
                         let imt = ImageTexture::new();
-
                         imt.create_from_image(im, 7);
                         (*thumb).set_texture(imt);
 

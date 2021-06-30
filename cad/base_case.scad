@@ -3,7 +3,7 @@ $fn=40;
 width = 80;
 depth = 114;
 height = 28;
-wall = 1;
+wall = 2.3;
 
 switch_hole_width = 12;
 switch_hole_from_back = 5;
@@ -31,8 +31,10 @@ wheel_mount_from_front = 5;
 wheel_mount_from_back = 8;
 
 motor_cable_in_hole_diameter=4;
-motor_cable_tube_diameter=7;
+motor_cable_tube_diameter=12;
 motor_cable_tube_from_front=50;
+
+board_bottom_height = mount_screw_hole_length-wall;
 
 module body() {
     difference() {
@@ -46,7 +48,7 @@ module switch_hole() {
     translate([
         -wall, 
         depth-(switch_hole_from_back+switch_hole_width), 
-        0
+        board_bottom_height
     ])
     cube([wall, switch_hole_width, height]);
 }
@@ -55,7 +57,7 @@ module charge_hole() {
     translate([
         width, 
         depth-(charge_hole_from_back+charge_hole_width), 
-        charge_hole_from_bottom
+        charge_hole_from_bottom + board_bottom_height
     ])
     cube([wall, charge_hole_width, charge_hole_height]);
 }
@@ -97,10 +99,10 @@ module mount_plate_bottom(from_front=0, from_left=0) {
     close = (mount_plate_size - mount_hole_distance) / 2;
     far = close + mount_hole_distance;
 
-    insert_hole(x=close+from_left, y=close+from_front, z=-1)
-    insert_hole(x=far+from_left, y=close+from_front, z=-1)
-    insert_hole(x=close+from_left, y=far+from_front, z=-1)
-    insert_hole(x=far+from_left, y=far+from_front, z=-1)
+    insert_hole(x=close+from_left, y=close+from_front, z=-wall)
+    insert_hole(x=far+from_left, y=close+from_front, z=-wall)
+    insert_hole(x=close+from_left, y=far+from_front, z=-wall)
+    insert_hole(x=far+from_left, y=far+from_front, z=-wall)
     children();
 }
 
@@ -199,8 +201,8 @@ module motor_cable_tube() {
     }
 }
 intersection() {
-    translate([-wall,-wall,2])
-    cube([width+wall*2,depth+wall*2,1]);
+//    translate([-wall,-wall,2])
+//    cube([width+wall*2,depth+wall*2,1]);
     mount_front()
     motor_cable_tube()
     mount_bottom()

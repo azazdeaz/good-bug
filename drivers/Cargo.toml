@@ -11,3 +11,8 @@ linux-embedded-hal = "0.3.0"
 pwm-pca9685 = "0.3.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 anyhow = "1"
+clap = "3.0.0-beta.2"
+
+[[bin]]
+name = "try-motors"
+path = "src/main.rs"

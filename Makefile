@@ -186,3 +186,7 @@ shell:
 
 test: clean
 	cargo test
+
+
+build-rover:
+	cargo build -p common -p drivers -p grpc-server -p openvslam-wrap

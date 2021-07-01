@@ -169,7 +169,7 @@ doc: clean
 	cargo doc --no-deps --open -v
 
 edit:
-	# ${EDITOR} rust/src/lib.rs &
+	# ${EDITOR} mirrors/src/lib.rs &
 	godot --path godot/ -e &
 
 run:

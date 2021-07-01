@@ -1,7 +1,7 @@
 use gdnative::api::*;
 use gdnative::prelude::*;
 
-use crate::grpc_client::GrpcClient;
+use crate::components::Context;
 use tokio;
 use tokio::sync::watch::Receiver;
 
@@ -14,8 +14,8 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn new(owner: TRef<Node>, path: String, client: &GrpcClient) -> Self {
-        let frame = client.watch_frame();
+    pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
+        let frame = context.client.read().unwrap().watch_frame();
 
         let panel = Sprite::new();
         let panel_name = "panel";

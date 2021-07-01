@@ -4,6 +4,7 @@ pub mod types;
 pub mod grpc_client;
 pub mod components;
 pub mod utils;
+pub mod signal_map;
 
 use gdnative::prelude::{godot_init, InitHandle};
 

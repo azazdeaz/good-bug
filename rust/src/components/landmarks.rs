@@ -1,7 +1,7 @@
 use gdnative::api::*;
 use gdnative::prelude::*;
 
-use crate::grpc_client::GrpcClient;
+use crate::components::Context;
 use tokio;
 use tokio::sync::watch::Receiver;
 use scarlet::colormap::ListedColorMap;
@@ -16,8 +16,8 @@ pub struct Landmarks {
 }
 
 impl Landmarks {
-    pub fn new(owner: TRef<Node>, path: String, client: &GrpcClient) -> Self {
-        let landmarks = client.watch_landmarks();
+    pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
+        let landmarks = context.client.read().unwrap().watch_landmarks();
         let geometry = ImmediateGeometry::new();
         let geometry_name = "landmarks_component";
         let geometry_path = format!("{}/{}", path, geometry_name);

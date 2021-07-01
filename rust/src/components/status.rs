@@ -1,7 +1,7 @@
 use gdnative::api::*;
 use gdnative::prelude::*;
 
-use crate::grpc_client::GrpcClient;
+use crate::components::Context;
 use tokio;
 use tokio::sync::watch::Receiver;
 
@@ -15,8 +15,8 @@ pub struct Status {
 }
 
 impl Status {
-    pub fn new(owner: TRef<Node>, path: String, client: &GrpcClient) -> Self {
-        let tracking_state = client.watch_tracking_state();
+    pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
+        let tracking_state = context.client.read().unwrap().watch_tracking_state();
 
         let panel = PanelContainer::new();
         let panel_name = "status";

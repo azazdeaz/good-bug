@@ -1,7 +1,7 @@
 use gdnative::api::*;
 use gdnative::prelude::*;
 
-use crate::grpc_client::GrpcClient;
+use crate::components::Context;
 use tokio;
 use tokio::sync::watch::Receiver;
 use nalgebra as na;
@@ -17,8 +17,8 @@ pub struct Keyframes {
 }
 
 impl Keyframes {
-    pub fn new(owner: TRef<Node>, path: String, client: &GrpcClient) -> Self {
-        let keyframes = client.watch_keyframes();
+    pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
+        let keyframes = context.client.read().unwrap().watch_keyframes();
         let geometry = ImmediateGeometry::new();
         let geometry_name = "keyframes_component";
         let geometry_path = format!("{}/{}", path, geometry_name);

@@ -1,7 +1,7 @@
 use gdnative::api::*;
 use gdnative::prelude::*;
 
-use crate::grpc_client::GrpcClient;
+use crate::components::Context;
 use crate::utils::iso3_to_gd;
 use tokio;
 type Iso3 = nalgebra::Isometry3<f64>;
@@ -16,8 +16,8 @@ pub struct CameraPose {
 }
 
 impl CameraPose {
-    pub fn new(owner: TRef<Node>, path: String, client: &GrpcClient) -> Self {
-        let camera_pose = client.watch_camera_pose();
+    pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
+        let camera_pose = context.client.read().unwrap().watch_camera_pose();
         let mesh_name = "camera_pose_box";
         let mesh_path = format!("{}/{}", path, mesh_name);
         let mesh = CSGBox::new();

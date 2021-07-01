@@ -3,7 +3,6 @@ use crossbeam_channel::{select, tick, unbounded, Sender};
 use nalgebra as na;
 use std::thread;
 use std::time::{Duration, Instant};
-use zmq;
 
 type Iso3 = na::Isometry3<f64>;
 
@@ -171,11 +170,11 @@ impl Navigator {
         let (send_tracker_state, recv_tracker_state) = unbounded();
         let (send_slam_scale, recv_slam_scale) = unbounded();
 
-        let context = zmq::Context::new();
-        let publisher = context.socket(zmq::PUB).unwrap();
-        publisher
-            .bind("tcp://*:5567")
-            .expect("failed binding publisher");
+        // let context = zmq::Context::new();
+        // let publisher = context.socket(zmq::PUB).unwrap();
+        // publisher
+        //     .bind("tcp://*:5567")
+        //     .expect("failed binding publisher");
 
         let mut state = NavState::new();
 
@@ -192,7 +191,7 @@ impl Navigator {
                     recv(ticker) -> _ => {
                         state.step();
                         let cmd = format!("{},{}", state.speed.0, state.speed.1);
-                        publisher.send(&cmd, 0).expect("failed to send cmd");
+                        // publisher.send(&cmd, 0).expect("failed to send cmd");
                     },
                 }
             }

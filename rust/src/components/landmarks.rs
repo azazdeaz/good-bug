@@ -17,7 +17,7 @@ pub struct Landmarks {
 
 impl Landmarks {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let landmarks = context.client.read().unwrap().watch_landmarks();
+        let landmarks = context.use_client(|c| c.watch_landmarks());
         let geometry = ImmediateGeometry::new();
         let geometry_name = "landmarks_component";
         let geometry_path = format!("{}/{}", path, geometry_name);

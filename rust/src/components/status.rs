@@ -16,7 +16,7 @@ pub struct Status {
 
 impl Status {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let tracking_state = context.client.read().unwrap().watch_tracking_state();
+        let tracking_state = context.use_client(|c| c.watch_tracking_state());
 
         let panel = PanelContainer::new();
         let panel_name = "status";

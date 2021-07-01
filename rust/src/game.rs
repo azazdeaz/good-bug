@@ -336,10 +336,7 @@ impl Game {
             rx: None,
             navigator: navigator::Navigator::new(),
             components: Vec::new(),
-            context: components::context::Context::new(
-                signal_map::SignalMap::new(),
-                grpc_client::GrpcClient::new(),
-            ),
+            context: components::context::Context::new(),
         };
         godot_print!("build game");
         game
@@ -377,7 +374,7 @@ impl Game {
         let right = (right * 100.).floor() / 100.;
         // self.navigator.send_teleop_speed.send((left, right));
         // self.values.speed = Some((left, right));
-        self.context.client.read().unwrap().set_speed(left, right);
+        // self.context.use_client(move |c| c.set_speed(left, right));
     }
 
     #[export]

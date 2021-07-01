@@ -15,7 +15,7 @@ pub struct Frame {
 
 impl Frame {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let frame = context.client.read().unwrap().watch_frame();
+        let frame = context.use_client(|c| c.watch_frame());
 
         let panel = Sprite::new();
         let panel_name = "panel";

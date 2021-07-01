@@ -32,8 +32,9 @@ impl MapHandler {
             let client = Arc::clone(&context.client);
             context.runtime().spawn(async move {
                 while let Some(_) = recv_pressed.recv().await {
-                    println!("Clicked");
-                    client.read().unwrap().watch_frame();
+                    println!("Saving Map...");
+                    let client = client.read().await;
+                    client.save_map_db("map.db".into()).await;
                 }
             });
         }

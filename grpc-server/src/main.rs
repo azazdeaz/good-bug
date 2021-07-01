@@ -47,6 +47,15 @@ impl Greeter for MyGreeter {
         Ok(Response::new(Empty::default()))
     }
 
+    async fn save_map_db(
+        &self,
+        request: Request<Serde>,
+    ) -> Result<Response<Empty>, Status> {
+        let path: String = serde_json::from_str(&request.into_inner().json).unwrap();
+        self.slam.save_map_db(path).await;
+        Ok(Response::new(Empty::default()))
+    }
+
     type StreamCameraPositionStream = ReceiverStream<Result<Serde, Status>>;
     async fn stream_camera_position(
         &self,
@@ -74,7 +83,6 @@ impl Greeter for MyGreeter {
         tokio::spawn(async move {
             while let Some(landmarks) = stream.next().await {
                 let json = serde_json::to_string(&landmarks).unwrap();
-                println!("convered {:?} -> {}", landmarks, json);
                 let msg = Serde { json };
                 tx.send(Ok(msg)).await.unwrap();
             }
@@ -92,7 +100,6 @@ impl Greeter for MyGreeter {
         tokio::spawn(async move {
             while let Some(keyframes) = stream.next().await {
                 let json = serde_json::to_string(&keyframes).unwrap();
-                println!("convered {:?} -> {}", keyframes, json);
                 let msg = Serde { json };
                 tx.send(Ok(msg)).await.unwrap();
             }
@@ -110,7 +117,6 @@ impl Greeter for MyGreeter {
         tokio::spawn(async move {
             while let Some(tracking_state) = stream.next().await {
                 let json = serde_json::to_string(&tracking_state).unwrap();
-                println!("convered {:?} -> {}", tracking_state, json);
                 let msg = Serde { json };
                 tx.send(Ok(msg)).await.unwrap();
             }

@@ -213,6 +213,16 @@ impl OpenVSlamWrapper {
         println!("{:?}", rx.await);
     }
 
+    pub async fn save_map_db(&self, path: String) {
+        let request =
+            pb::request::Msg::SaveMapDb(pb::request::SaveMapDb { path });
+        let (callback, rx) = oneshot::channel();
+        let sender = self.request_sender.lock().await;
+        println!("{:?}", sender.send(ApiRequest { request, callback }));
+
+        println!("{:?}", rx.await);
+    }
+
     pub fn stream_position(&self) -> WatchStream<Option<Iso3>> {
         WatchStream::new(self.camera_position_receiver.clone())
     }

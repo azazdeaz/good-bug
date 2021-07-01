@@ -1,6 +1,6 @@
 use hello_world::greeter_client::GreeterClient;
-use hello_world::{Speed, Empty};
-use tokio::{runtime::Runtime, sync::{watch,Mutex}, time::{sleep, Duration}};
+use hello_world::{Speed, Empty, Serde};
+use tokio::{runtime::Handle, sync::{watch,Mutex}, time::{sleep, Duration}};
 use std::sync::{Arc};
 use common::types::{Keyframe, Landmark, TrackingState};
 
@@ -10,16 +10,17 @@ pub mod hello_world {
 }
 
 pub struct GrpcClient {
-    rt: Runtime,
+    pub rt: Handle,
     client: Arc<Mutex<GreeterClient<tonic::transport::Channel>>>,
 }
+
+unsafe impl Send for GrpcClient {}
 
 
 
 impl GrpcClient {
-    pub fn new() -> Self {
+    pub fn new(rt: Handle) -> Self {
         println!("Creating GRPC client!!!!");
-        let rt = Runtime::new().unwrap();
         let client = rt.block_on(async {
             // TODO load this from conf
             let dst = "http://127.0.0.1:50051";
@@ -60,6 +61,16 @@ impl GrpcClient {
     //     }); 
     //     rx
     // }
+
+    pub async fn save_map_db(&self, path: String) {
+        let client = Arc::clone(&self.client);
+        println!("REQUESTING {}", path);
+        let request = tonic::Request::new(Serde { json: serde_json::to_string(&path).unwrap() });
+
+        let response = client.lock().await.save_map_db(request).await.unwrap();
+
+        println!("RESPONSE={:?}", response);
+    }
 
     pub fn set_speed(&self, left: f64, right: f64) {
         let client = Arc::clone(&self.client);

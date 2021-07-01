@@ -17,7 +17,7 @@ pub struct CameraPose {
 
 impl CameraPose {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let camera_pose = context.client.read().unwrap().watch_camera_pose();
+        let camera_pose = context.use_client(|c| c.watch_camera_pose());
         let mesh_name = "camera_pose_box";
         let mesh_path = format!("{}/{}", path, mesh_name);
         let mesh = CSGBox::new();

@@ -18,7 +18,7 @@ pub struct Keyframes {
 
 impl Keyframes {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let keyframes = context.client.read().unwrap().watch_keyframes();
+        let keyframes = context.use_client(|c| c.watch_keyframes());
         let geometry = ImmediateGeometry::new();
         let geometry_name = "keyframes_component";
         let geometry_path = format!("{}/{}", path, geometry_name);

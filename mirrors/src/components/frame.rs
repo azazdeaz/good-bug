@@ -21,6 +21,7 @@ impl Frame {
         let panel_name = "panel";
         let panel_path = format!("{}/{}", path, panel_name);
         panel.set_name(panel_name);
+        panel.set_centered(false);
         
         get_node::<Node>(&*owner, path).add_child(panel, false);
 

@@ -74,6 +74,7 @@ struct Values {
     slam_scale: f64,
 }
 
+use std::ops::Deref;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread::spawn;
@@ -343,6 +344,32 @@ impl Game {
     }
 
     #[export]
+    fn _input(&self, owner: &Node, event: Ref<InputEvent>) {
+        use common::types::{ InJoyMotion, InJoyButton, GDInput };
+        let event = unsafe {
+            let event = event.assume_safe();
+            if let Some(event) = event.cast::<InputEventJoypadMotion>() {
+                Some(GDInput::JoyMotion(InJoyMotion { 
+                    axis: event.axis(),
+                    axis_value: event.axis_value(),
+                }))
+            }
+            else if let Some(event) = event.cast::<InputEventJoypadButton>() {
+                Some(GDInput::JoyButton(InJoyButton { 
+                    button_index: event.button_index(),
+                    pressed: event.is_pressed(),
+                }))
+            }
+            else {
+                None
+            }
+        };
+        if let Some(event) = event {
+            self.context.send_input(event);
+        }
+    }
+
+    #[export]
     fn signal_map_callback(&mut self, owner: TRef<Node>, id: u32) {
         self.context.signal_map.callback(id);
     }
@@ -365,16 +392,6 @@ impl Game {
         godot_print!("follow_target {}", on);
         self.values.follow_target = on;
         self.navigator.send_self_drive_enabled.send(on);
-    }
-
-    #[export]
-    fn set_speed(&mut self, owner: TRef<Node>, left: f64, right: f64) {
-        println!("-REQUESTING {} {}", left, right);
-        let left = (left * 100.).floor() / 100.;
-        let right = (right * 100.).floor() / 100.;
-        // self.navigator.send_teleop_speed.send((left, right));
-        // self.values.speed = Some((left, right));
-        // self.context.use_client(move |c| c.set_speed(left, right));
     }
 
     #[export]
@@ -485,12 +502,17 @@ impl Game {
         )));
         self.components.push(Box::new(components::Status::new(
             owner,
-            "GUI".into(),
+            "GUI/VBox".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::MapHandler::new(
             owner,
-            "GUI".into(),
+            "GUI/VBox".into(),
+            &mut self.context,
+        )));
+        self.components.push(Box::new(components::Teleop::new(
+            owner,
+            "GUI/VBox".into(),
             &mut self.context,
         )));
 
@@ -505,60 +527,60 @@ impl Game {
             }
         }
 
-        find_node::<CheckButton>(owner, "ConnectionBtn".into())
-            .connect(
-                "toggled",
-                owner,
-                "toggle_connection",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
+    //     find_node::<CheckButton>(owner, "ConnectionBtn".into())
+    //         .connect(
+    //             "toggled",
+    //             owner,
+    //             "toggle_connection",
+    //             VariantArray::new_shared(),
+    //             0,
+    //         )
+    //         .unwrap();
 
-        owner
-            .find_node("ScaleSlider", true, true)
-            .unwrap()
-            .assume_safe()
-            .cast::<HSlider>()
-            .unwrap()
-            .connect(
-                "value_changed",
-                owner,
-                "set_scale_factor",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
+    //     owner
+    //         .find_node("ScaleSlider", true, true)
+    //         .unwrap()
+    //         .assume_safe()
+    //         .cast::<HSlider>()
+    //         .unwrap()
+    //         .connect(
+    //             "value_changed",
+    //             owner,
+    //             "set_scale_factor",
+    //             VariantArray::new_shared(),
+    //             0,
+    //         )
+    //         .unwrap();
 
-        owner
-            .find_node("MinLandmarks", true, true)
-            .unwrap()
-            .assume_safe()
-            .cast::<HSlider>()
-            .unwrap()
-            .connect(
-                "value_changed",
-                owner,
-                "set_min_lm_obs",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
+    //     owner
+    //         .find_node("MinLandmarks", true, true)
+    //         .unwrap()
+    //         .assume_safe()
+    //         .cast::<HSlider>()
+    //         .unwrap()
+    //         .connect(
+    //             "value_changed",
+    //             owner,
+    //             "set_min_lm_obs",
+    //             VariantArray::new_shared(),
+    //             0,
+    //         )
+    //         .unwrap();
 
-        owner
-            .find_node("EstimateScaleBtn", true, true)
-            .unwrap()
-            .assume_safe()
-            .cast::<Button>()
-            .unwrap()
-            .connect(
-                "pressed",
-                owner,
-                "estimate_scale",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
+    //     owner
+    //         .find_node("EstimateScaleBtn", true, true)
+    //         .unwrap()
+    //         .assume_safe()
+    //         .cast::<Button>()
+    //         .unwrap()
+    //         .connect(
+    //             "pressed",
+    //             owner,
+    //             "estimate_scale",
+    //             VariantArray::new_shared(),
+    //             0,
+    //         )
+    //         .unwrap();
     }
 
     #[export]
@@ -804,14 +826,14 @@ impl Game {
         // let speed = 0.3;
         // let turn_speed = 0.5;
 
-        let get_label = |path| {
-            owner
-                .get_node(path)
-                .unwrap()
-                .assume_safe()
-                .cast::<Label>()
-                .unwrap()
-        };
+        // let get_label = |path| {
+        //     owner
+        //         .get_node(path)
+        //         .unwrap()
+        //         .assume_safe()
+        //         .cast::<Label>()
+        //         .unwrap()
+        // };
 
         // let go = |left, right, time| {
         //     let mut cmd = format!("{},{}", left, right);
@@ -875,7 +897,7 @@ impl Game {
         //     }
         // }
 
-        get_label("GUI/TrackerState").set_text(format!("{:?}", self.values.tracker_state));
+        // get_label("GUI/TrackerState").set_text(format!("{:?}", self.values.tracker_state));
         // let labelNode: Label = owner.get_node(gd::NodePath::from_str("/root/GUI/SpeedRight")).unwrap().cast::<Label>();
         // labelNode.set_text(format!("{}", SpeedRight));
         // godot_print!("{}", cmd);

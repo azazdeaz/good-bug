@@ -23,8 +23,9 @@ impl GrpcClient {
         println!("Creating GRPC client!!!!");
         let client = rt.block_on(async {
             // TODO load this from conf
-            let dst = "http://127.0.0.1:50051";
+            // let dst = "http://127.0.0.1:50051";
             // let dst = "http://192.168.50.19:50051";
+            let dst = "http://192.168.43.40:50051";
             let conn = tonic::transport::Endpoint::new(dst).unwrap().connect_lazy().unwrap();
             let client = GreeterClient::new(conn);
             Arc::new(Mutex::new(client))
@@ -72,16 +73,15 @@ impl GrpcClient {
         println!("RESPONSE={:?}", response);
     }
 
-    pub fn set_speed(&self, left: f64, right: f64) {
+    pub async fn set_speed(&self, left: f64, right: f64) {
         let client = Arc::clone(&self.client);
-        self.rt.block_on(async {
-            println!("REQUESTING {} {}", left, right);
-            let request = tonic::Request::new(Speed { left: left as f32, right: right as f32 });
+        println!("REQUESTING {} {}", left, right);
+        let request = tonic::Request::new(Speed { left: left as f32, right: right as f32 });
 
-            let response = client.lock().await.set_speed(request).await.unwrap();
-
-            println!("RESPONSE={:?}", response);
-        });
+        let mut client = client.lock().await;
+        if let Err(e) = client.set_speed(request).await {
+            println!("Failed to send speed message to grpc server {:?}", e);
+        }
     }
 
     pub fn watch_camera_pose(&self) -> watch::Receiver<Option<Iso3>> {

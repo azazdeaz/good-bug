@@ -1,23 +1,15 @@
-[gd_scene load_steps=22 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
 [ext_resource path="res://scenes/StaticBody.gd" type="Script" id=3]
-[ext_resource path="res://scenes/JoiHandler.gd" type="Script" id=4]
-[ext_resource path="res://scenes/Thumb.gd" type="Script" id=5]
 [ext_resource path="res://scenes/CurrentFrame.gd" type="Script" id=6]
 [ext_resource path="res://addons/goutte.camera.trackball/trackball_camera.gd" type="Script" id=7]
-[ext_resource path="res://scenes/ShowMessages.vs" type="Script" id=8]
 [ext_resource path="res://scenes/Keyframes.gd" type="Script" id=9]
 [ext_resource path="res://scenes/Edges.gd" type="Script" id=10]
 [ext_resource path="res://scenes/Landmarks.gd" type="Script" id=11]
-[ext_resource path="res://scenes/SendTerminate.gd" type="Script" id=12]
-[ext_resource path="res://scenes/ExpandButton.gd" type="Script" id=13]
-[ext_resource path="res://scenes/Fps.gd" type="Script" id=14]
 [ext_resource path="res://scenes/PoseGTMat.tres" type="Material" id=15]
 [ext_resource path="res://PoseMarker.tscn" type="PackedScene" id=16]
-
-[sub_resource type="ImageTexture" id=1]
 
 [sub_resource type="PlaneMesh" id=2]
 
@@ -41,132 +33,19 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="RichTextLabel" type="RichTextLabel" parent="GUI"]
-margin_right = 248.0
-margin_bottom = 132.0
-focus_mode = 2
-text = "waiting for messages..."
-scroll_following = true
-selection_enabled = true
-script = ExtResource( 8 )
+[node name="VBox" type="VBoxContainer" parent="GUI"]
+margin_left = 1175.34
+margin_top = 2.75507
+margin_right = 1280.34
+margin_bottom = 120.755
 __meta__ = {
 "_edit_use_anchors_": false
 }
-
-[node name="Speed" type="Label" parent="GUI"]
-margin_left = 272.218
-margin_top = 4.0
-margin_right = 364.218
-margin_bottom = 18.0
-text = "0.0000000000"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="TrackerState" type="Label" parent="GUI"]
-margin_left = 272.218
-margin_top = 20.0
-margin_right = 364.218
-margin_bottom = 34.0
-text = "0.0000000000"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Cam" type="Panel" parent="GUI"]
-anchor_bottom = 1.0
-margin_left = 8.91699
-margin_top = 113.181
-margin_right = 648.917
-margin_bottom = 553.181
-grow_vertical = 0
-rect_scale = Vector2( 0.3, 0.3 )
-rect_pivot_offset = Vector2( 0, 480 )
-script = ExtResource( 5 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Thumb" type="Sprite" parent="GUI/Cam"]
-texture = SubResource( 1 )
-centered = false
-
-[node name="Button" type="Button" parent="GUI"]
-margin_left = 14.4647
-margin_top = 567.073
-margin_right = 42.4647
-margin_bottom = 587.073
-text = "<>"
-script = ExtResource( 13 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="RichTextLabel2" type="RichTextLabel" parent="GUI"]
-margin_left = 235.451
-margin_top = 201.815
-margin_right = 275.451
-margin_bottom = 241.815
-text = "FPS"
-script = ExtResource( 14 )
-
-[node name="ScaleSlider" type="HSlider" parent="GUI"]
-margin_left = 1.87869
-margin_top = 135.983
-margin_right = 190.879
-margin_bottom = 155.983
-max_value = 10.0
-step = 0.1
-value = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="MinLandmarks" type="HSlider" parent="GUI"]
-margin_left = 1.87869
-margin_top = 167.096
-margin_right = 190.879
-margin_bottom = 187.096
-value = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="TerminateBtn" type="Button" parent="GUI"]
-margin_left = 273.0
-margin_top = 45.0
-margin_right = 357.0
-margin_bottom = 65.0
-text = "TERMINATE"
-script = ExtResource( 12 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="EstimateScaleBtn" type="Button" parent="GUI"]
-margin_left = 273.0
-margin_top = 75.4057
-margin_right = 357.0
-margin_bottom = 95.4057
-text = "Estimate Scale"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="ConnectionBtn" type="CheckButton" parent="GUI"]
-margin_left = 260.923
-margin_top = 106.066
-margin_right = 407.923
-margin_bottom = 146.066
-pressed = true
-text = "connected"
-flat = true
 
 [node name="Spatial" type="Spatial" parent="."]
-script = ExtResource( 4 )
 
 [node name="Ground" type="CSGMesh" parent="Spatial"]
-transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
+transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, -0.291, 0 )
 mesh = SubResource( 2 )
 material = ExtResource( 2 )
 
@@ -241,8 +120,5 @@ material_override = ExtResource( 15 )
 width = 0.5
 height = 0.5
 depth = 0.5
-[connection signal="message" from="." to="GUI/RichTextLabel" method="_on_Game_message"]
-[connection signal="pressed" from="GUI/Button" to="GUI/Button" method="_on_Button_pressed"]
-[connection signal="pressed" from="GUI/TerminateBtn" to="GUI/TerminateBtn" method="_on_TerminateBtn_pressed"]
 
 [editable path="Spatial/RosFrame/GTPose/GTPose"]

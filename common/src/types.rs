@@ -24,3 +24,19 @@ pub enum TrackingState {
     Tracking,
     Lost,
 }
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct InJoyMotion {
+    pub axis: i64,
+    pub axis_value: f64,
+}
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct InJoyButton {
+    pub button_index: i64,
+    pub pressed: bool,
+}
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum GDInput {
+    JoyMotion(InJoyMotion),
+    JoyButton(InJoyButton),
+}

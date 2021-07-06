@@ -7,8 +7,7 @@ use tokio::sync::{oneshot, watch, Mutex};
 use tokio_stream::{wrappers::WatchStream};
 
 use nalgebra as na;
-type Iso3 = na::Isometry3<f64>;
-use common::types::{Keyframe, Landmark, TrackingState};
+use common::types::{Keyframe, Landmark, TrackingState, Iso3, Point3};
 
 // fn mat44_to_iso3(m: pb::stream::Mat44) -> Iso3 {
 //     let translation = na::Translation3::new(m.m14, m.m24, m.m34);
@@ -128,6 +127,16 @@ impl OpenVSlamWrapper {
                 .connect("ipc:///tmp/openvslam_wrapper_ipc_stream")
                 .expect("failed to connect OpenVSlam response socket");
 
+            // Convert OpenVSlam coordinate frame (right-hand y-down z-ahead) to right-hand y-up z-back
+            let rot_z_up = na::Rotation3::new(na::Vector3::x() * std::f64::consts::PI);
+            let iso_z_up = Iso3::from_parts(na::Translation3::identity(), rot_z_up.into());
+            let z_up_point = |p|-> Point3 {
+                rot_z_up * p
+            };
+            let z_up_iso = |iso: Iso3| -> Iso3 {
+                iso_z_up * iso
+            };
+
             loop {
                 let message = stream
                     .recv_bytes(0)
@@ -139,7 +148,7 @@ impl OpenVSlamWrapper {
                     match msg {
                         pb::stream::Msg::CameraPosition(transform) => {
                             camera_position_sender
-                                .send(Some(mat44_to_iso3(&transform)))
+                                .send(Some(z_up_iso(mat44_to_iso3(&transform))))
                                 .unwrap();
                         }
                         pb::stream::Msg::Landmarks(landmarks) => {
@@ -147,10 +156,8 @@ impl OpenVSlamWrapper {
                                 .landmarks
                                 .iter()
                                 .map(|lm| Landmark {
-                                    id: lm.id,
-                                    x: lm.x,
-                                    y: lm.y,
-                                    z: lm.z,
+                                    id: lm.id, 
+                                    point: z_up_point(Point3::new(lm.x, lm.y, lm.z)),
                                     num_observations: lm.num_observations,
                                 })
                                 .collect();
@@ -161,7 +168,7 @@ impl OpenVSlamWrapper {
                                 let pose_mat = pb_keyframe.pose.as_ref().expect("pose in keyframe can't be empty");
                                 Keyframe {
                                     id: pb_keyframe.id,
-                                    pose: mat44_to_iso3(pose_mat),
+                                    pose: z_up_iso(mat44_to_iso3(pose_mat)),
                                 }
                             }).collect();
                             keyframes_sender.send(keyframes).unwrap();

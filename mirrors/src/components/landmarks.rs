@@ -68,9 +68,9 @@ impl Updatable for Landmarks {
                 Color::rgb(color[0] as f32, color[1] as f32, color[2] as f32);
             
             let point = Vector3::new(
-                landmark.x as f32,
-                landmark.y as f32,
-                landmark.z as f32,
+                landmark.point.x as f32,
+                landmark.point.y as f32,
+                landmark.point.z as f32,
             );
             landmark_mesh.set_color(color);
             landmark_mesh.add_vertex(point);

@@ -1,4 +1,5 @@
 use gdnative::api::*;
+use gdnative::api::texture_rect::StretchMode;
 use gdnative::prelude::*;
 
 use crate::components::Context;
@@ -17,11 +18,15 @@ impl Frame {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let frame = context.use_client(|c| c.watch_frame());
 
-        let panel = Sprite::new();
+        let panel = TextureRect::new();
         let panel_name = "panel";
         let panel_path = format!("{}/{}", path, panel_name);
         panel.set_name(panel_name);
-        panel.set_centered(false);
+        panel.set_expand(true);
+        panel.set_stretch_mode(StretchMode::KEEP_ASPECT.into());
+        panel.set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        panel.set_v_size_flags(Control::SIZE_EXPAND_FILL);
+        // panel.set_centered(false);
         
         get_node::<Node>(&*owner, path).add_child(panel, false);
 
@@ -36,7 +41,7 @@ impl Frame {
 impl Updatable for Frame {
     fn update(&self, owner: &Node) {
         if let Some(frame) = &*self.frame.borrow() {
-            let panel = get_node::<Sprite>(owner, self.panel_path.clone());
+            let panel = get_node::<TextureRect>(owner, self.panel_path.clone());
             let im = Image::new();
             im.load_jpg_from_buffer(TypedArray::from_vec(frame.clone())).expect("failed to load jpeg with godot");
             // im.create_from_data(1280, 960, true, Image::FORMAT_RGB8, TypedArray::from_vec(pixels));

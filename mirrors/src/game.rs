@@ -497,7 +497,7 @@ impl Game {
         )));
         self.components.push(Box::new(components::Frame::new(
             owner,
-            "GUI".into(),
+            "GUI/VBox".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::Status::new(

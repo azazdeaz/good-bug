@@ -1,52 +1,42 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
 [ext_resource path="res://scenes/StaticBody.gd" type="Script" id=3]
-[ext_resource path="res://scenes/CurrentFrame.gd" type="Script" id=6]
 [ext_resource path="res://addons/goutte.camera.trackball/trackball_camera.gd" type="Script" id=7]
-[ext_resource path="res://scenes/Keyframes.gd" type="Script" id=9]
-[ext_resource path="res://scenes/Edges.gd" type="Script" id=10]
-[ext_resource path="res://scenes/Landmarks.gd" type="Script" id=11]
-[ext_resource path="res://scenes/PoseGTMat.tres" type="Material" id=15]
-[ext_resource path="res://PoseMarker.tscn" type="PackedScene" id=16]
 
-[sub_resource type="PlaneMesh" id=2]
+[sub_resource type="PlaneMesh" id=1]
 
-[sub_resource type="BoxShape" id=3]
-
-[sub_resource type="SpatialMaterial" id=4]
-flags_use_point_size = true
-params_point_size = 4.9
-albedo_color = Color( 0.329412, 0.87451, 0.231373, 1 )
-
-[sub_resource type="SpatialMaterial" id=5]
-albedo_color = Color( 0.670588, 0.0509804, 0.0509804, 1 )
+[sub_resource type="BoxShape" id=2]
 
 [node name="Game" type="Node"]
 script = ExtResource( 1 )
 
-[node name="GUI" type="Control" parent="."]
-margin_right = 40.0
-margin_bottom = 40.0
+[node name="GUI" type="HSplitContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+split_offset = 240
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="VBox" type="VBoxContainer" parent="GUI"]
-margin_left = 1175.34
-margin_top = 2.75507
-margin_right = 1280.34
-margin_bottom = 120.755
+margin_right = 240.0
+margin_bottom = 960.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Control" type="Control" parent="GUI"]
+margin_left = 252.0
+margin_right = 1280.0
+margin_bottom = 960.0
 
 [node name="Spatial" type="Spatial" parent="."]
 
 [node name="Ground" type="CSGMesh" parent="Spatial"]
 transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, -0.291, 0 )
-mesh = SubResource( 2 )
+mesh = SubResource( 1 )
 material = ExtResource( 2 )
 
 [node name="StaticBody" type="StaticBody" parent="Spatial/Ground"]
@@ -55,70 +45,12 @@ script = ExtResource( 3 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Spatial/Ground/StaticBody"]
 transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
-shape = SubResource( 3 )
+shape = SubResource( 2 )
 
-[node name="Frames" type="Spatial" parent="Spatial"]
-transform = Transform( -1, -3.25841e-07, 0, 3.25841e-07, -1, 0, 0, 0, 1, 0, 0, 0 )
+[node name="CamTarget" type="Spatial" parent="Spatial"]
 
-[node name="CamTarget" type="Spatial" parent="Spatial/Frames"]
-transform = Transform( -1, 3.25841e-07, 0, -3.25841e-07, -1, 0, 0, 0, 1, 0, 0, 0 )
-
-[node name="TrackballCamera" type="Camera" parent="Spatial/Frames/CamTarget"]
+[node name="TrackballCamera" type="Camera" parent="Spatial/CamTarget"]
 transform = Transform( 1, 0, 0, 0, 0.900448, 0.434964, 0, -0.434964, 0.900448, 0, 7.09434, 13.972 )
 script = ExtResource( 7 )
 stabilize_horizon = true
 joystick_enabled = false
-
-[node name="Landmarks" type="ImmediateGeometry" parent="Spatial/Frames"]
-layers = 2147483649
-material_override = SubResource( 4 )
-script = ExtResource( 11 )
-
-[node name="Frames" type="ImmediateGeometry" parent="Spatial/Frames"]
-script = ExtResource( 9 )
-
-[node name="Edges" type="ImmediateGeometry" parent="Spatial/Frames"]
-script = ExtResource( 10 )
-
-[node name="CurrentFrame" type="ImmediateGeometry" parent="Spatial/Frames"]
-script = ExtResource( 6 )
-
-[node name="Goal" type="CSGSphere" parent="Spatial/Frames"]
-transform = Transform( -1, -3.25841e-07, 0, 3.25841e-07, -1, 0, 0, 0, 1, 0, 0, 0 )
-radius = 0.178096
-material = SubResource( 5 )
-
-[node name="Zero" type="CSGSphere" parent="Spatial/Frames"]
-transform = Transform( -1, -3.25841e-07, 0, 3.25841e-07, -1, 0, 0, 0, 1, 0, 0, 0 )
-radius = 0.1
-
-[node name="CurrentPose" parent="Spatial/Frames" instance=ExtResource( 16 )]
-
-[node name="BasePose" type="CSGBox" parent="Spatial/Frames"]
-material_override = ExtResource( 15 )
-width = 0.325132
-height = 0.0786763
-depth = 0.5
-
-[node name="RosFrame" type="Spatial" parent="Spatial"]
-visible = false
-
-[node name="GTPose" type="Spatial" parent="Spatial/RosFrame"]
-
-[node name="GTPose" parent="Spatial/RosFrame/GTPose" instance=ExtResource( 16 )]
-transform = Transform( 2.84217e-14, -1.62921e-07, 1, -1, -1.62921e-07, 0, 1.62921e-07, -1, -1.62921e-07, 0, 0, 0 )
-
-[node name="CSGMesh" parent="Spatial/RosFrame/GTPose/GTPose/Scaler" index="0"]
-material = ExtResource( 15 )
-
-[node name="CSGMesh2" parent="Spatial/RosFrame/GTPose/GTPose/Scaler" index="1"]
-material = ExtResource( 15 )
-
-[node name="Marker" type="CSGBox" parent="Spatial"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10.3837 )
-material_override = ExtResource( 15 )
-width = 0.5
-height = 0.5
-depth = 0.5
-
-[editable path="Spatial/RosFrame/GTPose/GTPose"]

@@ -90,18 +90,14 @@ impl OpenVSlamWrapper {
             loop {
                 let api_request = request_receiver.recv();
                 {
-                    println!("send 0");
                     if let Ok(api_request) = api_request {
                         let mut msg = pb::Request::default();
                         msg.msg = Some(api_request.request);
                         let mut buf = Vec::new();
                         buf.reserve(msg.encoded_len());
                         msg.encode(&mut buf).expect("failed to encode message");
-                        println!("send 1 {:?}", buf);
                         req.send(&buf, 0).expect("failed to send request");
-                        println!("send 2");
                         let response = req.recv_bytes(0).expect("failed to receive response");
-                        println!("send 3");
                         let response = pb::Response::decode(&mut Cursor::new(response))
                             .expect("failed to decode response");
                         let _ = api_request.callback.send(response);

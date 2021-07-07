@@ -7,7 +7,7 @@ use tokio_stream::StreamExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let api = Arc::new(Mutex::new(OpenVSlamWrapper::new()));
+    let api = Arc::new(Mutex::new(OpenVSlamWrapper::new()?));
     println!("api started");
 
     {

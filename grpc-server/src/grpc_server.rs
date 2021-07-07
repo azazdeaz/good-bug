@@ -22,10 +22,10 @@ pub struct MyGreeter {
 }
 
 impl MyGreeter {
-    async fn new() -> tokio::io::Result<Self> {
+    async fn new() -> anyhow::Result<Self> {
         Ok(MyGreeter {
             wheels: Arc::new(Wheels::new().await?),
-            slam: openvslam_wrap::OpenVSlamWrapper::new(),
+            slam: openvslam_wrap::OpenVSlamWrapper::new()?,
         })
     }
 }

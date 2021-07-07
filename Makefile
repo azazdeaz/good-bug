@@ -179,7 +179,7 @@ run:
 
 run-release:
 	make build-x86_64-unknown-linux-gnu-release
-	godot --path godot/ -d
+	CONFIG_ROOT="../config" godot --path godot/ -d
 
 shell:
 	nix-shell --pure
@@ -190,3 +190,6 @@ test: clean
 
 build-rover:
 	cargo build -p common -p drivers -p grpc-server -p openvslam-wrap
+
+run-rover-release:
+	cargo run --release --bin grpc-server

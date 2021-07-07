@@ -1,0 +1,8 @@
+grpc_port = 50051
+# rover_address = "192.168.50.19"
+rover_address = "127.0.0.1"
+
+[slam]
+openvslam_config = "slam/dataset/aist_living_lab_1/config.yaml"
+vocab = "slam/orb_vocab.fbow"
+video = "slam/dataset/aist_living_lab_1/video.mp4"

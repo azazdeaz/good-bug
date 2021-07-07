@@ -7,7 +7,7 @@ use tokio::sync::{oneshot, watch, Mutex};
 use tokio_stream::{wrappers::WatchStream};
 
 use nalgebra as na;
-use common::types::{Keyframe, Landmark, TrackingState, Iso3, Point3};
+use common::{types::{Keyframe, Landmark, TrackingState, Iso3, Point3}, settings::Settings};
 
 // fn mat44_to_iso3(m: pb::stream::Mat44) -> Iso3 {
 //     let translation = na::Translation3::new(m.m14, m.m24, m.m34);
@@ -59,7 +59,8 @@ fn get_path(path: &str) -> String {
 }
 
 impl OpenVSlamWrapper {
-    pub fn new() -> Self {
+    pub fn new() -> anyhow::Result<Self> {
+        let settings = Settings::new()?;
         let (request_sender, mut request_receiver) = mpsc::channel::<ApiRequest>();
         let mut openvslam_process = {
             let bin = get_path("openvslam/build/run_api");
@@ -67,15 +68,18 @@ impl OpenVSlamWrapper {
             let mut cmd = Command::new(bin);
             cmd.stdin(Stdio::null());
 
-            let config = get_path("config/dataset/aist_living_lab_1/config.yaml");
-            // let config = get_path("config/cfg.yaml");
+            let config = settings.slam.openvslam_config;
+            // let config = "config/cfg.yaml";
             cmd.arg("-c").arg(config);
 
-            let vocab = get_path("config/orb_vocab.fbow");
+            let vocab = settings.slam.vocab;
             cmd.arg("-v").arg(vocab);
 
-            let video = get_path("config/dataset/aist_living_lab_1/video.mp4");
-            cmd.arg("-m").arg(video);
+            if let Some(video) = settings.slam.video {
+                let video = video;
+                cmd.arg("-m").arg(video);
+            }
+            
 
             cmd.spawn().expect("failed to start OpenVSlam")
         };
@@ -195,7 +199,7 @@ impl OpenVSlamWrapper {
 
         let request_sender = Arc::new(Mutex::new(request_sender));
         let thread = Arc::new(Mutex::new(thread));
-        OpenVSlamWrapper {
+        Ok(OpenVSlamWrapper {
             request_sender,
             thread,
             camera_position_receiver,
@@ -203,7 +207,7 @@ impl OpenVSlamWrapper {
             keyframes_receiver,
             tracking_state_receiver,
             frame_receiver,
-        }
+        })
     }
 
     pub async fn terminate(&self) {

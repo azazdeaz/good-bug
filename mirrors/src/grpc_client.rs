@@ -19,21 +19,19 @@ unsafe impl Send for GrpcClient {}
 
 
 impl GrpcClient {
-    pub fn new(rt: Handle) -> Self {
+    pub fn new(rt: Handle) -> anyhow::Result<Self> {
         println!("Creating GRPC client!!!!");
-        let settings = Settings::new();
+        let settings = Settings::new()?;
         let client = rt.block_on(async {
             // TODO load this from conf
             let dst = format!("http://{}:{}", settings.rover_address, settings.grpc_port);
-            // let dst = "http://192.168.50.19:50051";
-            let dst = "http://192.168.43.40:50051";
             let conn = tonic::transport::Endpoint::new(dst).unwrap().connect_lazy().unwrap();
             let client = GreeterClient::new(conn);
             Arc::new(Mutex::new(client))
         });
         println!("Created GRPC client!!!!");
         
-        GrpcClient { rt, client }
+        Ok(GrpcClient { rt, client })
     }
 
     // fn create_watch<T: Default + DeserializeOwned + Debug + Send + Sync>(&self, send_request: fn(client: MutexGuard<GreeterClient<Channel>>) -> Result<Response<Streaming<Serde>>, Status>) -> watch::Receiver<T> {

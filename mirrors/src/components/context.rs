@@ -16,7 +16,7 @@ impl Context {
     pub fn new() -> Self {
         let rt = Runtime::new().unwrap();
         let signal_map = SignalMap::new();
-        let client = GrpcClient::new(rt.handle().clone());
+        let client = GrpcClient::new(rt.handle().clone()).unwrap();
         let (input_sender, input_receiver) = broadcast::channel(12);
         Context { signal_map, client: Arc::new(RwLock::new(client)), rt, input_sender, input_receiver }
     }

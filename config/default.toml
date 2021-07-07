@@ -1,0 +1,6 @@
+grpc_port = 50051
+rover_address = "192.168.0.123"
+
+[slam]
+vocab = "orb_vocab.fbow"
+openvslam_config = "slam.yaml"

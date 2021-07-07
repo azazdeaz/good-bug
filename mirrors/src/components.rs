@@ -5,6 +5,7 @@ pub mod keyframes;
 pub mod landmarks;
 pub mod map_handler;
 pub mod status;
+pub mod teleop;
 pub mod traits;
 
 pub use camera_pose::CameraPose;
@@ -13,4 +14,5 @@ pub use frame::Frame;
 pub use keyframes::Keyframes;
 pub use landmarks::Landmarks;
 pub use map_handler::MapHandler;
+pub use teleop::Teleop;
 pub use status::Status;

@@ -22,7 +22,7 @@ impl CameraPose {
         let mesh_path = format!("{}/{}", path, mesh_name);
         let mesh = CSGBox::new();
         mesh.set_name(mesh_name);
-        mesh.set_scale(Vector3::new(0.2, 0.2, 0.2));
+        mesh.set_scale(Vector3::new(0.02, 0.02, 0.02));
         let material = SpatialMaterial::new();
         material.set_albedo(Color::rgb(1.0, 0.313726, 0.313726));
         mesh.set_material_override(material);
@@ -43,6 +43,7 @@ impl Updatable for CameraPose {
         if let Some(camera_pose) = *self.camera_pose.borrow() {
             let mesh = get_node::<CSGBox>(owner, self.mesh_path.clone());
             mesh.set_transform(iso3_to_gd(&camera_pose));
+            mesh.set_scale(Vector3::new(0.2, 0.2, 0.2));
         }
     }
 }

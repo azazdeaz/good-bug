@@ -1,5 +1,0 @@
-const FRAME = "#E783FC"
-const EDGE = "#6392FF"
-const CURRENT_FRAME = "#FF775E"
-const LANDMARK1 = "#1CFF9F"
-const LANDMARK2 = "#96FF08"

@@ -1,42 +1,23 @@
 $fn=100;
 
-shaft_d = 3.1;
-shaft_d_flat = 2.5;
+shaft_d = 3.3;
+shaft_d_flat = 2.6;
 shaft_l = 7;
 shaft_outer_d = 7;
 
-rim_d = 28;
+fasten_hole_shaft_d = 2.75;
+fasten_hole_tire_d = 3.5;
+fasten_hole_height = 3.5;
 
-teeth_depth = 6;
-teeth_width = 8;
-teeth_twist=30;
-teeth_steps=30;
-tire_thickness=3;
-teeth_stand_out_angle = 0;
-join_stand_out = 3;
+rim_d = 48;
 
-// Close teeth
-
-teeth_depth = 0.8;
-teeth_width = 3;
+teeth_depth = 2.4;
+teeth_width = 5;
 teeth_twist=10;
 teeth_steps=12;
-tire_thickness=1.4;
-tire_width = 16;
-teeth_stand_out_angle = 8;
-
-fasten_hole_shaft_d = 2.8;
-fasten_hole_tire_d = 3.5;
-fasten_hole_height = 1.5;
-
-// Small settings
-//WIDTH = 12;
-//R3 = 16;
-//teeth_depth = 2;
-//teeth_width = 8;
-//teeth_twist=5;
-//teeth_steps=20;
-//tire_thickness=1;
+tire_thickness=1.5;
+tire_width = 23;
+teeth_stand_out_angle = 10;
 
 module rotate_about_pt(r, pt) {
     translate(pt)
@@ -49,7 +30,7 @@ module shaft() {
     difference() {
         cylinder(shaft_l, d=shaft_outer_d);
         difference() {
-            cylinder(shaft_l, d1=shaft_d*1.1, d2=shaft_d*1.1);
+            cylinder(shaft_l, d1=shaft_d, d2=shaft_d);
             translate([-shaft_d/2,shaft_d_flat-shaft_d/2,0])
             cube([shaft_d, shaft_d, shaft_l]);
         }
@@ -57,6 +38,9 @@ module shaft() {
         translate([0,0,fasten_hole_height])
         rotate([-90,0,0])
         cylinder(shaft_outer_d/2, d=fasten_hole_shaft_d);
+        
+        // wider the hole entrance
+        #cylinder(shaft_d/2, d1=shaft_d+0.4, d2=0);
     }
 }
 
@@ -84,23 +68,14 @@ module rim() {
 
 module tire() {
     module toot() { 
-        translate([rim_d/2,0,0]) 
+        translate([rim_d/2-teeth_depth,0,0]) 
         rotate([0,0,teeth_stand_out_angle]) 
         translate([0,-teeth_width,0]) 
         square([teeth_depth, teeth_width]);
     }
     difference() {
         union() {
-            difference() {
-                cylinder(tire_width, d=rim_d+tire_thickness);
-                translate([0,0,-0.5])
-                cylinder(tire_width+1, d=rim_d);
-            }
-//            rotate_extrude()
-//            translate([rim_d/2,0,0]) 
-//            square([tire_thickness, tire_width]);
-
-            
+            cylinder(tire_width, d=rim_d);
 
             for(i=[0:teeth_steps:360]) {
                 rotate([0,0,i])
@@ -114,6 +89,10 @@ module tire() {
             }
         }
         
+        // cut the inside path of the wheel
+        translate([0,0,-0.5])
+        cylinder(tire_width+1, d=rim_d-tire_thickness);
+        
         // hole for accessing the fastening screw
         translate([0,rim_d/2,fasten_hole_height])
         rotate([-90,0,0])
@@ -122,6 +101,6 @@ module tire() {
 }
 
 
-!shaft();
+shaft();
 rim();
 tire();

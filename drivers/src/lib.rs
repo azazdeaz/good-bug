@@ -4,10 +4,10 @@ use pwm_pca9685::{Address, Channel, Pca9685};
 use std::{boxed::Box};
 use tokio::{self, sync::mpsc};
 
-const RIGHT_BACKWARD: Channel = Channel::C12;
-const RIGHT_FORWARD: Channel = Channel::C13;
-const LEFT_BACKWARD: Channel = Channel::C14;
-const LEFT_FORWARD: Channel = Channel::C15;
+const LEFT_BACKWARD: Channel = Channel::C12;
+const LEFT_FORWARD: Channel = Channel::C13;
+const RIGHT_BACKWARD: Channel = Channel::C14;
+const RIGHT_FORWARD: Channel = Channel::C15;
 
 trait SetSpeed {
     fn set(&mut self, left: f64, right: f64) -> ();

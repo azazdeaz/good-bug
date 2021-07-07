@@ -2,7 +2,7 @@ use hello_world::greeter_client::GreeterClient;
 use hello_world::{Speed, Empty, Serde};
 use tokio::{runtime::Handle, sync::{watch,Mutex}, time::{sleep, Duration}};
 use std::sync::{Arc};
-use common::types::{Keyframe, Landmark, TrackingState};
+use common::{types::{Keyframe, Landmark, TrackingState}, settings::Settings};
 
 type Iso3 = nalgebra::Isometry3<f64>;
 pub mod hello_world {
@@ -21,9 +21,10 @@ unsafe impl Send for GrpcClient {}
 impl GrpcClient {
     pub fn new(rt: Handle) -> Self {
         println!("Creating GRPC client!!!!");
+        let settings = Settings::new();
         let client = rt.block_on(async {
             // TODO load this from conf
-            let dst = "http://127.0.0.1:50051";
+            let dst = format!("http://{}:{}", settings.rover_address, settings.grpc_port);
             // let dst = "http://192.168.50.19:50051";
             let conn = tonic::transport::Endpoint::new(dst).unwrap().connect_lazy().unwrap();
             let client = GreeterClient::new(conn);

@@ -8,6 +8,7 @@ use tokio_stream::{
 use tonic::{transport::Server, Request, Response, Status};
 
 use drivers::Wheels;
+use common::settings::Settings;
 use std::sync::Arc;
 
 pub mod hello_world {
@@ -144,7 +145,8 @@ impl Greeter for MyGreeter {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "0.0.0.0:50051".parse()?;
+    let settings = Settings::new()?;
+    let addr = format!("0.0.0.0:{}", settings.grpc_port).parse()?;
     let greeter = MyGreeter::new().await?;
     println!("greeter is running");
     Server::builder()

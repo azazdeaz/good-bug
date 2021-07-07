@@ -1,3 +1,5 @@
+use common::settings::Settings;
+
 fn main() {
-    println!("Hello, world!");
+    println!("{:?}", Settings::new());
 }

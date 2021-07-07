@@ -29,4 +29,4 @@ tonic-build = "0.4"
 
 [[bin]]
 name = "grpc-server"
-path = "src/main.rs"
+path = "src/grpc_server.rs"

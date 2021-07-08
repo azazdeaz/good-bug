@@ -2,7 +2,7 @@ use hello_world::greeter_client::GreeterClient;
 use hello_world::{Speed, Empty, Serde};
 use tokio::{runtime::Handle, sync::{watch,Mutex}, time::{sleep, Duration}};
 use std::sync::{Arc};
-use common::{types::{Keyframe, Landmark, TrackingState}, settings::Settings};
+use common::{types::{Edge, Keyframe, Landmark, TrackingState}, settings::Settings};
 
 type Iso3 = nalgebra::Isometry3<f64>;
 pub mod hello_world {
@@ -141,6 +141,31 @@ impl GrpcClient {
             let mut response = loop {
                 let request = tonic::Request::new(Empty {});
                 if let Ok(response) = client.lock().await.keyframes(request).await {
+                    break response.into_inner();
+                }
+                else {
+                    sleep(Duration::from_secs(1)).await;
+                }
+            };
+
+            println!("RESPONSE={:?}", response);
+
+            while let Some(message) = response.message().await.unwrap() {
+                let message = serde_json::from_str(&message.json).expect(&format!("Coulnd't parse Serde:{}", message.json));
+                sx.send(message).unwrap();
+            }
+        }); 
+        rx
+    }
+
+    pub fn watch_edges(&self) -> watch::Receiver<Vec<Edge>> {
+        let client = Arc::clone(&self.client);
+        let (sx, rx) = watch::channel(Default::default());
+        self.rt.spawn(async move {
+            println!("REQUESTING stream");
+            let mut response = loop {
+                let request = tonic::Request::new(Empty {});
+                if let Ok(response) = client.lock().await.edges(request).await {
                     break response.into_inner();
                 }
                 else {

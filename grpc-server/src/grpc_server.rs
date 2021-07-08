@@ -108,6 +108,23 @@ impl Greeter for MyGreeter {
         Ok(Response::new(ReceiverStream::new(rx)))
     }
 
+    type EdgesStream = ReceiverStream<Result<Serde, Status>>;
+    async fn edges(
+        &self,
+        _request: Request<Empty>,
+    ) -> Result<Response<Self::EdgesStream>, Status> {
+        let (tx, rx) = mpsc::channel(4);
+        let mut stream = self.slam.stream_edges();
+        tokio::spawn(async move {
+            while let Some(edges) = stream.next().await {
+                let json = serde_json::to_string(&edges).unwrap();
+                let msg = Serde { json };
+                tx.send(Ok(msg)).await.unwrap();
+            }
+        });
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
+
     type TrackingStateStream = ReceiverStream<Result<Serde, Status>>;
     async fn tracking_state(
         &self,

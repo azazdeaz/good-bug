@@ -9,6 +9,7 @@ service Greeter {
     rpc Keyframes(Empty) returns  (stream Serde);
     rpc TrackingState(Empty) returns  (stream Serde);
     rpc Frame(Empty) returns  (stream Serde);
+    rpc Edges(Empty) returns  (stream Serde);
 }
 
 message Speed {

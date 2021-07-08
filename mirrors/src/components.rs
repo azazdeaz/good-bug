@@ -1,5 +1,7 @@
 pub mod camera_pose;
+pub mod colors;
 pub mod context;
+pub mod edges;
 pub mod frame;
 pub mod keyframes;
 pub mod landmarks;
@@ -10,6 +12,7 @@ pub mod traits;
 
 pub use camera_pose::CameraPose;
 pub use context::Context;
+pub use edges::Edges;
 pub use frame::Frame;
 pub use keyframes::Keyframes;
 pub use landmarks::Landmarks;

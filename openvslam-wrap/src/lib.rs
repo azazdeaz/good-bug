@@ -7,7 +7,7 @@ use tokio::sync::{oneshot, watch, Mutex};
 use tokio_stream::{wrappers::WatchStream};
 
 use nalgebra as na;
-use common::{types::{Keyframe, Landmark, TrackingState, Iso3, Point3}, settings::Settings};
+use common::{types::{Keyframe, Edge, Landmark, TrackingState, Iso3, Point3}, settings::Settings};
 
 // fn mat44_to_iso3(m: pb::stream::Mat44) -> Iso3 {
 //     let translation = na::Translation3::new(m.m14, m.m24, m.m34);
@@ -41,6 +41,7 @@ pub struct OpenVSlamWrapper {
     camera_position_receiver: watch::Receiver<Option<Iso3>>,
     landmarks_receiver: watch::Receiver<Vec<Landmark>>,
     keyframes_receiver: watch::Receiver<Vec<Keyframe>>,
+    edges_receiver: watch::Receiver<Vec<Edge>>,
     tracking_state_receiver: watch::Receiver<TrackingState>,
     frame_receiver: watch::Receiver<Option<Vec<u8>>>,
 }
@@ -61,7 +62,7 @@ fn get_path(path: &str) -> String {
 impl OpenVSlamWrapper {
     pub fn new() -> anyhow::Result<Self> {
         let settings = Settings::new()?;
-        let (request_sender, mut request_receiver) = mpsc::channel::<ApiRequest>();
+        let (request_sender, request_receiver) = mpsc::channel::<ApiRequest>();
         let mut openvslam_process = {
             let bin = get_path("openvslam/build/run_api");
 
@@ -87,7 +88,7 @@ impl OpenVSlamWrapper {
         let context = zmq::Context::new();
 
         let req_handle = std::thread::spawn(move || {
-            let mut req = context.socket(zmq::REQ).unwrap();
+            let req = context.socket(zmq::REQ).unwrap();
             req.connect("ipc:///tmp/openvslam_wrapper_ipc_request")
                 .expect("failed to connect OpenVSlam response socket");
 
@@ -117,12 +118,13 @@ impl OpenVSlamWrapper {
             watch::channel::<Option<Iso3>>(None);
         let (landmarks_sender, landmarks_receiver) = watch::channel::<Vec<Landmark>>(Vec::new());
         let (keyframes_sender, keyframes_receiver) = watch::channel::<Vec<Keyframe>>(Vec::new());
+        let (edges_sender, edges_receiver) = watch::channel::<Vec<Edge>>(Vec::new());
         let (tracking_state_sender, tracking_state_receiver) = watch::channel::<TrackingState>(TrackingState::NotInitialized);
         let (frame_sender, frame_receiver) = watch::channel::<Option<Vec<u8>>>(None);
 
-        let stream_handle = std::thread::spawn(move || {
+        let _stream_handle = std::thread::spawn(move || {
             let context = zmq::Context::new();
-            let mut stream = context.socket(zmq::PULL).unwrap();
+            let stream = context.socket(zmq::PULL).unwrap();
             stream
                 .connect("ipc:///tmp/openvslam_wrapper_ipc_stream")
                 .expect("failed to connect OpenVSlam response socket");
@@ -173,6 +175,15 @@ impl OpenVSlamWrapper {
                             }).collect();
                             keyframes_sender.send(keyframes).unwrap();
                         }
+                        pb::stream::Msg::Edges(edges) => {
+                            let edges: Vec<Edge> = edges.edges.iter().map(|pb_edge| {
+                                Edge {
+                                    id0: pb_edge.id0,
+                                    id1: pb_edge.id1,
+                                }
+                            }).collect();
+                            edges_sender.send(edges).unwrap();
+                        }
                         pb::stream::Msg::TrackingState(pb_tracking_state) => {
                             let pb_tracking_state = pb::stream::TrackingState::from_i32(pb_tracking_state).expect("unknown tracking state");
                            let tracking_state = match pb_tracking_state {
@@ -194,7 +205,7 @@ impl OpenVSlamWrapper {
         let thread = std::thread::spawn(move || {
             let exit_status = openvslam_process.wait();
             println!("OpenVSlam closed with status: {:?}", exit_status);
-            req_handle.join();
+            req_handle.join().unwrap();
         });
 
         let request_sender = Arc::new(Mutex::new(request_sender));
@@ -205,6 +216,7 @@ impl OpenVSlamWrapper {
             camera_position_receiver,
             landmarks_receiver,
             keyframes_receiver,
+            edges_receiver,
             tracking_state_receiver,
             frame_receiver,
         })
@@ -240,6 +252,10 @@ impl OpenVSlamWrapper {
 
     pub fn stream_keyframes(&self) -> WatchStream<Vec<Keyframe>> {
         WatchStream::new(self.keyframes_receiver.clone())
+    }
+
+    pub fn stream_edges(&self) -> WatchStream<Vec<Edge>> {
+        WatchStream::new(self.edges_receiver.clone())
     }
 
     pub fn stream_tracking_state(&self) -> WatchStream<TrackingState> {

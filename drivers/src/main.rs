@@ -17,7 +17,7 @@ struct Opts {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let opts: Opts = Opts::parse();
-    let wheels = drivers::Wheels::new().await?;
+    let wheels = drivers::Wheels::new();
     wheels.speed_sender.send((opts.left, opts.right)).await?;
     thread::sleep(Duration::from_millis(opts.duration));
     wheels.speed_sender.send((0.0, 0.0)).await?;

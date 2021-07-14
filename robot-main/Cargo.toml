@@ -7,6 +7,9 @@ edition = "2018"
 
 [dependencies]
 tokio = { version = "1", features = ["macros", "sync", "process", "rt-multi-thread", "time", "rt"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+nalgebra = { version = "0.27", features = ["serde-serialize"] }
+
 grpc-server = { path = "../grpc-server"}
 openvslam-wrap = { path = "../openvslam-wrap"}
 drivers = { path = "../drivers" }

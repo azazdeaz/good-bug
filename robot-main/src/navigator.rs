@@ -1,8 +1,12 @@
-use crate::types::*;
-use crossbeam_channel::{select, tick, unbounded, Sender};
+use common::msg::{Broadcaster, Msg};
+use common::types::{Point3, TrackingState};
+use drivers::Wheels;
 use nalgebra as na;
-use std::thread;
-use std::time::{Duration, Instant};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
+use tokio_stream::StreamExt;
 
 type Iso3 = na::Isometry3<f64>;
 
@@ -48,9 +52,9 @@ struct NavState {
     speed: (f64, f64),
     teleop_speed: ((f64, f64), Instant),
     cam_pose: (Iso3, Instant),
-    target_pose: Option<Iso3>,
+    target_pose: Option<Point3>,
     self_drive_enabled: bool,
-    tracker_state: TrackerState,
+    tracker_state: TrackingState,
     slam_scale: f64,
 }
 
@@ -62,7 +66,7 @@ impl NavState {
             cam_pose: (Iso3::identity(), Instant::now()),
             target_pose: None,
             self_drive_enabled: false,
-            tracker_state: TrackerState::NotInitialized,
+            tracker_state: TrackingState::NotInitialized,
             slam_scale: 1.0,
         }
     }
@@ -75,7 +79,7 @@ impl NavState {
         self.cam_pose = (cam_pose, Instant::now());
     }
 
-    fn set_target_pose(&mut self, target_pose: Iso3) {
+    fn set_target_pose(&mut self, target_pose: Point3) {
         self.target_pose = Some(target_pose);
     }
 
@@ -83,7 +87,7 @@ impl NavState {
         self.self_drive_enabled = enable;
     }
 
-    fn set_tracker_state(&mut self, tracker_state: TrackerState) {
+    fn set_tracker_state(&mut self, tracker_state: TrackingState) {
         self.tracker_state = tracker_state;
     }
 
@@ -95,15 +99,15 @@ impl NavState {
         time.checked_add(Duration::from_millis(600)).unwrap() < Instant::now()
     }
 
-    fn step(&mut self) {
-        self.speed = if !self.self_drive_enabled {
+    fn compute_speed(&self) -> (f64, f64) {
+        if !self.self_drive_enabled {
             if NavState::is_expired(self.teleop_speed.1) {
                 (0.0, 0.0)
             } else {
                 self.teleop_speed.0
             }
         } else if NavState::is_expired(self.cam_pose.1)
-            || !matches!(self.tracker_state, TrackerState::Tracking)
+            || !matches!(self.tracker_state, TrackingState::Tracking)
         {
             (0.0, 0.0)
         } else if let Some(target_pose) = self.target_pose {
@@ -115,8 +119,8 @@ impl NavState {
             let p = pose.rotation * p;
             let yaw_bot = p.x.atan2(p.z);
 
-            let dx = target_pose.translation.vector.x - pose.translation.vector.x;
-            let dz = target_pose.translation.vector.z - pose.translation.vector.z;
+            let dx = target_pose.x - pose.translation.vector.x;
+            let dz = target_pose.z - pose.translation.vector.z;
             let yaw_target = dx.atan2(dz);
             let yawd = angle_difference(yaw_bot, yaw_target);
             let distance = dx.hypot(dz);
@@ -124,14 +128,7 @@ impl NavState {
 
             println!(
                 "from {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
-                pose.translation.vector,
-                target_pose.translation.vector,
-                dx,
-                dz,
-                distance,
-                yaw_target,
-                yaw_bot,
-                yawd
+                pose.translation.vector, target_pose, dx, dz, distance, yaw_target, yaw_bot, yawd
             );
 
             let distance_tolerance = 100.0;
@@ -151,60 +148,50 @@ impl NavState {
     }
 }
 
-pub struct Navigator {
-    pub send_cam_pose: Sender<Iso3>,
-    pub send_target_pose: Sender<Iso3>,
-    pub send_teleop_speed: Sender<(f64, f64)>,
-    pub send_self_drive_enabled: Sender<bool>,
-    pub send_tracker_state: Sender<TrackerState>,
-    pub send_slam_scale: Sender<f64>,
-    pub base_pose: Option<Iso3>,
-}
+pub struct Navigator {}
 
 impl Navigator {
-    pub fn new() -> Self {
-        let (send_cam_pose, recv_cam_pose) = unbounded();
-        let (send_target_pose, recv_target_pose) = unbounded();
-        let (send_teleop_speed, recv_teleop_speed) = unbounded();
-        let (send_self_drive_enabled, recv_self_drive_enabled) = unbounded();
-        let (send_tracker_state, recv_tracker_state) = unbounded();
-        let (send_slam_scale, recv_slam_scale) = unbounded();
+    pub fn new(broadcaster: &Broadcaster) -> Self {
+        let mut state = Arc::new(tokio::sync::RwLock::new(NavState::new()));
+        let mut wheels = Wheels::new();
 
-        // let context = zmq::Context::new();
-        // let publisher = context.socket(zmq::PUB).unwrap();
-        // publisher
-        //     .bind("tcp://*:5567")
-        //     .expect("failed binding publisher");
-
-        let mut state = NavState::new();
-
-        thread::spawn(move || {
-            let ticker = tick(Duration::from_millis(100));
-            loop {
-                select! {
-                    recv(recv_cam_pose) -> msg => if let Ok(msg) = msg { state.set_cam_pose(msg) },
-                    recv(recv_target_pose) -> msg => if let Ok(msg) = msg { state.set_target_pose(msg) },
-                    recv(recv_teleop_speed) -> msg => if let Ok(msg) = msg { state.set_teleop_speed(msg) },
-                    recv(recv_self_drive_enabled) -> msg => if let Ok(msg) = msg { state.set_self_drive_enabled(msg) },
-                    recv(recv_tracker_state) -> msg => if let Ok(msg) = msg { state.set_tracker_state(msg) },
-                    recv(recv_slam_scale) -> msg => if let Ok(msg) = msg { state.set_slam_scale(msg) },
-                    recv(ticker) -> _ => {
-                        state.step();
-                        let cmd = format!("{},{}", state.speed.0, state.speed.1);
-                        // publisher.send(&cmd, 0).expect("failed to send cmd");
-                    },
+        {
+            let mut updates = broadcaster.stream();
+            let state = Arc::clone(&state);
+            tokio::spawn(async move {
+                loop {
+                    while let Some(msg) = updates.next().await {
+                        if let Ok(msg) = msg {
+                            let mut state = state.write().await;
+                            match msg {
+                                Msg::CameraPose(iso3) => state.set_cam_pose(iso3),
+                                Msg::NavTarget(point3) => state.set_target_pose(point3),
+                                Msg::Teleop(speed) => state.set_teleop_speed(speed),
+                                Msg::EnableAutoNav(enable) => state.set_self_drive_enabled(enable),
+                                Msg::TrackingState(tracking_state) => {
+                                    state.set_tracker_state(tracking_state)
+                                }
+                                // recv(recv_slam_scale) -> msg => if let Ok(msg) = msg { state.set_slam_scale(msg) },
+                                _ => (),
+                            }
+                        }
+                    }
                 }
-            }
-        });
-
-        Navigator {
-            send_cam_pose,
-            send_target_pose,
-            send_teleop_speed,
-            send_self_drive_enabled,
-            send_tracker_state,
-            send_slam_scale,
-            base_pose: None
+            });
         }
+
+        {
+            let state = Arc::clone(&state);
+            let tick_time = tokio::time::Duration::from_secs_f64(1.0 / 60.0);
+            tokio::spawn(async move {
+                loop {
+                    let speed = state.read().await.compute_speed();
+                    wheels.speed_sender.send(speed).await.expect("Failed to set speed on wheel driver");
+                    tokio::time::sleep(tick_time).await;
+                }
+            });
+        }
+
+        Navigator {}
     }
 }

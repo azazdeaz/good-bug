@@ -4,9 +4,16 @@ use gdnative::prelude::*;
 use std::collections::HashMap;
 use tokio::sync::mpsc;
 use crate::utils::get_node;
+
+#[derive(Debug, Clone, Copy)]
+pub enum SignalData {
+    Empty,
+    FFF(f64, f64, f64),
+}
+
 pub struct SignalMap {
     id_counter: u32,
-    connections: HashMap<u32, mpsc::Sender<()>>,
+    connections: HashMap<u32, mpsc::Sender<SignalData>>,
 }
 
 impl SignalMap {
@@ -22,7 +29,7 @@ impl SignalMap {
         self.id_counter
     }
 
-    pub fn connect(&mut self, owner: TRef<Node>, emitter_path: &str, signal: &str) -> mpsc::Receiver<()> {
+    fn create_connector(&mut self, owner: TRef<Node>, emitter_path: &str, signal: &str, callback: &str) -> mpsc::Receiver<SignalData> {
         let emitter = get_node::<Node>(&owner, emitter_path.into());
         let (sender, receiver) = mpsc::channel(12);
         let id  = self.next_id();
@@ -32,7 +39,7 @@ impl SignalMap {
         emitter.connect(
             signal,
             owner,
-            "signal_map_callback",
+            callback,
             binds.into_shared(),
             0,
         )
@@ -41,9 +48,17 @@ impl SignalMap {
         receiver
     }
 
-    pub fn callback(&mut self, id:u32) {
+    pub fn connect(&mut self, owner: TRef<Node>, emitter_path: &str, signal: &str) -> mpsc::Receiver<SignalData> {
+        self.create_connector(owner, emitter_path, signal, "signal_map_callback")
+    }
+
+    pub fn connect_fff(&mut self, owner: TRef<Node>, emitter_path: &str, signal: &str) -> mpsc::Receiver<SignalData> {
+        self.create_connector(owner, emitter_path, signal, "signal_map_callback_fff")
+    }
+
+    pub fn callback(&mut self, id:u32, signal: SignalData) {
         if let Some(sender) = self.connections.get(&id) {
-            if let Err(e) = sender.blocking_send(()) {
+            if let Err(e) = sender.blocking_send(signal) {
                 println!("[signal map] remove connection {}:{:?}", id, e);
                 self.connections.remove(&id).unwrap();
             }

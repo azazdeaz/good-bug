@@ -1,12 +1,7 @@
 extends StaticBody
 
+signal select_nav_goal(x, y, z)
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-
-
-# Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
 
@@ -21,11 +16,12 @@ func _input_event(camera, event, click_position, click_normal, shape_idx):
 			click_position = Vector3(click_position)
 			print(click_position)
 			
-			print(get_node("/root/Game").set_target(
+			emit_signal(
+				"select_nav_goal",
 				click_position.x,
 				click_position.y,
 				click_position.z
-			))
+			)
 			
 			var mark = CSGCylinder.new()
 			mark.radius = 0.3

@@ -1,5 +1,4 @@
 pub mod game;
-pub mod navigator;
 pub mod types;
 pub mod grpc_client;
 pub mod components;

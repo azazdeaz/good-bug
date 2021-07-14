@@ -14,6 +14,8 @@ pub struct Game {
     context: components::context::Context,
 }
 
+use crate::signal_map::SignalData;
+
 
 extern crate yaml_rust;
 
@@ -93,13 +95,12 @@ impl Game {
 
     #[export]
     fn signal_map_callback(&mut self, _owner: TRef<Node>, id: u32) {
-        self.context.signal_map.callback(id);
+        self.context.signal_map.callback(id, SignalData::Empty);
     }
 
-
     #[export]
-    fn set_target(&mut self, _owner: TRef<Node>, x: f64, y: f64, z: f64) {
-        println!("tatatattarget selected {} {} {}", x, y, z);
+    fn signal_map_callback_fff(&mut self, _owner: TRef<Node>, f1: f64, f2: f64, f3: f64, id: u32) {
+        self.context.signal_map.callback(id, SignalData::FFF(f1, f2, f3));
     }
 
  

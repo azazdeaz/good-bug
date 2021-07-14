@@ -8,6 +8,7 @@ use tokio::sync::watch::Receiver;
 
 use crate::components::traits::Updatable;
 use crate::utils::get_node;
+use crate::watch_msg;
 
 pub struct Frame {
     frame: Receiver<Option<Vec<u8>>>,
@@ -16,7 +17,7 @@ pub struct Frame {
 
 impl Frame {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let frame = context.use_client(|c| c.watch_frame());
+        let frame = watch_msg!(context, Msg::Frame);
 
         let panel = TextureRect::new();
         let panel_name = "panel";

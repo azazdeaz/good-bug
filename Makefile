@@ -170,11 +170,11 @@ doc: clean
 
 edit:
 	# ${EDITOR} mirrors/src/lib.rs &
-	godot --path godot/ -e &
+	CONFIG_ROOT="../config" godot --path godot/ -e &
 
 run:
 	make build-x86_64-unknown-linux-gnu-debug
-	godot --path godot/ -d
+	CONFIG_ROOT="../config" godot --path godot/ -d
 
 
 run-release:

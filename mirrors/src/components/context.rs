@@ -2,11 +2,12 @@ use crate::signal_map::SignalMap;
 use crate::grpc_client::GrpcClient;
 use std::sync::Arc;
 use tokio::{runtime::Runtime, sync::{RwLock, RwLockReadGuard, broadcast}};
-use common::types;
+use common::{types, msg::{Broadcaster} };
 
 pub struct Context {
     pub signal_map: SignalMap,
-    pub client: Arc<RwLock<GrpcClient>>,
+    pub broadcaster: Broadcaster,
+    client: Arc<RwLock<GrpcClient>>,
     rt: Runtime,
     input_sender: broadcast::Sender<Option<types::GDInput>>,
     input_receiver: broadcast::Receiver<Option<types::GDInput>>, 
@@ -16,9 +17,10 @@ impl Context {
     pub fn new() -> Self {
         let rt = Runtime::new().unwrap();
         let signal_map = SignalMap::new();
-        let client = GrpcClient::new(rt.handle().clone()).unwrap();
+        let broadcaster = Broadcaster::new();
+        let client = GrpcClient::new(rt.handle().clone(), &broadcaster).unwrap();
         let (input_sender, input_receiver) = broadcast::channel(12);
-        Context { signal_map, client: Arc::new(RwLock::new(client)), rt, input_sender, input_receiver }
+        Context { signal_map, broadcaster, client: Arc::new(RwLock::new(client)), rt, input_sender, input_receiver }
     }
     pub fn runtime(&self) -> tokio::runtime::Handle {
         self.rt.handle().clone()

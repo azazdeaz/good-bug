@@ -26,7 +26,7 @@ impl SignalMap {
         let emitter = get_node::<Node>(&owner, emitter_path.into());
         let (sender, receiver) = mpsc::channel(12);
         let id  = self.next_id();
-        let mut binds = VariantArray::new();
+        let binds = VariantArray::new();
         binds.push(id);
         self.connections.insert(id, sender);
         emitter.connect(

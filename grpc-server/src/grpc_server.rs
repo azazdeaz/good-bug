@@ -1,180 +1,74 @@
 use hello_world::greeter_server::{Greeter, GreeterServer};
-use hello_world::{Empty, Serde, Speed};
-use tokio::sync::mpsc;
+use hello_world::{Empty, Serde};
+use tokio::sync::{mpsc};
 use tokio_stream::{
     wrappers::{ReceiverStream},
     StreamExt,
 };
 use tonic::{transport::Server, Request, Response, Status};
 
-use drivers::Wheels;
-use common::settings::Settings;
-use std::sync::Arc;
+use common::{settings::Settings, msg::Broadcaster};
 
 pub mod hello_world {
     tonic::include_proto!("helloworld"); // The string specified here must match the proto package name
 }
 
 #[derive(Debug)]
-pub struct MyGreeter {
-    wheels: Arc<Wheels>,
-    slam: openvslam_wrap::OpenVSlamWrapper,
+pub struct GrpcService {
+    broadcaster: Broadcaster,
 }
 
-impl MyGreeter {
-    async fn new() -> anyhow::Result<Self> {
-        Ok(MyGreeter {
-            wheels: Arc::new(Wheels::new().await?),
-            slam: openvslam_wrap::OpenVSlamWrapper::new()?,
+impl GrpcService {
+    async fn new(broadcaster: Broadcaster) -> anyhow::Result<Self> {
+        // let (publisher, _) = broadcaster::channel(12);
+        Ok(GrpcService {
+            broadcaster
         })
     }
 }
 
 #[tonic::async_trait]
-impl Greeter for MyGreeter {
-    async fn set_speed(&self, request: Request<Speed>) -> Result<Response<Empty>, Status> {
-        let speed = request.into_inner();
-        println!(
-            "{} {} {:?}",
-            speed.left,
-            speed.right,
-            std::time::Instant::now()
-        );
-        self.wheels
-            .speed_sender
-            .send((speed.left as f64, speed.right as f64))
-            .await
-            .unwrap();
-        Ok(Response::new(Empty::default()))
+impl Greeter for GrpcService {
+    async fn input(&self, request: Request<Serde>) -> Result<Response<Empty>, Status> {
+        let serde = request.into_inner();
+        self.broadcaster.publish_serialized(serde.json);
+        Ok(Response::new(Empty{}))
     }
 
-    async fn save_map_db(
-        &self,
-        request: Request<Serde>,
-    ) -> Result<Response<Empty>, Status> {
-        let path: String = serde_json::from_str(&request.into_inner().json).unwrap();
-        self.slam.save_map_db(path).await;
-        Ok(Response::new(Empty::default()))
-    }
-
-    type StreamCameraPositionStream = ReceiverStream<Result<Serde, Status>>;
-    async fn stream_camera_position(
+    type UpdatesStream = ReceiverStream<Result<Serde, Status>>;
+    async fn updates(
         &self,
         _request: Request<Empty>,
-    ) -> Result<Response<Self::StreamCameraPositionStream>, Status> {
+    ) -> Result<Response<Self::UpdatesStream>, Status> {
         let (tx, rx) = mpsc::channel(4);
-        let mut stream = self.slam.stream_position();
+        let mut stream = self.broadcaster.stream()
+            .filter(Result::is_ok)
+            .map(Result::unwrap)
+            // HACK filter messages coming from mirrors to avoid infinite loops
+            .filter(|m| !m.is_mirrors_command())
+            .map(|f| serde_json::to_string(&f));
+            
+        
         tokio::spawn(async move {
-            while let Some(iso3) = stream.next().await {
-                let json = serde_json::to_string(&iso3).unwrap();
-                let msg = Serde { json };
-                tx.send(Ok(msg)).await.unwrap();
-            }
-        });
-        Ok(Response::new(ReceiverStream::new(rx)))
-    }
-
-    type LandmarksStream = ReceiverStream<Result<Serde, Status>>;
-    async fn landmarks(
-        &self,
-        _request: Request<Empty>,
-    ) -> Result<Response<Self::LandmarksStream>, Status> {
-        let (tx, rx) = mpsc::channel(4);
-        let mut stream = self.slam.stream_landmarks();
-        tokio::spawn(async move {
-            while let Some(landmarks) = stream.next().await {
-                let json = serde_json::to_string(&landmarks).unwrap();
-                let msg = Serde { json };
-                tx.send(Ok(msg)).await.unwrap();
-            }
-        });
-        Ok(Response::new(ReceiverStream::new(rx)))
-    }
-
-    type KeyframesStream = ReceiverStream<Result<Serde, Status>>;
-    async fn keyframes(
-        &self,
-        _request: Request<Empty>,
-    ) -> Result<Response<Self::KeyframesStream>, Status> {
-        let (tx, rx) = mpsc::channel(4);
-        let mut stream = self.slam.stream_keyframes();
-        tokio::spawn(async move {
-            while let Some(keyframes) = stream.next().await {
-                let json = serde_json::to_string(&keyframes).unwrap();
-                let msg = Serde { json };
-                tx.send(Ok(msg)).await.unwrap();
-            }
-        });
-        Ok(Response::new(ReceiverStream::new(rx)))
-    }
-
-    type EdgesStream = ReceiverStream<Result<Serde, Status>>;
-    async fn edges(
-        &self,
-        _request: Request<Empty>,
-    ) -> Result<Response<Self::EdgesStream>, Status> {
-        let (tx, rx) = mpsc::channel(4);
-        let mut stream = self.slam.stream_edges();
-        tokio::spawn(async move {
-            while let Some(edges) = stream.next().await {
-                let json = serde_json::to_string(&edges).unwrap();
-                let msg = Serde { json };
-                tx.send(Ok(msg)).await.unwrap();
-            }
-        });
-        Ok(Response::new(ReceiverStream::new(rx)))
-    }
-
-    type TrackingStateStream = ReceiverStream<Result<Serde, Status>>;
-    async fn tracking_state(
-        &self,
-        _request: Request<Empty>,
-    ) -> Result<Response<Self::TrackingStateStream>, Status> {
-        let (tx, rx) = mpsc::channel(4);
-        let mut stream = self.slam.stream_tracking_state();
-        tokio::spawn(async move {
-            while let Some(tracking_state) = stream.next().await {
-                let json = serde_json::to_string(&tracking_state).unwrap();
-                let msg = Serde { json };
-                tx.send(Ok(msg)).await.unwrap();
-            }
-        });
-        Ok(Response::new(ReceiverStream::new(rx)))
-    }
-
-    type FrameStream = ReceiverStream<Result<Serde, Status>>;
-    async fn frame(
-        &self,
-        _request: Request<Empty>,
-    ) -> Result<Response<Self::FrameStream>, Status> {
-        let (tx, rx) = mpsc::channel(4);
-        let mut stream = self.slam.stream_frame();
-        tokio::spawn(async move {
-            while let Some(tracking_state) = stream.next().await {
-                let json = serde_json::to_string(&tracking_state).unwrap();
-                let msg = Serde { json };
-                tx.send(Ok(msg)).await.unwrap();
+            while let Some(json) = stream.next().await {
+                if let Ok(json) = json {
+                    tx.send(Ok(Serde { json })).await.ok();
+                }
             }
         });
         Ok(Response::new(ReceiverStream::new(rx)))
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_server(broadcaster: Broadcaster) -> Result<(), Box<dyn std::error::Error>> {
     let settings = Settings::new()?;
     let addr = format!("0.0.0.0:{}", settings.grpc_port).parse()?;
-    let greeter = MyGreeter::new().await?;
-    println!("greeter is running");
+    let greeter = GrpcService::new(broadcaster).await?;
+    println!("grpc server is running at {:?}", addr);
     Server::builder()
         .add_service(GreeterServer::new(greeter))
         .serve(addr)
-        .await?;
+        .await?; 
     println!("server is done");
-    // let mat = nalgebra::Isometry3::<f64>::identity();
-    // let json = serde_json::to_string(&mat);
-    // println!("{:?}", json);
-    // let mat: nalgebra::Isometry3<f64> = serde_json::from_str(&json.unwrap()).unwrap();
-    // println!("{:?}", mat);
     Ok(())
 }

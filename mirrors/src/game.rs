@@ -27,7 +27,6 @@ extern crate nalgebra as na;
 impl Game {
     // Register the builder for methods, properties and/or signals.
     fn register_builder(_builder: &ClassBuilder<Self>) {
-        let x = env!("OUT_DIR");
         godot_print!("Game builder is registered!");
     }
 
@@ -95,6 +94,12 @@ impl Game {
     #[export]
     fn signal_map_callback(&mut self, _owner: TRef<Node>, id: u32) {
         self.context.signal_map.callback(id);
+    }
+
+
+    #[export]
+    fn set_target(&mut self, _owner: TRef<Node>, x: f64, y: f64, z: f64) {
+        println!("tatatattarget selected {} {} {}", x, y, z);
     }
 
  

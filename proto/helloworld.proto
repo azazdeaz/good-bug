@@ -2,14 +2,18 @@ syntax = "proto3";
 package helloworld;
 
 service Greeter {
-    rpc SetSpeed(Speed) returns (Empty);
-    rpc SaveMapDB(Serde) returns (Empty);
-    rpc StreamCameraPosition(Empty) returns  (stream Serde);
-    rpc Landmarks(Empty) returns  (stream Serde);
-    rpc Keyframes(Empty) returns  (stream Serde);
-    rpc TrackingState(Empty) returns  (stream Serde);
-    rpc Frame(Empty) returns  (stream Serde);
-    rpc Edges(Empty) returns  (stream Serde);
+    // rpc SetSpeed(Speed) returns (Empty);
+    // rpc SaveMapDB(Serde) returns (Empty);
+    // rpc SetNavGoal(Serde) returns (Empty);
+    // rpc EnableAutoNav(Serde) returns (Empty);
+    // rpc StreamCameraPosition(Empty) returns  (stream Serde);
+    // rpc Landmarks(Empty) returns  (stream Serde);
+    // rpc Keyframes(Empty) returns  (stream Serde);
+    // rpc TrackingState(Empty) returns  (stream Serde);
+    // rpc Frame(Empty) returns  (stream Serde);
+    // rpc Edges(Empty) returns  (stream Serde);
+    rpc Input(Serde) returns (Empty);
+    rpc Updates(Empty) returns (stream Serde);
 }
 
 message Speed {
@@ -18,7 +22,8 @@ message Speed {
 }
 
 message Serde {
-    string json = 1;
+    // string topic_id = 1;
+    string json = 2;
 }
 
 message Empty {};

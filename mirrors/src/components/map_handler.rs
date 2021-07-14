@@ -1,14 +1,16 @@
+use common::msg::Msg;
 use gdnative::api::*;
 use gdnative::prelude::*;
 
 use crate::grpc_client::GrpcClient;
+use std::sync::Arc;
 use tokio;
 use tokio::sync::watch::Receiver;
-use std::sync::Arc;
 
+use crate::components::context::Context;
 use crate::components::traits::Updatable;
 use crate::utils::get_node;
-use crate::components::context::Context;
+use crate::watch_msg;
 
 pub struct MapHandler {
     // frame: Receiver<Option<Vec<u8>>>,
@@ -24,21 +26,19 @@ impl MapHandler {
         let save_btn_name = "save_btn";
         let save_btn_path = format!("{}/{}", path, save_btn_name);
         save_btn.set_name(save_btn_name);
-        
+
         get_node::<Node>(&*owner, path).add_child(save_btn, false);
 
         {
             let mut recv_pressed = context.signal_map.connect(owner, &save_btn_path, "pressed");
-            let client = Arc::clone(&context.client);
+            let publisher = context.broadcaster.publisher();
             context.runtime().spawn(async move {
                 while let Some(_) = recv_pressed.recv().await {
                     println!("Saving Map...");
-                    let client = client.read().await;
-                    client.save_map_db("map.db".into()).await;
+                    let _ = publisher.send(Msg::SaveMapDB("map.db".into()));
                 }
             });
         }
-        
 
         MapHandler {
             // frame,
@@ -48,7 +48,5 @@ impl MapHandler {
 }
 
 impl Updatable for MapHandler {
-    fn update(&self, owner: &Node) {
-        
-    }
+    fn update(&self, owner: &Node) {}
 }

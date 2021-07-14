@@ -9,15 +9,18 @@ use tokio::sync::watch::Receiver;
 
 use crate::components::traits::Updatable;
 use crate::utils::get_node;
+use crate::watch_msg;
 
 pub struct CameraPose {
     camera_pose: Receiver<Option<Iso3>>,
     mesh_path: String,
 }
 
+
 impl CameraPose {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let camera_pose = context.use_client(|c| c.watch_camera_pose());
+        let camera_pose = watch_msg!(context, Msg::CameraPose);
+        // let camera_pose = context.use_client(|c| c.watch_camera_pose());
         let mesh_name = "camera_pose_box";
         let mesh_path = format!("{}/{}", path, mesh_name);
         let mesh = CSGBox::new();
@@ -26,7 +29,7 @@ impl CameraPose {
         let material = SpatialMaterial::new();
         material.set_albedo(Color::rgb(1.0, 0.313726, 0.313726));
         mesh.set_material_override(material);
-        
+
         get_node::<Node>(&*owner, path).add_child(mesh, false);
 
         let camera_pose = CameraPose {

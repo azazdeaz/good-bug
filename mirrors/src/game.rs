@@ -103,6 +103,11 @@ impl Game {
         self.context.signal_map.callback(id, SignalData::FFF(f1, f2, f3));
     }
 
+    #[export]
+    fn signal_map_callback_b(&mut self, _owner: TRef<Node>, b: bool, id: u32) {
+        self.context.signal_map.callback(id, SignalData::B(b));
+    }
+
  
 
 
@@ -164,6 +169,11 @@ impl Game {
             &mut self.context,
         )));
         self.components.push(Box::new(components::Edges::new(
+            owner,
+            "Spatial".into(),
+            &mut self.context,
+        )));
+        self.components.push(Box::new(components::GroundPlane::new(
             owner,
             "Spatial".into(),
             &mut self.context,

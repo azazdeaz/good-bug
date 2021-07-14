@@ -9,6 +9,7 @@ use crate::utils::get_node;
 pub enum SignalData {
     Empty,
     FFF(f64, f64, f64),
+    B(bool),
 }
 
 pub struct SignalMap {
@@ -54,6 +55,10 @@ impl SignalMap {
 
     pub fn connect_fff(&mut self, owner: TRef<Node>, emitter_path: &str, signal: &str) -> mpsc::Receiver<SignalData> {
         self.create_connector(owner, emitter_path, signal, "signal_map_callback_fff")
+    }
+
+    pub fn connect_b(&mut self, owner: TRef<Node>, emitter_path: &str, signal: &str) -> mpsc::Receiver<SignalData> {
+        self.create_connector(owner, emitter_path, signal, "signal_map_callback_b")
     }
 
     pub fn callback(&mut self, id:u32, signal: SignalData) {

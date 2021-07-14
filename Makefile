@@ -192,4 +192,4 @@ build-rover:
 	cargo build -p common -p drivers -p grpc-server -p openvslam-wrap
 
 run-rover-release:
-	cargo run --release --bin grpc-server
+	cargo run --release --bin robot

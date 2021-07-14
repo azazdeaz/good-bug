@@ -48,6 +48,7 @@ impl RobotBody {
     }
 }
 
+#[derive(Debug)]
 struct NavState {
     speed: (f64, f64),
     teleop_speed: ((f64, f64), Instant),
@@ -182,12 +183,14 @@ impl Navigator {
 
         {
             let state = Arc::clone(&state);
-            let tick_time = tokio::time::Duration::from_secs_f64(1.0 / 60.0);
+            let freq = 2.0;
+            let tick_time = tokio::time::Duration::from_secs_f64(1.0 / freq);
             tokio::spawn(async move {
                 loop {
                     let speed = state.read().await.compute_speed();
                     wheels.speed_sender.send(speed).await.expect("Failed to set speed on wheel driver");
                     tokio::time::sleep(tick_time).await;
+                    println!("Nav {:?}", state.read().await);
                 }
             });
         }

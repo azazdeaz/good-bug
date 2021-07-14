@@ -50,7 +50,7 @@ impl GrpcClient {
                     let json = serde_json::to_string(&input).unwrap();
                     let request = tonic::Request::new(Serde { json });
                     // TODO handle send failure
-                    client.lock().await.input(request).await.unwrap();
+                    client.lock().await.input(request).await.ok();
                 }
             });
         }

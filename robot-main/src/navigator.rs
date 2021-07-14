@@ -190,7 +190,6 @@ impl Navigator {
                     let speed = state.read().await.compute_speed();
                     wheels.speed_sender.send(speed).await.expect("Failed to set speed on wheel driver");
                     tokio::time::sleep(tick_time).await;
-                    println!("Nav {:?}", state.read().await);
                 }
             });
         }

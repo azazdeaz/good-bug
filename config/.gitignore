@@ -1,3 +1,4 @@
-*.yaml
-!default.yaml
+*.toml
+!default.toml
 slam/
+models/

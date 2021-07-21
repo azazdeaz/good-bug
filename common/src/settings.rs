@@ -14,6 +14,7 @@ pub struct Settings {
     pub grpc_port: u16,
     pub rover_address: String,
     pub slam: Slam,
+    pub detecor_model: String,
     // TODO add slam options
 }
 
@@ -47,6 +48,7 @@ impl Settings {
         } else {
             None
         };
+        settings.detecor_model = absolute_path(&settings.detecor_model);
 
         Ok(settings)
     }

@@ -1,0 +1,15 @@
+[package]
+name = "detector"
+version = "0.1.0"
+authors = ["András Polgár <azazdeaz@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tflite = "0.9.6"
+image = "0.23"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+
+common = { path = "../common" }

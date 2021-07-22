@@ -1,6 +1,7 @@
 grpc_port = 50051
 rover_address = "192.168.0.123"
+detecor_model = "models/efficientdet-lite0-int8.tflite"
 
 [slam]
-vocab = "orb_vocab.fbow"
-openvslam_config = "slam.yaml"
+vocab = "slam/orb_vocab.fbow"
+openvslam_config = "slam/slam.yaml"

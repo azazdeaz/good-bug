@@ -3,6 +3,9 @@
 # mirrors
 > Put the description here!
 
+```sh
+sudo apt install build-essential cmake pkg-config libssl-dev libzmq3-dev
+
 ## Table of contents
 * [General Information](#general-information)
 * [Setup](#setup)

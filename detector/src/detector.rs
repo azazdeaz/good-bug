@@ -1,82 +1,144 @@
-use std::fs::{self, File};
-use std::io::{Cursor, Read};
+use std::fs;
+use std::io::Read;
 use std::sync::Arc;
 
-use image::{self, imageops::FilterType, io::Reader as ImageReader};
+use image::GenericImageView;
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder, Result};
-use tokio::sync::Mutex;
+use tokio::sync::{oneshot, Mutex};
 use tokio_stream::StreamExt;
 
 use common::{
     msg::{Broadcaster, Msg},
     settings::Settings,
+    types::BoxDetection,
 };
 
-fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
-    let resolver = BuiltinOpResolver::default();
+struct DetectionWorker {
+    _thread: std::thread::JoinHandle<()>,
+    _sender: std::sync::mpsc::Sender<(Vec<u8>, oneshot::Sender<Vec<BoxDetection>>)>,
+}
 
-    let builder = InterpreterBuilder::new(model, &resolver)?;
-    let mut interpreter = builder.build()?;
+impl DetectionWorker {
+    fn new() -> Self {
+        let settings = Settings::new().unwrap();
+        let buf = fs::read(settings.detecor_model).expect("Couldn't find the detector model");
+        let model = FlatBufferModel::build_from_buffer(buf).unwrap();
 
-    interpreter.set_num_threads(4);
+        // TODO move these into settings
+        let min_score = 0.5;
+        let input_width: u32 = 320;
+        let input_height: u32 = 320;
 
-    interpreter.allocate_tensors()?;
+        let (sx, rx) = std::sync::mpsc::channel::<(Vec<u8>, oneshot::Sender<Vec<BoxDetection>>)>();
 
-    let inputs = interpreter.inputs().to_vec();
-    assert_eq!(inputs.len(), 1);
+        let handler = std::thread::spawn(move || {
+            let resolver = BuiltinOpResolver::default();
+            let builder = InterpreterBuilder::new(model, &resolver).unwrap();
+            let mut interpreter = builder.build().unwrap();
 
-    let input_index = inputs[0];
+            interpreter.set_num_threads(3);
 
-    let outputs = interpreter.outputs().to_vec();
-    assert_eq!(outputs.len(), 4);
+            interpreter.allocate_tensors().unwrap();
 
-    let output_index = outputs[0];
+            let inputs = interpreter.inputs().to_vec();
+            assert_eq!(inputs.len(), 1);
 
-    let detection_boxes_idx = outputs[0];
-    let detection_classes_idx = outputs[1];
-    let detection_scores_idx = outputs[2];
-    let num_detections_idx = outputs[3];
+            let input_index = inputs[0];
 
-    let input_tensor = interpreter.tensor_info(input_index).unwrap();
-    assert_eq!(input_tensor.dims, vec![1, 320, 320, 3]);
+            let outputs = interpreter.outputs().to_vec();
+            assert_eq!(outputs.len(), 4);
 
-    let output_tensor = interpreter.tensor_info(output_index).unwrap();
-    println!("output_tensor {:?}", output_tensor);
-    assert_eq!(output_tensor.dims, vec![1, 25, 4]);
+            let output_index = outputs[0];
 
-    // input_file.read_exact(interpreter.tensor_data_mut(input_index)?)?;
-    // let mut img = ImageReader::open(format!("data/{}.png", i)).unwrap().decode().unwrap().grayscale();
-    // img.invert();
-    let img = image::load_from_memory_with_format(&img.as_slice(), image::ImageFormat::Jpeg)    
-        .expect("Detector: failed to read frame as Jpeg")
-        .resize_exact(320, 320, image::imageops::FilterType::Gaussian);
-    let img = img.to_bytes();
-    let input = interpreter.tensor_data_mut(input_index)?;
-    let t = std::time::Instant::now();
-    // let mut img = Cursor::new(img);
-    img.as_slice().read(input).unwrap();
-    // for i in 0..(320*320*3) {
-    //     input[i] = img[i];//(img[i] as f32) / 127.5 - 1.0;
-    // }
-    println!("conversion time {:?}", t.elapsed());
+            let detection_boxes_idx = outputs[0];
+            let detection_classes_idx = outputs[1];
+            let detection_scores_idx = outputs[2];
+            let num_detections_idx = outputs[3];
 
-    let t = std::time::Instant::now();
-    interpreter.invoke()?;
-    println!("inference time {:?}", t.elapsed());
+            let input_tensor = interpreter.tensor_info(input_index).unwrap();
+            assert_eq!(
+                input_tensor.dims,
+                vec![1, input_height as usize, input_width as usize, 3]
+            );
 
-    // let output = interpreter.tensor_data(output_index)?;
-    let detection_boxes: &[f32] = interpreter.tensor_data(detection_boxes_idx)?;
-    let detection_classes: &[f32] = interpreter.tensor_data(detection_classes_idx)?;
-    let detection_scores: &[f32] = interpreter.tensor_data(detection_scores_idx)?;
-    let num_detections: &[f32] = interpreter.tensor_data(num_detections_idx)?;
-    // let guess = output.iter().enumerate().max_by(|x, y| x.1.cmp(y.1)).unwrap().0;
+            let output_tensor = interpreter.tensor_info(output_index).unwrap();
+            println!("output_tensor {:?}", output_tensor);
+            assert_eq!(output_tensor.dims, vec![1, 25, 4]);
 
-    // println!("detection_boxes {:?}", detection_boxes);
-    // println!("detection_classes {:?}", detection_classes);
-    // println!("detection_scores {:?}", detection_scores);
-    // println!("num_detections {:?}", num_detections);
-    Ok(())
+            while let Ok((img, response)) = rx.recv() {
+                // input_file.read_exact(interpreter.tensor_data_mut(input_index)?)?;
+                // let mut img = ImageReader::open(format!("data/{}.png", i)).unwrap().decode().unwrap().grayscale();
+                // img.invert();
+                let img =
+                    image::load_from_memory_with_format(&img.as_slice(), image::ImageFormat::Jpeg)
+                        .expect("Detector: failed to read frame as Jpeg");
+                let (im_width, im_height) = img.dimensions();
+                let scale_x = (im_width as f32) / (input_width as f32);
+                let scale_y = (im_height as f32) / (input_height as f32);
+                let img = img.resize_exact(
+                    input_width,
+                    input_height,
+                    image::imageops::FilterType::Gaussian,
+                );
+                let img = img.to_bytes();
+                let input = interpreter.tensor_data_mut(input_index).unwrap();
+                let t = std::time::Instant::now();
+                // let mut img = Cursor::new(img);
+                img.as_slice().read(input).unwrap();
+                // for i in 0..(320*320*3) {
+                //     input[i] = img[i];//(img[i] as f32) / 127.5 - 1.0;
+                // }
+                println!("conversion time {:?}", t.elapsed());
+
+                let t = std::time::Instant::now();
+                interpreter.invoke().unwrap();
+                println!("inference time {:?}", t.elapsed());
+
+                // let output = interpreter.tensor_data(output_index).unwrap();
+                let detection_boxes: &[f32] = interpreter.tensor_data(detection_boxes_idx).unwrap();
+                let detection_classes: &[f32] =
+                    interpreter.tensor_data(detection_classes_idx).unwrap();
+                let detection_scores: &[f32] =
+                    interpreter.tensor_data(detection_scores_idx).unwrap();
+                let num_detections: &[f32] = interpreter.tensor_data(num_detections_idx).unwrap();
+                // let guess = output.iter().enumerate().max_by(|x, y| x.1.cmp(y.1)).unwrap().0;
+
+                // println!("detection_boxes {:?}", detection_boxes);
+                // println!("detection_classes {:?}", detection_classes);
+                // println!("detection_scores {:?}", detection_scores);
+                // println!("num_detections {:?}", num_detections);
+
+                let mut detections = Vec::new();
+                for i in 0..num_detections[0] as usize {
+                    if min_score > detection_scores[i] {
+                        break;
+                    }
+                    let rect = &detection_boxes[i * 4..i * 4 + 4];
+                    detections.push(BoxDetection {
+                        ymin: rect[0] * scale_y,
+                        xmin: rect[1] * scale_x,
+                        ymax: rect[2] * scale_y,
+                        xmax: rect[3] * scale_x,
+                        score: detection_scores[i],
+                        class: detection_classes[i] as u32,
+                    });
+                }
+                println!("detections {:?}", detections);
+                response.send(detections).ok();
+            }
+        });
+
+        Self {
+            _thread: handler,
+            _sender: sx,
+        }
+    }
+    fn detect(&self, img: Vec<u8>) -> oneshot::Receiver<Vec<BoxDetection>> {
+        let (sx, rx) = oneshot::channel();
+        self._sender.send((img, sx));
+        rx
+    }
 }
 
 // #[test]
@@ -89,6 +151,25 @@ fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
 
 pub struct Detector {}
 
+// TODO there must be an idiomatic way to do this
+pub struct LastValue<T> {
+    val: Vec<T>,
+}
+impl<T> LastValue<T> {
+    pub fn new() -> Self {
+        Self {
+            val: Vec::with_capacity(1),
+        }
+    }
+    pub fn set(&mut self, value: T) {
+        self.val.clear();
+        self.val.push(value);
+    }
+    pub fn pop(&mut self) -> Option<T> {
+        self.val.pop()
+    }
+}
+
 impl Detector {
     pub fn new(broadcaster: &Broadcaster) {
         let mut stream = broadcaster.stream().filter_map(|m| {
@@ -99,40 +180,38 @@ impl Detector {
             }
         });
 
-        // TODO there should be a better solution than using a vector
-        let last_image = Arc::new(Mutex::new(Vec::with_capacity(1)));
+        let worker = DetectionWorker::new();
+        let last_image = Arc::new(Mutex::new(LastValue::new()));
 
         {
             let last_image = Arc::clone(&last_image);
             tokio::spawn(async move {
                 while let Some(frame) = stream.next().await {
                     let mut last_image = last_image.lock().await;
-                    last_image.clear();
-                    last_image.push(frame);
+                    last_image.set(frame);
                 }
             });
         };
+
         {
             let last_image = Arc::clone(&last_image);
+            let publisher = broadcaster.publisher();
             tokio::spawn(async move {
                 loop {
-                    let last_image = {
-                        let mut last_image = last_image.lock().await;
-                        if last_image.len() > 0 {
-                            Some(last_image.pop().unwrap())
-                        } else {
-                            None
-                        }
-                    };
+                    let last_image = last_image.lock().await.pop();
                     if let Some(frame) = last_image {
-                        tokio::task::spawn_blocking(move || {
-                            let settings = Settings::new().unwrap();
-                            let buf = fs::read(settings.detecor_model)
-                                .expect("Couldn't find the detector model");
-                            detect(&FlatBufferModel::build_from_buffer(buf).unwrap(), frame).ok();
-                        })
-                        .await
-                        .unwrap();
+                        
+                        let result = worker.detect(frame);
+                        if let Ok(detections) = result.await {
+                            publisher.send(Msg::Detections(detections)).ok();
+                        }
+                        // let detections =
+                        //     tokio::task::spawn_blocking(|| detect(&model, frame).unwrap())
+                        //         .await
+                        //         .unwrap();
+                    } else {
+                        // wait if there is no new image to process
+                        tokio::time::sleep(tokio::time::Duration::from_millis(100));
                     }
                 }
             });

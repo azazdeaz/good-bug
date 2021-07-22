@@ -1,4 +1,4 @@
-use crate::types::{Edge, Iso3, Keyframe, Landmark, Point3, TrackingState};
+use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, Point3, TrackingState};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
@@ -12,6 +12,8 @@ pub enum Msg {
     Landmarks(Vec<Landmark>),
     CameraPose(Iso3),
     Frame(Vec<u8>),
+
+    Detections(Vec<BoxDetection>),
 
     //OpenVSlam input
     TerminateSlam,

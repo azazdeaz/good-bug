@@ -3,6 +3,17 @@ use serde::{Serialize, Deserialize};
 pub type Iso3 = nalgebra::Isometry3<f64>;
 pub type Point3 = nalgebra::Point3<f64>;
 
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct BoxDetection {
+    pub ymin: f32,
+    pub xmin: f32,
+    pub ymax: f32,
+    pub xmax: f32,
+    pub score: f32,
+    pub class: u32,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Landmark {
     pub id: u32,

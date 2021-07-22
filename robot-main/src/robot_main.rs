@@ -10,6 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let broadcaster = Broadcaster::new();
     let _slam = OpenVSlamWrapper::new(&broadcaster, tokio::runtime::Handle::current())?;
     let _nav = navigator::Navigator::new(&broadcaster);
+    detector::Detector::new(&broadcaster);
     grpc_server::start_server(broadcaster).await?;
     Ok(())
 }

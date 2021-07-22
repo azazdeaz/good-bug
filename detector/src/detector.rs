@@ -1,14 +1,17 @@
-use std::convert::TryInto;
 use std::fs::{self, File};
-use std::io::{Read, Cursor};
+use std::io::{Cursor, Read};
+use std::sync::Arc;
 
+use image::{self, imageops::FilterType, io::Reader as ImageReader};
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder, Result};
-use image::{self, io::Reader as ImageReader, imageops::FilterType};
+use tokio::sync::Mutex;
 use tokio_stream::StreamExt;
 
-use common::{settings::Settings, msg::{Msg, Broadcaster}};
-
+use common::{
+    msg::{Broadcaster, Msg},
+    settings::Settings,
+};
 
 fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
     let resolver = BuiltinOpResolver::default();
@@ -16,7 +19,7 @@ fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
     let builder = InterpreterBuilder::new(model, &resolver)?;
     let mut interpreter = builder.build()?;
 
-    interpreter.set_num_threads(2);
+    interpreter.set_num_threads(4);
 
     interpreter.allocate_tensors()?;
 
@@ -35,7 +38,6 @@ fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
     let detection_scores_idx = outputs[2];
     let num_detections_idx = outputs[3];
 
-
     let input_tensor = interpreter.tensor_info(input_index).unwrap();
     assert_eq!(input_tensor.dims, vec![1, 320, 320, 3]);
 
@@ -43,11 +45,12 @@ fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
     println!("output_tensor {:?}", output_tensor);
     assert_eq!(output_tensor.dims, vec![1, 25, 4]);
 
-
     // input_file.read_exact(interpreter.tensor_data_mut(input_index)?)?;
     // let mut img = ImageReader::open(format!("data/{}.png", i)).unwrap().decode().unwrap().grayscale();
     // img.invert();
-    let img = image::load_from_memory_with_format(image::ImageFormat::Jpeg).expect("Detector: failed to read frame as Jpeg");
+    let img = image::load_from_memory_with_format(&img.as_slice(), image::ImageFormat::Jpeg)    
+        .expect("Detector: failed to read frame as Jpeg")
+        .resize_exact(320, 320, image::imageops::FilterType::Gaussian);
     let img = img.to_bytes();
     let input = interpreter.tensor_data_mut(input_index)?;
     let t = std::time::Instant::now();
@@ -72,7 +75,7 @@ fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
     // println!("detection_boxes {:?}", detection_boxes);
     // println!("detection_classes {:?}", detection_classes);
     // println!("detection_scores {:?}", detection_scores);
-    // println!("num_detections {:?}", num_detections);   
+    // println!("num_detections {:?}", num_detections);
     Ok(())
 }
 
@@ -84,35 +87,55 @@ fn detect(model: &FlatBufferModel, img: Vec<u8>) -> Result<()> {
 //     test_mnist(&FlatBufferModel::build_from_buffer(buf)?)
 // }
 
-
 pub struct Detector {}
 
 impl Detector {
     pub fn new(broadcaster: &Broadcaster) {
-        let stream = broadcaster.stream()
-            .filter_map(|m| {
-                if let Ok(Msg::Frame(frame)) = m { Some(frame) } else { None }
-                
-            });
-
-        let (sx, rx) = tokio::sync::watch::channel(None);
-        tokio::spawn(async move {
-            while let Some(frame) = stream.next().await { 
-                sx.send(Some(frame)).ok();
+        let mut stream = broadcaster.stream().filter_map(|m| {
+            if let Ok(Msg::Frame(frame)) = m {
+                Some(frame)
+            } else {
+                None
             }
         });
-        tokio::spawn(async move {
-            loop {
-                if let Ok(_) = rx.changed().await { 
-                    if let Some(frame) = *rx.borrow() {
+
+        // TODO there should be a better solution than using a vector
+        let last_image = Arc::new(Mutex::new(Vec::with_capacity(1)));
+
+        {
+            let last_image = Arc::clone(&last_image);
+            tokio::spawn(async move {
+                while let Some(frame) = stream.next().await {
+                    let mut last_image = last_image.lock().await;
+                    last_image.clear();
+                    last_image.push(frame);
+                }
+            });
+        };
+        {
+            let last_image = Arc::clone(&last_image);
+            tokio::spawn(async move {
+                loop {
+                    let last_image = {
+                        let mut last_image = last_image.lock().await;
+                        if last_image.len() > 0 {
+                            Some(last_image.pop().unwrap())
+                        } else {
+                            None
+                        }
+                    };
+                    if let Some(frame) = last_image {
                         tokio::task::spawn_blocking(move || {
                             let settings = Settings::new().unwrap();
-                            let buf = fs::read(settings.detecor_model)?;
-                            detect(&FlatBufferModel::build_from_buffer(buf)?, frame)
-                        }).await.unwrap();
+                            let buf = fs::read(settings.detecor_model)
+                                .expect("Couldn't find the detector model");
+                            detect(&FlatBufferModel::build_from_buffer(buf).unwrap(), frame).ok();
+                        })
+                        .await
+                        .unwrap();
                     }
                 }
-            }
-        });
+            });
+        }
     }
 }

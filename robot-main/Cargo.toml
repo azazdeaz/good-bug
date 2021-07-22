@@ -13,6 +13,7 @@ nalgebra = { version = "0.27", features = ["serde-serialize"] }
 grpc-server = { path = "../grpc-server"}
 openvslam-wrap = { path = "../openvslam-wrap"}
 drivers = { path = "../drivers" }
+detector = { path = "../detector" }
 common = { path = "../common" }
 
 [[bin]]

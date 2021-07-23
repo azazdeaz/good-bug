@@ -3,6 +3,8 @@ use gdnative::prelude::*;
 
 use crate::components;
 
+use common::msg::Msg;
+
 /// The Game "class"
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -106,6 +108,13 @@ impl Game {
     #[export]
     fn signal_map_callback_b(&mut self, _owner: TRef<Node>, b: bool, id: u32) {
         self.context.signal_map.callback(id, SignalData::B(b));
+    }
+
+
+    
+    #[export]
+    fn enable_raw_preview(&mut self, _owner: TRef<Node>, enable: bool) {
+        self.context.broadcaster.publisher().send(Msg::UseRawPreview(enable)).ok();
     }
 
  

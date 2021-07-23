@@ -18,6 +18,7 @@ pub enum Msg {
     //OpenVSlam input
     TerminateSlam,
     SaveMapDB(String),
+    UseRawPreview(bool),
 
     // Mirrors output
     Teleop((f64, f64)),
@@ -34,6 +35,7 @@ impl Msg {
                 | Msg::SaveMapDB(_)
                 | Msg::NavTarget(_)
                 | Msg::TerminateSlam
+                | Msg::UseRawPreview(_)
         )
     }
 }

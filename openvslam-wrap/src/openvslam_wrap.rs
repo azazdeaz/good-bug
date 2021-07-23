@@ -95,6 +95,15 @@ impl OpenVSlamWrapper {
                             Msg::SaveMapDB(path) => {
                                 Some(pb::request::Msg::SaveMapDb(pb::request::SaveMapDb { path }))
                             }
+                            Msg::UseRawPreview(use_raw) => {
+                                let preview_type = if use_raw {
+                                    pb::request::PreviewType::Raw
+                                }
+                                else {
+                                    pb::request::PreviewType::SlamInfo
+                                };
+                                Some(pb::request::Msg::SetPreviewType(preview_type.into()))
+                            }
                             _ => None,
                         };
                         if let Some(pb_request) = pb_request {

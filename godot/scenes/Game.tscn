@@ -1,10 +1,15 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
 [ext_resource path="res://scenes/StaticBody.gd" type="Script" id=3]
 [ext_resource path="res://scenes/EnableRaw.gd" type="Script" id=4]
+[ext_resource path="res://scenes/SaveImage.gd" type="Script" id=5]
 [ext_resource path="res://addons/goutte.camera.trackball/trackball_camera.gd" type="Script" id=7]
+
+[sub_resource type="NoiseTexture" id=3]
+width = 640
+height = 480
 
 [sub_resource type="PlaneMesh" id=1]
 
@@ -23,19 +28,48 @@ __meta__ = {
 }
 
 [node name="VBox" type="VBoxContainer" parent="GUI"]
-margin_right = 316.0
+margin_right = 422.0
 margin_bottom = 960.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
-margin_right = 316.0
+margin_right = 422.0
 margin_bottom = 40.0
+text = "show raw image"
 script = ExtResource( 4 )
 
+[node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
+margin_top = 44.0
+margin_right = 422.0
+margin_bottom = 932.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = SubResource( 3 )
+expand = true
+stretch_mode = 5
+
+[node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
+margin_top = 936.0
+margin_right = 422.0
+margin_bottom = 960.0
+script = ExtResource( 5 )
+
+[node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
+margin_right = 333.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+text = "saved_images"
+
+[node name="SaveImageBtn" type="Button" parent="GUI/VBox/SaveImage"]
+margin_left = 337.0
+margin_right = 422.0
+margin_bottom = 24.0
+text = "Save Image"
+
 [node name="Control" type="Control" parent="GUI"]
-margin_left = 328.0
+margin_left = 434.0
 margin_right = 1280.0
 margin_bottom = 960.0
 mouse_filter = 2
@@ -63,3 +97,4 @@ script = ExtResource( 7 )
 stabilize_horizon = true
 joystick_enabled = false
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
+[connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]

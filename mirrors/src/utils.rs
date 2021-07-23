@@ -33,3 +33,19 @@ pub fn get_node< T: SubClass<Node>>(owner: &Node, path: String) -> TRef<T> {
         }
     }
 }
+
+pub fn find_node< T: SubClass<Node>>(owner: &Node, mask: String) -> TRef<T> {
+    unsafe {
+        let node = owner.find_node(&mask, true, false);
+        if let Some(node) = node {
+            node
+                .assume_safe()
+                .cast::<T>()
+                .expect(&format!("failed to cast {}", mask))
+        }
+        else {
+            owner.print_tree_pretty();
+            panic!("can't find node with mask '{}'", mask);
+        }
+    }
+}

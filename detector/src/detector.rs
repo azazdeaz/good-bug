@@ -74,8 +74,6 @@ impl DetectionWorker {
                     image::load_from_memory_with_format(&img.as_slice(), image::ImageFormat::Jpeg)
                         .expect("Detector: failed to read frame as Jpeg");
                 let (im_width, im_height) = img.dimensions();
-                let scale_x = (im_width as f32) / (input_width as f32);
-                let scale_y = (im_height as f32) / (input_height as f32);
                 let img = img.resize_exact(
                     input_width,
                     input_height,
@@ -116,10 +114,10 @@ impl DetectionWorker {
                     }
                     let rect = &detection_boxes[i * 4..i * 4 + 4];
                     detections.push(BoxDetection {
-                        ymin: rect[0] * scale_y,
-                        xmin: rect[1] * scale_x,
-                        ymax: rect[2] * scale_y,
-                        xmax: rect[3] * scale_x,
+                        ymin: rect[0] * im_height as f32,
+                        xmin: rect[1] * im_width as f32,
+                        ymax: rect[2] * im_height as f32,
+                        xmax: rect[3] * im_width as f32,
                         score: detection_scores[i],
                         class: detection_classes[i] as u32,
                     });

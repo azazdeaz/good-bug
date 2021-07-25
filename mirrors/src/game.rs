@@ -17,6 +17,7 @@ pub struct Game {
     context: components::context::Context,
 }
 
+
 use crate::signal_map::SignalData;
 
 extern crate yaml_rust;
@@ -58,13 +59,12 @@ impl Game {
 
     /// The "constructor" of the class.
     fn new(_owner: &Node) -> Self {
-        let game = Game {
+        godot_print!("build game");
+        Game {
             name: "".to_string(),
             components: Vec::new(),
             context: components::context::Context::new(),
-        };
-        godot_print!("build game");
-        game
+        }
     }
 
     #[export]
@@ -182,10 +182,9 @@ impl Game {
 
     #[export]
     unsafe fn _ready(&mut self, owner: TRef<Node>) {
-        // The `godot_print!` macro works like `println!` but prints to the Godot-editor
-        // output tab as well.
         self.name = "Game".to_string();
-        godot_print!("{} is ready!!!mak", self.name);
+
+
         self.components.push(Box::new(components::CameraPose::new(
             owner,
             "Spatial".into(),

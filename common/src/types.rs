@@ -3,8 +3,8 @@ use serde::{Serialize, Deserialize};
 pub type Iso3 = nalgebra::Isometry3<f64>;
 pub type Point3 = nalgebra::Point3<f64>;
 
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+use gdnative::prelude::*;
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
 pub struct BoxDetection {
     pub ymin: f32,
     pub xmin: f32,

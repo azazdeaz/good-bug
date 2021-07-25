@@ -1,17 +1,20 @@
 use gdnative::api::*;
-use gdnative::api::texture_rect::StretchMode;
+// use gdnative::api::texture_rect::StretchMode;
 use gdnative::prelude::*;
 
-use crate::components::Context;
+
 use tokio;
 use tokio::sync::watch::Receiver;
 
+use common::{types::BoxDetection};
+use crate::components::Context;
 use crate::components::traits::Updatable;
 use crate::utils::find_node;
 use crate::watch_msg;
 
 pub struct Frame {
     frame: Receiver<Option<Vec<u8>>>,
+    detections: Receiver<Option<Vec<BoxDetection>>>,
     // panel_path: String,
     // rect_paths: Vec<String>,
 }
@@ -19,6 +22,7 @@ pub struct Frame {
 impl Frame {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let frame = watch_msg!(context, Msg::Frame);
+        let detections = watch_msg!(context, Msg::Detections);
 
         // let panel = TextureRect::new();
         // let panel_name = "panel";
@@ -49,6 +53,7 @@ impl Frame {
 
         Frame {
             frame,
+            detections,
             // panel_path,
             // rect_paths,
         }
@@ -72,6 +77,14 @@ impl Updatable for Frame {
             //     2.0,
             //     true,
             // );
+        }
+
+        if let Some(detections) = &*self.detections.borrow() {
+            let gd_detections = detections.to_variant();
+            let panel = find_node::<TextureRect>(owner, "CameraImage".into());
+            unsafe {
+                panel.call("update_detections", &[gd_detections]);
+            }
         }
     }
 }

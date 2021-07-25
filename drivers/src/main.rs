@@ -6,9 +6,9 @@ use clap::{AppSettings, Clap};
 #[derive(Clap)]
 #[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
-    #[clap(about("left side speed (between -1.0 an 1.0)"))]
+    #[clap(about("left side speed (between -1.0 an 1.0)"), allow_hyphen_values(true))]
     left: f64,
-    #[clap(about("right side speed (between -1.0 an 1.0)"))]
+    #[clap(about("right side speed (between -1.0 an 1.0)"), allow_hyphen_values(true))]
     right: f64,
     #[clap(about("duration in ms"))]
     duration: u64,

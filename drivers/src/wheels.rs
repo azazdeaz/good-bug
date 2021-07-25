@@ -1,4 +1,11 @@
 
+use std::error::Error;
+use std::thread;
+use std::time::Duration;
+
+use rppal::gpio::{Gpio, OutputPin};
+
+
 use linux_embedded_hal::I2cdev;
 use pwm_pca9685::{Address, Channel, Pca9685};
 use std::{boxed::Box};
@@ -15,6 +22,20 @@ trait SetSpeed {
 
 struct SetSpeedPwm {
     pwm: Pca9685<linux_embedded_hal::I2cdev>,
+}
+
+impl SetSpeedPwm {
+    pub fn new() -> Self {
+        let dev = I2cdev::new("/dev/i2c-0").expect("Couldn't access i2c device. Is this running on an IoT device (RPi/Jetson)?");
+        let address = Address::default();
+        let mut pwm = Pca9685::new(dev, address).unwrap();
+
+        pwm.enable().unwrap();
+
+        pwm.set_prescale(100).unwrap();
+
+        Self { pwm }
+    }
 }
 
 impl SetSpeed for SetSpeedPwm {
@@ -42,6 +63,49 @@ impl SetSpeed for SetSpeedPwm {
     }
 }
 
+struct SetSpeedSoftPwm {
+    in1: OutputPin,
+    in2: OutputPin,
+    in3: OutputPin,
+    in4: OutputPin,
+    freq: f64,
+}
+
+impl SetSpeedSoftPwm {
+    fn new() -> Result<Self, Box<dyn Error>> {
+        // TODO move these to settings
+        let in1 = 12;
+        let in2 = 13;
+        let in3 = 19;
+        let in4 = 26;
+
+        Ok(Self {
+            in1: Gpio::new()?.get(in1)?.into_output(),
+            in2: Gpio::new()?.get(in2)?.into_output(),
+            in3: Gpio::new()?.get(in3)?.into_output(),
+            in4: Gpio::new()?.get(in4)?.into_output(),
+            freq: 30.0
+        })
+    }
+}
+
+impl SetSpeed for SetSpeedSoftPwm {
+    fn set(&mut self, left: f64, right: f64) {
+        let left = if left.abs() < 0.01 { 0.0 } else { left };
+        let right = if right.abs() < 0.01 { 0.0 } else { right };
+        let mut in1;
+        let mut in2;
+        let mut in3;
+        let mut in4;
+        if left > 0.0 { in1 = left; in2 = 0.0 } else { in2 = left; in1 = 0.0 };
+        if right > 0.0 { in3 = right; in4 = 0.0 } else { in4 = right; in3 = 0.0 };
+        if in1 == 0.0 { self.in1.clear_pwm().ok(); } else { self.in1.set_pwm_frequency(self.freq.clone(), in1).ok();}
+        if in2 == 0.0 { self.in2.clear_pwm().ok(); } else { self.in2.set_pwm_frequency(self.freq.clone(), in2).ok();}
+        if in3 == 0.0 { self.in3.clear_pwm().ok(); } else { self.in3.set_pwm_frequency(self.freq.clone(), in3).ok();}
+        if in4 == 0.0 { self.in4.clear_pwm().ok(); } else { self.in4.set_pwm_frequency(self.freq.clone(), in4).ok();}
+    }
+}
+
 struct SetSpeedNoop {}
 
 impl SetSpeed for SetSpeedNoop {
@@ -57,15 +121,8 @@ pub struct Wheels {
 
 impl Wheels {
     pub fn new() -> Self {
-        let mut set_speed: Box<dyn SetSpeed + Send> = if let Ok(dev) = I2cdev::new("/dev/i2c-0") {
-            let address = Address::default();
-            let mut pwm = Pca9685::new(dev, address).unwrap();
-    
-            pwm.enable().unwrap();
-    
-            pwm.set_prescale(100).unwrap();
-    
-            Box::new(SetSpeedPwm { pwm })
+        let mut set_speed: Box<dyn SetSpeed + Send> = if let Ok(set_speed) = SetSpeedSoftPwm::new() {
+            Box::new(set_speed)
         } else {
             Box::new(SetSpeedNoop {})
         };

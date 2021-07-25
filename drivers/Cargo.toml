@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 linux-embedded-hal = "0.3.0"
 pwm-pca9685 = "0.3.0"
+rppal = "0.12.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 anyhow = "1"
 clap = "3.0.0-beta.2"

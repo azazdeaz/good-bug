@@ -14,6 +14,7 @@ pub enum Msg {
     Frame(Vec<u8>),
 
     Detections(Vec<BoxDetection>),
+    MapScale(f64),
 
     //OpenVSlam input
     TerminateSlam,

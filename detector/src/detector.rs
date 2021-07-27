@@ -12,6 +12,7 @@ use common::{
     msg::{Broadcaster, Msg},
     settings::Settings,
     types::BoxDetection,
+    utils::LastValue,
 };
 
 struct DetectionWorker {
@@ -148,25 +149,6 @@ impl DetectionWorker {
 // }
 
 pub struct Detector {}
-
-// TODO there must be an idiomatic way to do this
-pub struct LastValue<T> {
-    val: Vec<T>,
-}
-impl<T> LastValue<T> {
-    pub fn new() -> Self {
-        Self {
-            val: Vec::with_capacity(1),
-        }
-    }
-    pub fn set(&mut self, value: T) {
-        self.val.clear();
-        self.val.push(value);
-    }
-    pub fn pop(&mut self) -> Option<T> {
-        self.val.pop()
-    }
-}
 
 impl Detector {
     pub fn new(broadcaster: &Broadcaster) {

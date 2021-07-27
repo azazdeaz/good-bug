@@ -4,12 +4,14 @@ use grpc_server;
 use tokio;
 
 mod navigator;
+mod scale_estimator;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let broadcaster = Broadcaster::new();
-    let _slam = OpenVSlamWrapper::new(&broadcaster, tokio::runtime::Handle::current())?;
-    let _nav = navigator::Navigator::new(&broadcaster);
+    OpenVSlamWrapper::new(&broadcaster, tokio::runtime::Handle::current())?;
+    navigator::Navigator::new(&broadcaster);
+    scale_estimator::ScaleEstimator::new(&broadcaster);
     detector::Detector::new(&broadcaster);
     grpc_server::start_server(broadcaster).await?;
     Ok(())

@@ -7,6 +7,7 @@ pub struct Slam {
     pub openvslam_config: String,
     pub vocab: String,
     pub video: Option<String>,
+    pub enable_auto_slace_estimation: bool,
 }
 
 #[derive(Debug, Deserialize)]

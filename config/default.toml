@@ -5,3 +5,4 @@ detecor_model = "models/efficientdet-lite0-int8.tflite"
 [slam]
 vocab = "slam/orb_vocab.fbow"
 openvslam_config = "slam/slam.yaml"
+enable_auto_slace_estimation = true

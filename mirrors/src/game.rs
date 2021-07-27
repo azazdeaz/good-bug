@@ -144,42 +144,6 @@ impl Game {
         
     }
 
-    // #[export]
-    // fn estimate_scale(&mut self, owner: TRef<Node>) {
-    //     let z = self
-    //         .values
-    //         .landmarks
-    //         .values()
-    //         .map(|v| v.0.y)
-    //         .filter(|z| z.is_sign_positive());
-    //     // .collect::<Vec<f32>>();
-
-    //     let z = ndarray::Array::from_iter(z);
-    //     let ground_level = z.mean();
-    //     // let z = na::VectorN::from_vec(z);
-    //     godot_print!("mean {:?}", ground_level);
-
-    //     if let Some(ground_level) = ground_level {
-    //         unsafe {
-    //             let t = Transform::translate(Vector3::new(0.0, -ground_level, 0.0));
-    //             owner
-    //                 .find_node("Ground", true, true)
-    //                 .unwrap()
-    //                 .assume_safe()
-    //                 .cast::<CSGMesh>()
-    //                 .unwrap()
-    //                 .set_translation(Vector3::new(0.0, -ground_level, 0.0));
-
-    //             self.values.slam_scale =
-    //                 ground_level as f64 / navigator::RobotBody::get_cam_height();
-    //             self.navigator
-    //                 .send_slam_scale
-    //                 .send(self.values.slam_scale)
-    //                 .unwrap();
-    //         }
-    //     }
-    // }
-
     #[export]
     unsafe fn _ready(&mut self, owner: TRef<Node>) {
         self.name = "Game".to_string();

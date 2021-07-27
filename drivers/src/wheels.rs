@@ -97,8 +97,8 @@ impl SetSpeed for SetSpeedSoftPwm {
         let mut in2;
         let mut in3;
         let mut in4;
-        if left > 0.0 { in1 = left; in2 = 0.0 } else { in2 = left; in1 = 0.0 };
-        if right > 0.0 { in3 = right; in4 = 0.0 } else { in4 = right; in3 = 0.0 };
+        if left > 0.0 { in1 = left; in2 = 0.0 } else { in2 = left.abs(); in1 = 0.0 };
+        if right > 0.0 { in3 = right; in4 = 0.0 } else { in4 = right.abs(); in3 = 0.0 };
         if in1 == 0.0 { self.in1.clear_pwm().ok(); } else { self.in1.set_pwm_frequency(self.freq.clone(), in1).ok();}
         if in2 == 0.0 { self.in2.clear_pwm().ok(); } else { self.in2.set_pwm_frequency(self.freq.clone(), in2).ok();}
         if in3 == 0.0 { self.in3.clear_pwm().ok(); } else { self.in3.set_pwm_frequency(self.freq.clone(), in3).ok();}

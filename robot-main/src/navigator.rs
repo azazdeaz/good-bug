@@ -169,7 +169,7 @@ impl Navigator {
 
         {
             let state = Arc::clone(&state);
-            let freq = 2.0;
+            let freq = 50.0;
             let tick_time = tokio::time::Duration::from_secs_f64(1.0 / freq);
             tokio::spawn(async move {
                 loop {

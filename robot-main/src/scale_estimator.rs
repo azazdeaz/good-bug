@@ -2,7 +2,8 @@ use common::{
     msg::{Broadcaster, Msg},
     types::Landmark,
     utils::LastValue,
-    robot_body::RobotBody
+    robot_body::RobotBody,
+    settings::Settings,
 };
 use nalgebra as na;
 use std::{
@@ -14,6 +15,10 @@ pub struct ScaleEstimator {}
 
 impl ScaleEstimator {
     pub fn new(broadcaster: &Broadcaster) -> Self {
+        let settings = Settings::new().unwrap();
+        if !settings.slam.enable_auto_slace_estimation {
+            return ScaleEstimator {};
+        }
         // TODO use a util for this
         let mut stream = broadcaster.stream().filter_map(|m| {
             if let Ok(Msg::Landmarks(landmarks)) = m {

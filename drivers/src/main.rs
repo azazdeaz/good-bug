@@ -4,11 +4,11 @@ use clap::{AppSettings, Clap};
 /// This doc string acts as a help message when the user runs '--help'
 /// as do all doc strings on fields
 #[derive(Clap)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[clap(setting = AppSettings::AllowLeadingHyphen)]
 struct Opts {
-    #[clap(about("left side speed (between -1.0 an 1.0)"), allow_hyphen_values(true))]
+    #[clap(about("left side speed (between -1.0 an 1.0)"))]
     left: f64,
-    #[clap(about("right side speed (between -1.0 an 1.0)"), allow_hyphen_values(true))]
+    #[clap(about("right side speed (between -1.0 an 1.0)"))]
     right: f64,
     #[clap(about("duration in ms"))]
     duration: u64,
@@ -16,6 +16,7 @@ struct Opts {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+
     let opts: Opts = Opts::parse();
     let wheels = drivers::Wheels::new();
     wheels.speed_sender.send((opts.left, opts.right)).await?;

@@ -59,7 +59,7 @@ impl ScaleEstimator {
 fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
     let z = landmarks.into_iter().filter_map(|v| {
         let height: f64 = v.point.y;
-        if height.is_sign_positive() {
+        if height.is_sign_negative() {
             Some(height)
         } else {
             None
@@ -68,9 +68,9 @@ fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
 
     let z = ndarray::Array::from_iter(z);
     let ground_level = z.mean();
-
+    
     if let Some(ground_level) = ground_level {
-        Some(RobotBody::get_cam_height() / ground_level as f64)
+        Some(RobotBody::get_cam_height() / ground_level.abs() as f64)
     } else {
         None
     }

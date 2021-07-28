@@ -5,7 +5,6 @@ use common::{
     robot_body::RobotBody,
     settings::Settings,
 };
-use nalgebra as na;
 use std::{
     sync::{Arc, Mutex},
 };
@@ -48,7 +47,7 @@ impl ScaleEstimator {
                             publisher.send(Msg::MapScale(scale)).ok();
                         }
                     }
-                    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
                 }
             });
         }
@@ -71,7 +70,7 @@ fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
     let ground_level = z.mean();
 
     if let Some(ground_level) = ground_level {
-        Some(ground_level as f64 / RobotBody::get_cam_height())
+        Some(RobotBody::get_cam_height() / ground_level as f64)
     } else {
         None
     }

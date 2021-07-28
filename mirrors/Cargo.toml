@@ -25,6 +25,7 @@ crossbeam-channel = "0.5"
 yaml-rust = "0.4.5"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3.16"
 tonic = "0.5"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
@@ -36,8 +37,8 @@ prost-build = { version = "0.7.0" }
 tonic-build = "0.5"
 
 
-# [[bin]]
-# name = "proto-gen"
-# path = "src/proto_gen.rs"
+[[bin]]
+name = "deleteme"
+path = "src/deleteme.rs"
 
 

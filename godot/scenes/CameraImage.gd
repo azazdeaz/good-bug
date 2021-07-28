@@ -14,7 +14,6 @@ func _ready():
 
 func update_detections(_detections):
 	detections = _detections
-	print("DETECTIONS:", detections)
 	update_frame_scale()
 	update()
 

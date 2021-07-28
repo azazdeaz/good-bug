@@ -1,16 +1,21 @@
-use crate::signal_map::SignalMap;
 use crate::grpc_client::GrpcClient;
+use crate::signal_map::SignalMap;
+use crate::ui_state::UiState;
+use common::{msg::Broadcaster, types};
 use std::sync::Arc;
-use tokio::{runtime::Runtime, sync::{RwLock, RwLockReadGuard, broadcast}};
-use common::{types, msg::{Broadcaster} };
+use tokio::{
+    runtime::Runtime,
+    sync::{broadcast, RwLock, RwLockReadGuard},
+};
 
 pub struct Context {
     pub signal_map: SignalMap,
     pub broadcaster: Broadcaster,
+    pub ui_state: UiState,
     client: Arc<RwLock<GrpcClient>>,
     rt: Runtime,
     input_sender: broadcast::Sender<Option<types::GDInput>>,
-    input_receiver: broadcast::Receiver<Option<types::GDInput>>, 
+    input_receiver: broadcast::Receiver<Option<types::GDInput>>,
 }
 
 impl Context {
@@ -20,7 +25,16 @@ impl Context {
         let broadcaster = Broadcaster::new();
         let client = GrpcClient::new(rt.handle().clone(), &broadcaster).unwrap();
         let (input_sender, input_receiver) = broadcast::channel(12);
-        Context { signal_map, broadcaster, client: Arc::new(RwLock::new(client)), rt, input_sender, input_receiver }
+        let ui_state = UiState::new(rt.handle().clone());
+        Context {
+            signal_map,
+            broadcaster,
+            client: Arc::new(RwLock::new(client)),
+            rt,
+            input_sender,
+            input_receiver,
+            ui_state,
+        }
     }
     pub fn runtime(&self) -> tokio::runtime::Handle {
         self.rt.handle().clone()
@@ -29,16 +43,16 @@ impl Context {
     //     let client = Arc::clone(&self.client);
     //     self.rt.block_on(async { client.read().await })
     // }
-    pub fn use_client<T>(&self, exec: fn(RwLockReadGuard<GrpcClient>) -> T ) -> T {
+    pub fn use_client<T>(&self, exec: fn(RwLockReadGuard<GrpcClient>) -> T) -> T {
         let client = Arc::clone(&self.client);
-        self.rt.block_on(async { 
+        self.rt.block_on(async {
             let client = client.read().await;
             exec(client)
         })
     }
 
     pub fn send_input(&self, event: types::GDInput) {
-        self.rt.block_on(async { 
+        self.rt.block_on(async {
             self.input_sender.send(Some(event)).unwrap();
         })
     }

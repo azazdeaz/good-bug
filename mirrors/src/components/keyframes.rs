@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use gdnative::api::*;
 use gdnative::prelude::*;
 
@@ -13,6 +15,8 @@ use common::types::Keyframe;
 
 pub struct Keyframes {
     keyframes: Receiver<Option<Vec<Keyframe>>>,
+    map_scale: Receiver<Option<f64>>,
+    viz_scale: Receiver<f64>,
     geometry_path: String,
     wireframe: [na::Point3<f64>; 12],
 }
@@ -20,6 +24,9 @@ pub struct Keyframes {
 impl Keyframes {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let keyframes = watch_msg!(context, Msg::Keyframes);
+        let map_scale = watch_msg!(context, Msg::MapScale);
+        let viz_scale = context.ui_state.watch(|s| s.viz_scale);
+
         let geometry = ImmediateGeometry::new();
         let geometry_name = "keyframes_component";
         let geometry_path = format!("{}/{}", path, geometry_name);
@@ -48,6 +55,8 @@ impl Keyframes {
 
         let keyframes = Keyframes {
             keyframes,
+            map_scale,
+            viz_scale,
             geometry_path,
             wireframe,
         };
@@ -59,6 +68,8 @@ impl Keyframes {
 impl Updatable for Keyframes {
     fn update(&self, owner: &Node) {
         let keyframes = &*self.keyframes.borrow();
+        let viz_scale = *self.viz_scale.borrow();   
+        let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
         if let Some(keyframes) = keyframes {
             let keyframe_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
 
@@ -66,8 +77,10 @@ impl Updatable for Keyframes {
 
             for keyframe in keyframes {
                 keyframe_mesh.begin(Mesh::PRIMITIVE_LINE_STRIP, Null::null());
+                let mut pose = keyframe.pose.clone();
+                pose.translation.vector *= map_scale;
                 for p in self.wireframe {
-                    let p = keyframe.pose * p;
+                    let p = pose * p;
                     let point =
                         Vector3::new(p.coords[0] as f32, p.coords[1] as f32, p.coords[2] as f32);
                     // keyframe_mesh.set_color(color);

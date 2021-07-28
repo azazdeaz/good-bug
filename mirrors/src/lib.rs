@@ -2,6 +2,7 @@ pub mod game;
 pub mod types;
 pub mod grpc_client;
 pub mod components;
+pub mod ui_state;
 pub mod utils;
 pub mod signal_map;
 

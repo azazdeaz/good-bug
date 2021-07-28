@@ -109,8 +109,8 @@ impl SetSpeed for SetSpeedSoftPwm {
 struct SetSpeedNoop {}
 
 impl SetSpeed for SetSpeedNoop {
-    fn set(&mut self, left: f64, right: f64) {
-        println!("[speed noop] left: {} right: {}", left, right);
+    fn set(&mut self, _left: f64, _right: f64) {
+        // println!("[speed noop] left: {} right: {}", _left, _right);
     }
 }
 

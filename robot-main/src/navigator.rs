@@ -125,9 +125,9 @@ impl NavState {
             } else if yawd.abs() < 0.3 {
                 (speed_go, speed_go)
             } else if yawd > 0. {
-                (speed_turn, -speed_turn)
-            } else {
                 (-speed_turn, speed_turn)
+            } else {
+                (speed_turn, -speed_turn)
             }
         } else {
             (0.0, 0.0)

@@ -7,6 +7,7 @@ pub struct Slam {
     pub openvslam_config: String,
     pub vocab: String,
     pub video: Option<String>,
+    pub mask: Option<String>,
     pub enable_auto_slace_estimation: bool,
 }
 
@@ -46,6 +47,11 @@ impl Settings {
         settings.slam.vocab = absolute_path(&settings.slam.vocab);
         settings.slam.video = if let Some(video) = settings.slam.video {
             Some(absolute_path(&video))
+        } else {
+            None
+        };
+        settings.slam.mask = if let Some(mask) = settings.slam.mask {
+            Some(absolute_path(&mask))
         } else {
             None
         };

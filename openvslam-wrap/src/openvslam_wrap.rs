@@ -71,6 +71,11 @@ impl OpenVSlamWrapper {
                 cmd.arg("-m").arg(video);
             }
 
+            if let Some(mask) = settings.slam.mask {
+                let mask = mask;
+                cmd.arg("--mask").arg(mask);
+            }
+
             cmd.spawn().expect("failed to start OpenVSlam")
         };
 

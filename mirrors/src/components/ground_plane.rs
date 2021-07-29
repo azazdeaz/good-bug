@@ -18,12 +18,12 @@ pub struct GroundPlane {
 
 impl GroundPlane {
     pub fn new(owner: TRef<Node>, _path: String, context: &mut Context) -> Self {
-        let static_body_path: String = "Spatial/Ground/StaticBody".into();
+        let static_body_path: String = "GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody".into();
         let map_scale = watch_msg!(context, Msg::MapScale);
         let viz_scale = context.ui_state.watch(|s| s.viz_scale);
 
         {
-            let mut recv_pressed = context.signal_map.connect_fff(owner, "Spatial/Ground/StaticBody", "select_nav_goal");
+            let mut recv_pressed = context.signal_map.connect_fff(owner, "GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody", "select_nav_goal");
             let publisher = context.broadcaster.publisher();
             context.runtime().spawn(async move {
                 while let Some(SignalData::FFF(x, y, z)) = recv_pressed.recv().await {
@@ -45,7 +45,7 @@ impl Updatable for GroundPlane {
     fn update(&self, owner: &Node) {
         let viz_scale = *self.viz_scale.borrow();   
         let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
-        let mesh = get_node::<CSGMesh>(owner, "Spatial/Ground".into());
+        let mesh = get_node::<CSGMesh>(owner, "GUI/ViewportContainer/Viewport/Spatial/Ground".into());
         mesh.transform().origin.y = (-RobotBody::get_cam_height() * map_scale) as f32;
     }
 }

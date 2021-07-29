@@ -16,7 +16,7 @@ pub struct MirrorsState {
 impl Default for MirrorsState {
     fn default() -> Self {
         Self {
-            viz_scale: 6.0,
+            viz_scale: 2.0,
             annotator: Annotator::default(),
         }
     }

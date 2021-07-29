@@ -148,30 +148,30 @@ impl Game {
     unsafe fn _ready(&mut self, owner: TRef<Node>) {
         self.name = "Game".to_string();
 
-
+        
         self.components.push(Box::new(components::CameraPose::new(
             owner,
-            "Spatial".into(),
+            "GUI/ViewportContainer/Viewport/Spatial".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::Landmarks::new(
             owner,
-            "Spatial".into(),
+            "GUI/ViewportContainer/Viewport/Spatial".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::Keyframes::new(
             owner,
-            "Spatial".into(),
+            "GUI/ViewportContainer/Viewport/Spatial".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::Edges::new(
             owner,
-            "Spatial".into(),
+            "GUI/ViewportContainer/Viewport/Spatial".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::GroundPlane::new(
             owner,
-            "Spatial".into(),
+            "GUI/ViewportContainer/Viewport/Spatial".into(),
             &mut self.context,
         )));
         self.components.push(Box::new(components::Frame::new(

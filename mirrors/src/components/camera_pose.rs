@@ -53,12 +53,12 @@ impl Updatable for CameraPose {
             let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
             let mut camera_pose = camera_pose.clone();
             camera_pose.translation.vector *= map_scale;
-            
+
             let mesh = get_node::<CSGBox>(owner, self.mesh_path.clone());
             mesh.set_transform(iso3_to_gd(&camera_pose));
             mesh.set_scale(Vector3::new(0.2, 0.2, 0.2)); // TODO use calculated scale
 
-            let camera_target_path = "Spatial/CamTarget";
+            let camera_target_path = "GUI/ViewportContainer/Viewport/Spatial/CamTarget";
             let camera_target = get_node::<Spatial>(owner, camera_target_path.into());
             let translation = camera_pose.translation.vector;
             camera_target.set_translation(Vector3::new(

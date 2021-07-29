@@ -12,16 +12,15 @@ func _on_StaticBody_input_event(camera, event, click_position, click_normal, sha
 			click_position = Vector3(click_position)
 			print(click_position)
 			
-			emit_signal(
-				"select_nav_goal",
+			get_node("/root/Game").select_target(
 				click_position.x,
 				click_position.y,
 				click_position.z
 			)
 			
-			var mark = CSGCylinder.new()
-			mark.radius = 0.3
-			mark.height = 0.1
-			mark.sides = 20
-			mark.translation = click_position
-			get_node("../..").add_child(mark)
+#			var mark = CSGCylinder.new()
+#			mark.radius = 0.3
+#			mark.height = 0.1
+#			mark.sides = 20
+#			mark.translation = click_position
+#			get_node("../..").add_child(mark)

@@ -114,11 +114,11 @@ impl NavState {
             let distance = RobotBody::real_distance(distance, self.slam_scale);
 
             println!(
-                "from {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
+                "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
                 pose.translation.vector, target_pose, dx, dz, distance, yaw_target, yaw_bot, yawd
             );
 
-            let distance_tolerance = 100.0;
+            let distance_tolerance = 0.3;
 
             if distance < distance_tolerance {
                 (0., 0.)

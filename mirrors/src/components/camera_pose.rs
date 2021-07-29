@@ -1,3 +1,4 @@
+use common::types::Point3;
 use gdnative::api::*;
 use gdnative::prelude::*;
 
@@ -8,12 +9,12 @@ type Iso3 = nalgebra::Isometry3<f64>;
 use tokio::sync::watch::Receiver;
 
 use crate::components::traits::Updatable;
-use crate::utils::get_node;
+use crate::utils::{get_node, find_node};
 use crate::watch_msg;
 
 pub struct CameraPose {
     camera_pose: Receiver<Option<Iso3>>,
-    map_scale: Receiver<Option<f64>>,
+    nav_target: Receiver<Option<Point3>>,
     viz_scale: Receiver<f64>,
     mesh_path: String,
 }
@@ -21,9 +22,8 @@ pub struct CameraPose {
 impl CameraPose {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let camera_pose = watch_msg!(context, Msg::CameraPose);
-        let map_scale = watch_msg!(context, Msg::MapScale);
-        let viz_scale = context.ui_state.watch(|s| s.viz_scale);
-        // let camera_pose = context.use_client(|c| c.watch_camera_pose());
+        let nav_target = watch_msg!(context, Msg::NavTarget);
+        let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
         let mesh_name = "camera_pose_box";
         let mesh_path = format!("{}/{}", path, mesh_name);
         let mesh = CSGBox::new();
@@ -37,8 +37,8 @@ impl CameraPose {
 
         let camera_pose = CameraPose {
             camera_pose,
+            nav_target,
             mesh_path,
-            map_scale,
             viz_scale,
         };
 
@@ -50,9 +50,8 @@ impl Updatable for CameraPose {
     fn update(&self, owner: &Node) {
         if let Some(camera_pose) = *self.camera_pose.borrow() {
             let viz_scale = *self.viz_scale.borrow();   
-            let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
             let mut camera_pose = camera_pose.clone();
-            camera_pose.translation.vector *= map_scale;
+            camera_pose.translation.vector *= viz_scale;
 
             let mesh = get_node::<CSGBox>(owner, self.mesh_path.clone());
             mesh.set_transform(iso3_to_gd(&camera_pose));
@@ -66,6 +65,17 @@ impl Updatable for CameraPose {
                 translation[1] as f32,
                 translation[2] as f32,
             ));
+        }
+
+        if let Some(nav_target) = *self.nav_target.borrow() {
+            let viz_scale = *self.viz_scale.borrow();
+            let marker = find_node::<Spatial>(owner, "NextTarget".into());
+            marker.set_translation(Vector3::new(
+                (nav_target.x * viz_scale) as f32,
+                (nav_target.y * viz_scale * 0.0) as f32,
+                (nav_target.z * viz_scale) as f32,
+            ));
+            marker.set_visible(true);
         }
     }
 }

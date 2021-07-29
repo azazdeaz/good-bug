@@ -1,6 +1,7 @@
-use crate::grpc_client::GrpcClient;
+use crate::{grpc_client::GrpcClient};
 use crate::signal_map::SignalMap;
 use crate::ui_state::UiState;
+use common::msg::Msg;
 use common::{msg::Broadcaster, types};
 use std::sync::Arc;
 use tokio::{
@@ -25,7 +26,25 @@ impl Context {
         let broadcaster = Broadcaster::new();
         let client = GrpcClient::new(rt.handle().clone(), &broadcaster).unwrap();
         let (input_sender, input_receiver) = broadcast::channel(12);
-        let ui_state = UiState::new(rt.handle().clone());
+        let mut ui_state = UiState::new(rt.handle().clone());
+
+        // Add some messages to the UI state (very bad! TODO redesign)
+        {
+            let mut subscriber = broadcaster.subscribe();
+            let state = Arc::clone(&ui_state.state);
+            let udpate = ui_state.updater();
+            rt.spawn(async move {
+                loop {
+                    if let Ok(msg) = subscriber.recv().await {
+                        if let Msg::MapScale(map_scale) = msg {
+                            state.write().unwrap().map_scale = map_scale;
+                            udpate.send(()).ok();
+                        }
+                    }
+                }
+            });
+        }
+
         Context {
             signal_map,
             broadcaster,

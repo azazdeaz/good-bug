@@ -1,3 +1,4 @@
+use common::types::Point3;
 use gdnative::api::*;
 use gdnative::prelude::*;
 use tokio_stream::StreamExt;
@@ -142,6 +143,17 @@ impl Game {
             }
         });
         
+    }
+
+    #[export]
+    fn select_target(&mut self, _owner: TRef<Node>, x: f64, y: f64, z: f64) {
+        let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
+        let point = Point3::new(x / scale, y / scale, z / scale);
+        self.context
+            .broadcaster
+            .publisher()
+            .send(Msg::NavTarget(point))
+            .ok();
     }
 
     #[export]

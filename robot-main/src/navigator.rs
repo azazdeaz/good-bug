@@ -2,6 +2,7 @@ use common::{
     msg::{Broadcaster, Msg},
     robot_body::RobotBody,
     types::{Point3, TrackingState},
+    settings::{Settings, Navigation},
 };
 use drivers::Wheels;
 use nalgebra as na;
@@ -43,10 +44,12 @@ struct NavState {
     self_drive_enabled: bool,
     tracker_state: TrackingState,
     slam_scale: f64,
+    settings: Navigation,
 }
 
 impl NavState {
     fn new() -> Self {
+        let settings = Settings::new().unwrap().navigation;
         NavState {
             speed: (0.0, 0.0),
             teleop_speed: ((0.0, 0.0), Instant::now()),
@@ -55,6 +58,7 @@ impl NavState {
             self_drive_enabled: false,
             tracker_state: TrackingState::NotInitialized,
             slam_scale: 1.0,
+            settings,
         }
     }
 
@@ -99,8 +103,6 @@ impl NavState {
             (0.0, 0.0)
         } else if let Some(target_pose) = self.target_pose {
             let pose = RobotBody::base_pose(self.cam_pose.0, self.slam_scale);
-            let speed_go = 0.2;
-            let speed_turn = 0.2;
 
             let p = na::Point3::new(0.0, 0.0, 1.0);
             let p = pose.rotation * p;
@@ -118,16 +120,14 @@ impl NavState {
                 pose.translation.vector, target_pose, dx, dz, distance, yaw_target, yaw_bot, yawd
             );
 
-            let distance_tolerance = 0.3;
-
-            if distance < distance_tolerance {
+            if distance < self.settings.xy_goal_tolerance {
                 (0., 0.)
             } else if yawd.abs() < 0.3 {
-                (speed_go, speed_go)
-            } else if yawd > 0. {
-                (-speed_turn, speed_turn)
+                (self.settings.travel_thrust, self.settings.travel_thrust)
+            } else if yawd > 0. { // turning left
+                (self.settings.turn_right_thrust.1, self.settings.turn_right_thrust.0)
             } else {
-                (speed_turn, -speed_turn)
+                (self.settings.turn_right_thrust.0, self.settings.turn_right_thrust.1)
             }
         } else {
             (0.0, 0.0)

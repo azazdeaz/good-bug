@@ -21,9 +21,9 @@ struct DetectionWorker {
 }
 
 impl DetectionWorker {
-    fn new() -> Self {
+    fn new(detecor_model: String) -> Self {
         let settings = Settings::new().unwrap();
-        let buf = fs::read(settings.detecor_model).expect("Couldn't find the detector model");
+        let buf = fs::read(detecor_model).expect("Couldn't find the detector model");
         let model = FlatBufferModel::build_from_buffer(buf).unwrap();
 
         // TODO move these into settings
@@ -151,7 +151,14 @@ impl DetectionWorker {
 pub struct Detector {}
 
 impl Detector {
-    pub fn new(broadcaster: &Broadcaster) {
+    pub fn run(broadcaster: &Broadcaster) {
+        let detector_model = Settings::new().unwrap().detecor_model;
+        // bail if model is not set
+        if detector_model.is_none() {
+            return;
+        }
+        let detector_model = detector_model.unwrap();
+
         let mut stream = broadcaster.stream().filter_map(|m| {
             if let Ok(Msg::Frame(frame)) = m {
                 Some(frame)
@@ -160,7 +167,7 @@ impl Detector {
             }
         });
 
-        let worker = DetectionWorker::new();
+        let worker = DetectionWorker::new(detector_model);
         let last_image = Arc::new(Mutex::new(LastValue::new()));
 
         {
@@ -191,7 +198,7 @@ impl Detector {
                         //         .unwrap();
                     } else {
                         // wait if there is no new image to process
-                        tokio::time::sleep(tokio::time::Duration::from_millis(100));
+                        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                     }
                 }
             });

@@ -6,3 +6,11 @@ detecor_model = "models/efficientdet-lite0-int8.tflite"
 vocab = "slam/orb_vocab.fbow"
 openvslam_config = "slam/slam.yaml"
 enable_auto_slace_estimation = true
+
+[navigation]
+travel_thrust = 0.2
+# thrust of the left and right wheels on turning right (turning left will be the same but reversed)
+turn_right_thrust = [0.2, -0.1]
+# the navigation goal is reached if the distance is less than this value (meters)
+xy_goal_tolerance = 0.12
+yaw_goal_tolerance = 0.3

@@ -10,13 +10,21 @@ pub struct Slam {
     pub mask: Option<String>,
     pub enable_auto_slace_estimation: bool,
 }
+#[derive(Debug, Deserialize)]
+pub struct Navigation {
+    pub travel_thrust: f64,
+    pub turn_right_thrust: (f64, f64),
+    pub xy_goal_tolerance: f64,
+    pub yaw_goal_tolerance: f64,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub grpc_port: u16,
     pub rover_address: String,
     pub slam: Slam,
-    pub detecor_model: String,
+    pub navigation: Navigation,
+    pub detecor_model: Option<String>,
     // TODO add slam options
 }
 
@@ -55,7 +63,11 @@ impl Settings {
         } else {
             None
         };
-        settings.detecor_model = absolute_path(&settings.detecor_model);
+        settings.detecor_model = if let Some(detecor_model) = settings.detecor_model {
+            Some(absolute_path(&detecor_model))
+        } else {
+            None
+        };
 
         Ok(settings)
     }

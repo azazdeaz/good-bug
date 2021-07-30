@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     OpenVSlamWrapper::new(&broadcaster, tokio::runtime::Handle::current())?;
     navigator::Navigator::new(&broadcaster);
     scale_estimator::ScaleEstimator::new(&broadcaster);
-    detector::Detector::new(&broadcaster);
+    detector::Detector::run(&broadcaster);
     grpc_server::start_server(broadcaster).await?;
     Ok(())
 }

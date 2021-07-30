@@ -46,7 +46,6 @@ impl GrpcClient {
 
             rt.spawn(async move {
                 while let Some(input) = input.next().await {
-                    println!("grpc client send req: {:?}", input);
                     let json = serde_json::to_string(&input).unwrap();
                     let request = tonic::Request::new(Serde { json });
                     // TODO handle send failure

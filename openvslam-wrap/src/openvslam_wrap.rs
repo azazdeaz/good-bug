@@ -76,6 +76,11 @@ impl OpenVSlamWrapper {
                 cmd.arg("--mask").arg(mask);
             }
 
+            if let Some(map) = settings.slam.map {
+                let map = map;
+                cmd.arg("--map").arg(map);
+            }
+
             cmd.spawn().expect("failed to start OpenVSlam")
         };
 

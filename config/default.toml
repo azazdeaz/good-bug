@@ -1,11 +1,13 @@
 grpc_port = 50051
 rover_address = "192.168.0.123"
-detecor_model = "models/efficientdet-lite0-int8.tflite"
+# detecor_model = "models/efficientdet-lite0-int8.tflite"
 
 [slam]
 vocab = "slam/orb_vocab.fbow"
 openvslam_config = "slam/slam.yaml"
 enable_auto_slace_estimation = true
+# mask = "slam/mask.png"
+# map = "slam/map.db"
 
 [navigation]
 travel_thrust = 0.2

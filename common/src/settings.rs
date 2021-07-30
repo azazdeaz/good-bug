@@ -8,6 +8,7 @@ pub struct Slam {
     pub vocab: String,
     pub video: Option<String>,
     pub mask: Option<String>,
+    pub map: Option<String>,
     pub enable_auto_slace_estimation: bool,
 }
 #[derive(Debug, Deserialize)]
@@ -60,6 +61,11 @@ impl Settings {
         };
         settings.slam.mask = if let Some(mask) = settings.slam.mask {
             Some(absolute_path(&mask))
+        } else {
+            None
+        };
+        settings.slam.map = if let Some(map) = settings.slam.map {
+            Some(absolute_path(&map))
         } else {
             None
         };

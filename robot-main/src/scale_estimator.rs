@@ -43,7 +43,6 @@ impl ScaleEstimator {
                 loop {
                     if let Some(landmarks) = last_value.lock().unwrap().pop() {
                         if let Some(scale) = estimate_scale(&landmarks) {
-                            println!("ESTIMATED SCALE IS {:?}", scale);
                             publisher.send(Msg::MapScale(scale)).ok();
                         }
                     }

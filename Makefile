@@ -191,5 +191,5 @@ test: clean
 build-rover:
 	cargo build -p common -p drivers -p grpc-server -p openvslam-wrap
 
-run-rover-release:
+run-robot-release:
 	cargo run --release --bin robot

@@ -6,6 +6,7 @@ use std::{env, path::Path};
 pub struct Slam {
     pub openvslam_config: String,
     pub vocab: String,
+    pub gstreamer_pipeline: Option<String>,
     pub video: Option<String>,
     pub mask: Option<String>,
     pub map: Option<String>,

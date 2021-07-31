@@ -81,6 +81,11 @@ impl OpenVSlamWrapper {
                 cmd.arg("--map").arg(map);
             }
 
+            if let Some(gstreamer_pipeline) = settings.slam.gstreamer_pipeline {
+                let gstreamer_pipeline = gstreamer_pipeline;
+                cmd.arg("--gstreamer_pipeline").arg(gstreamer_pipeline);
+            }
+
             cmd.spawn().expect("failed to start OpenVSlam")
         };
 

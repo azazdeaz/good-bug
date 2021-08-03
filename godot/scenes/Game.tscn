@@ -30,22 +30,22 @@ __meta__ = {
 }
 
 [node name="VBox" type="VBoxContainer" parent="GUI"]
-margin_right = 422.0
+margin_right = 615.0
 margin_bottom = 960.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
-margin_right = 422.0
+margin_right = 615.0
 margin_bottom = 40.0
 text = "show raw image"
 script = ExtResource( 4 )
 
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
 margin_top = 44.0
-margin_right = 422.0
-margin_bottom = 932.0
+margin_right = 615.0
+margin_bottom = 874.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -53,34 +53,82 @@ expand = true
 stretch_mode = 5
 script = ExtResource( 6 )
 
+[node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
+margin_top = 878.0
+margin_right = 615.0
+margin_bottom = 932.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 608.0
+margin_bottom = 47.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="GUI/VBox/PanelContainer/HBoxContainer"]
+margin_top = 13.0
+margin_right = 96.0
+margin_bottom = 27.0
+text = "Tracking State: "
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TrackingStateLabel" type="Label" parent="GUI/VBox/PanelContainer/HBoxContainer"]
+margin_left = 100.0
+margin_top = 13.0
+margin_right = 172.0
+margin_bottom = 27.0
+text = "Unknown"
+uppercase = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Gap" type="Control" parent="GUI/VBox/PanelContainer/HBoxContainer"]
+margin_left = 176.0
+margin_right = 416.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+
+[node name="EnableAutoNavToggle" type="CheckButton" parent="GUI/VBox/PanelContainer/HBoxContainer"]
+margin_left = 420.0
+margin_right = 601.0
+margin_bottom = 40.0
+text = "enable auto nav"
+
 [node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
 margin_top = 936.0
-margin_right = 422.0
+margin_right = 615.0
 margin_bottom = 960.0
 script = ExtResource( 5 )
 
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
-margin_right = 333.0
+margin_right = 526.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "saved_images"
 
 [node name="SaveImageBtn" type="Button" parent="GUI/VBox/SaveImage"]
-margin_left = 337.0
-margin_right = 422.0
+margin_left = 530.0
+margin_right = 615.0
 margin_bottom = 24.0
 text = "Save Image"
 
 [node name="ViewportContainer" type="ViewportContainer" parent="GUI"]
-margin_left = 434.0
+margin_left = 627.0
 margin_right = 1280.0
 margin_bottom = 960.0
 stretch = true
 script = ExtResource( 8 )
 
 [node name="Viewport" type="Viewport" parent="GUI/ViewportContainer"]
-size = Vector2( 846, 960 )
+size = Vector2( 653, 960 )
 size_override_stretch = true
+handle_input_locally = false
+render_target_update_mode = 3
 physics_object_picking = true
 
 [node name="Spatial" type="Spatial" parent="GUI/ViewportContainer/Viewport"]

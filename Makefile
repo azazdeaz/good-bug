@@ -177,7 +177,7 @@ run:
 	CONFIG_ROOT="../config" godot --path godot/ -d
 
 
-run-release:
+run-mirrors-release:
 	make build-x86_64-unknown-linux-gnu-release
 	CONFIG_ROOT="../config" godot --path godot/ -d
 

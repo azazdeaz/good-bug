@@ -22,4 +22,4 @@ cd ../.. # go to the repo root
 make run-robot-release
 
 # run visualization
-make run-robot-release
+make run-mirrors-release

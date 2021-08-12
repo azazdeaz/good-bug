@@ -22,16 +22,16 @@ impl GroundPlane {
         let map_scale = watch_msg!(context, Msg::MapScale);
         let viz_scale = context.ui_state.watch(|s| s.viz_scale);
 
-        {
-            let mut recv_pressed = context.signal_map.connect_fff(owner, "GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody", "select_nav_goal");
-            let publisher = context.broadcaster.publisher();
-            context.runtime().spawn(async move {
-                while let Some(SignalData::FFF(x, y, z)) = recv_pressed.recv().await {
-                    println!("selecting pose {} {} {}", x, y, z);
-                    let _ = publisher.send(Msg::NavTarget(types::Point3::new(x, y, z)));
-                }
-            });
-        }
+        // {
+        //     let mut recv_pressed = context.signal_map.connect_fff(owner, "GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody", "select_nav_goal");
+        //     let publisher = context.broadcaster.publisher();
+        //     context.runtime().spawn(async move {
+        //         while let Some(SignalData::FFF(x, y, z)) = recv_pressed.recv().await {
+        //             println!("selecting pose {} {} {}", x, y, z);
+        //             let _ = publisher.send(Msg::NavTarget(types::Point3::new(x, y, z)));
+        //         }
+        //     });
+        // }
 
         GroundPlane {
             static_body_path,
@@ -43,9 +43,9 @@ impl GroundPlane {
 
 impl Updatable for GroundPlane {
     fn update(&self, owner: &Node) {
-        let viz_scale = *self.viz_scale.borrow();   
-        let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
-        let mesh = get_node::<CSGMesh>(owner, "GUI/ViewportContainer/Viewport/Spatial/Ground".into());
-        mesh.transform().origin.y = (-RobotBody::get_cam_height() * map_scale) as f32;
+        // let viz_scale = *self.viz_scale.borrow();   
+        // let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
+        // let mesh = get_node::<CSGMesh>(owner, "GUI/ViewportContainer/Viewport/Spatial/Ground".into());
+        // mesh.transform().origin.y = (-RobotBody::get_cam_height() * map_scale) as f32;
     }
 }

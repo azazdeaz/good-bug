@@ -1,15 +1,16 @@
-
-
 use common::msg::{Broadcaster, Msg};
 use openvslam_wrap::OpenVSlamWrapper;
-use tokio::sync::Mutex;
 use std::sync::Arc;
+use tokio::sync::Mutex;
 use tokio_stream::StreamExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let broadcaster = Broadcaster::new();
-    let api = Arc::new(Mutex::new(OpenVSlamWrapper::new(&broadcaster, tokio::runtime::Handle::current())?));
+    let api = Arc::new(Mutex::new(OpenVSlamWrapper::run_with_auto_restart(
+        &broadcaster,
+        tokio::runtime::Handle::current(),
+    )?));
     println!("api started");
 
     {
@@ -23,14 +24,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("terminate came back");
         });
     }
-    
+
     let _ = tokio::spawn(async move {
         let mut stream = broadcaster.stream();
         while let Some(x) = stream.next().await {
             if let Ok(Msg::CameraPose(pose)) = x {
                 println!("\n\nstreamed position {:?}", pose);
-            }     
+            }
         }
-    }).await;
+    })
+    .await;
     Ok(())
 }

@@ -119,6 +119,15 @@ impl Game {
     }
 
     #[export]
+    fn restart_slam(&mut self, _owner: TRef<Node>) {
+        self.context
+            .broadcaster
+            .publisher()
+            .send(Msg::TerminateSlam)
+            .ok();
+    }
+
+    #[export]
     fn save_image(&mut self, _owner: TRef<Node>, folder: String, filename: String) {
         let mut stream = self
             .context

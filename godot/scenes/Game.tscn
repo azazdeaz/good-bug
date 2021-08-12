@@ -1,13 +1,15 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
-[ext_resource path="res://scenes/StaticBody.gd" type="Script" id=3]
+[ext_resource path="res://scenes/Ground.gd" type="Script" id=3]
 [ext_resource path="res://scenes/EnableRaw.gd" type="Script" id=4]
 [ext_resource path="res://scenes/SaveImage.gd" type="Script" id=5]
 [ext_resource path="res://scenes/CameraImage.gd" type="Script" id=6]
 [ext_resource path="res://addons/goutte.camera.trackball/trackball_camera.gd" type="Script" id=7]
 [ext_resource path="res://scenes/ViewportContainer.gd" type="Script" id=8]
+[ext_resource path="res://scenes/PoseGTMat.tres" type="Material" id=9]
+[ext_resource path="res://scenes/RestartSlamBtn.gd" type="Script" id=10]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -45,7 +47,7 @@ script = ExtResource( 4 )
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
 margin_top = 44.0
 margin_right = 615.0
-margin_bottom = 874.0
+margin_bottom = 667.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -53,10 +55,30 @@ expand = true
 stretch_mode = 5
 script = ExtResource( 6 )
 
-[node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 878.0
+[node name="ItemList" type="ItemList" parent="GUI/VBox"]
+margin_top = 671.0
 margin_right = 615.0
-margin_bottom = 932.0
+margin_bottom = 734.0
+items = [ "Item 0", null, false, "Item 1", null, false, "Item 2", null, false ]
+auto_height = true
+
+[node name="TabContainer" type="TabContainer" parent="GUI/VBox"]
+margin_top = 738.0
+margin_right = 615.0
+margin_bottom = 774.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Tabs" type="Tabs" parent="GUI/VBox"]
+margin_top = 778.0
+margin_right = 615.0
+margin_bottom = 802.0
+
+[node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
+margin_top = 806.0
+margin_right = 615.0
+margin_bottom = 860.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
 margin_left = 7.0
@@ -100,9 +122,9 @@ margin_bottom = 40.0
 text = "enable auto nav"
 
 [node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
-margin_top = 936.0
+margin_top = 864.0
 margin_right = 615.0
-margin_bottom = 960.0
+margin_bottom = 888.0
 script = ExtResource( 5 )
 
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
@@ -116,6 +138,28 @@ margin_left = 530.0
 margin_right = 615.0
 margin_bottom = 24.0
 text = "Save Image"
+
+[node name="MenuButton" type="MenuButton" parent="GUI/VBox"]
+margin_top = 892.0
+margin_right = 615.0
+margin_bottom = 912.0
+text = "MenuButton"
+items = [ "Item 0", null, 0, false, false, 0, 0, null, "", false, "Item 1", null, 0, false, false, 1, 0, null, "", false, "Item 2", null, 0, false, false, 2, 0, null, "", false ]
+
+[node name="OptionButton" type="OptionButton" parent="GUI/VBox"]
+margin_top = 916.0
+margin_right = 615.0
+margin_bottom = 936.0
+text = "Item 0"
+items = [ "Item 0", null, false, 0, null, "Item 1", null, false, 1, null, "Item 2", null, false, 2, null ]
+selected = 0
+
+[node name="RestartSlamBtn" type="Button" parent="GUI/VBox"]
+margin_top = 940.0
+margin_right = 615.0
+margin_bottom = 960.0
+text = "Restart Slam"
+script = ExtResource( 10 )
 
 [node name="ViewportContainer" type="ViewportContainer" parent="GUI"]
 margin_left = 627.0
@@ -133,18 +177,28 @@ physics_object_picking = true
 
 [node name="Spatial" type="Spatial" parent="GUI/ViewportContainer/Viewport"]
 
-[node name="Ground" type="CSGMesh" parent="GUI/ViewportContainer/Viewport/Spatial"]
-transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, -0.291, 0 )
+[node name="Ground" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
+script = ExtResource( 3 )
+
+[node name="GroundMesh" type="CSGMesh" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
 mesh = SubResource( 2 )
 material = ExtResource( 2 )
 
-[node name="StaticBody" type="StaticBody" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+[node name="StaticBody" type="StaticBody" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh"]
 transform = Transform( 0.00333333, 0, 0, 0, 0.01, 0, 0, 0, 0.00333333, 0, 0, 0 )
-script = ExtResource( 3 )
 
-[node name="CollisionShape" type="CollisionShape" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody"]
+[node name="CollisionShape" type="CollisionShape" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody"]
 transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
 shape = SubResource( 3 )
+
+[node name="Waypoint" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0 )
+material_override = ExtResource( 9 )
+radius = 0.151
+height = 0.6
+sides = 23
+cone = true
 
 [node name="CamTarget" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
 
@@ -171,4 +225,5 @@ height = 4.0
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
-[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground/StaticBody" method="_on_StaticBody_input_event"]
+[connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
+[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

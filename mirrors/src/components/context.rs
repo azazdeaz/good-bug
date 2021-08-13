@@ -13,8 +13,8 @@ pub struct Context {
     pub signal_map: SignalMap,
     pub broadcaster: Broadcaster,
     pub ui_state: UiState,
-    client: Arc<RwLock<GrpcClient>>,
-    rt: Runtime,
+    pub client: Arc<RwLock<GrpcClient>>,
+    pub rt: Runtime,
     input_sender: broadcast::Sender<Option<types::GDInput>>,
     input_receiver: broadcast::Receiver<Option<types::GDInput>>,
 }

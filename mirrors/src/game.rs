@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use common::types::Point3;
 use gdnative::api::*;
 use gdnative::prelude::*;
@@ -125,6 +127,14 @@ impl Game {
             .publisher()
             .send(Msg::TerminateSlam)
             .ok();
+    }
+
+    #[export]
+    fn reconnect(&mut self, _owner: TRef<Node>) {
+        let client = Arc::clone(&self.context.client);
+        self.context.rt.block_on(async {
+            client.write().await.reconnect().await;
+        });
     }
 
     #[export]

@@ -1,4 +1,4 @@
-extends Button
+extends Node
 
 
 # Declare member variables here. Examples:
@@ -18,4 +18,4 @@ func _ready():
 
 func _on_ReconnectBtn_pressed():
 	var game = get_node("/root/Game")
-	game.reconnect()
+	game.reconnect($ConnectionAddress.text)

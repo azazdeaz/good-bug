@@ -10,7 +10,7 @@
 [ext_resource path="res://scenes/ViewportContainer.gd" type="Script" id=8]
 [ext_resource path="res://scenes/PoseGTMat.tres" type="Material" id=9]
 [ext_resource path="res://scenes/RestartSlamBtn.gd" type="Script" id=10]
-[ext_resource path="res://scenes/ReconnectBtn.gd" type="Script" id=11]
+[ext_resource path="res://scenes/Connection.gd" type="Script" id=11]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -39,16 +39,32 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
+[node name="Connection" type="HBoxContainer" parent="GUI/VBox"]
 margin_right = 615.0
-margin_bottom = 40.0
+margin_bottom = 24.0
+script = ExtResource( 11 )
+
+[node name="ConnectionAddress" type="LineEdit" parent="GUI/VBox/Connection"]
+margin_right = 58.0
+margin_bottom = 24.0
+
+[node name="ReconnectBtn" type="Button" parent="GUI/VBox/Connection"]
+margin_left = 62.0
+margin_right = 163.0
+margin_bottom = 24.0
+text = "ReconnectBtn"
+
+[node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
+margin_top = 28.0
+margin_right = 615.0
+margin_bottom = 68.0
 text = "show raw image"
 script = ExtResource( 4 )
 
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
-margin_top = 44.0
+margin_top = 72.0
 margin_right = 615.0
-margin_bottom = 643.0
+margin_bottom = 667.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -57,29 +73,29 @@ stretch_mode = 5
 script = ExtResource( 6 )
 
 [node name="ItemList" type="ItemList" parent="GUI/VBox"]
-margin_top = 647.0
+margin_top = 671.0
 margin_right = 615.0
-margin_bottom = 710.0
+margin_bottom = 734.0
 items = [ "Item 0", null, false, "Item 1", null, false, "Item 2", null, false ]
 auto_height = true
 
 [node name="TabContainer" type="TabContainer" parent="GUI/VBox"]
-margin_top = 714.0
+margin_top = 738.0
 margin_right = 615.0
-margin_bottom = 750.0
+margin_bottom = 774.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Tabs" type="Tabs" parent="GUI/VBox"]
-margin_top = 754.0
+margin_top = 778.0
 margin_right = 615.0
-margin_bottom = 778.0
+margin_bottom = 802.0
 
 [node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 782.0
+margin_top = 806.0
 margin_right = 615.0
-margin_bottom = 836.0
+margin_bottom = 860.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
 margin_left = 7.0
@@ -123,9 +139,9 @@ margin_bottom = 40.0
 text = "enable auto nav"
 
 [node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
-margin_top = 840.0
+margin_top = 864.0
 margin_right = 615.0
-margin_bottom = 864.0
+margin_bottom = 888.0
 script = ExtResource( 5 )
 
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
@@ -141,33 +157,26 @@ margin_bottom = 24.0
 text = "Save Image"
 
 [node name="MenuButton" type="MenuButton" parent="GUI/VBox"]
-margin_top = 868.0
+margin_top = 892.0
 margin_right = 615.0
-margin_bottom = 888.0
+margin_bottom = 912.0
 text = "MenuButton"
 items = [ "Item 0", null, 0, false, false, 0, 0, null, "", false, "Item 1", null, 0, false, false, 1, 0, null, "", false, "Item 2", null, 0, false, false, 2, 0, null, "", false ]
 
 [node name="OptionButton" type="OptionButton" parent="GUI/VBox"]
-margin_top = 892.0
+margin_top = 916.0
 margin_right = 615.0
-margin_bottom = 912.0
+margin_bottom = 936.0
 text = "Item 0"
 items = [ "Item 0", null, false, 0, null, "Item 1", null, false, 1, null, "Item 2", null, false, 2, null ]
 selected = 0
 
 [node name="RestartSlamBtn" type="Button" parent="GUI/VBox"]
-margin_top = 916.0
-margin_right = 615.0
-margin_bottom = 936.0
-text = "Restart Slam"
-script = ExtResource( 10 )
-
-[node name="ReconnectBtn" type="Button" parent="GUI/VBox"]
 margin_top = 940.0
 margin_right = 615.0
 margin_bottom = 960.0
-text = "ReconnectBtn"
-script = ExtResource( 11 )
+text = "Restart Slam"
+script = ExtResource( 10 )
 
 [node name="ViewportContainer" type="ViewportContainer" parent="GUI"]
 margin_left = 627.0
@@ -230,9 +239,9 @@ cone = true
 radius = 0.04
 height = 4.0
 
+[connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
-[connection signal="pressed" from="GUI/VBox/ReconnectBtn" to="GUI/VBox/ReconnectBtn" method="_on_ReconnectBtn_pressed"]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

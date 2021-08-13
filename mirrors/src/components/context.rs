@@ -1,4 +1,4 @@
-use crate::{grpc_client::GrpcClient};
+use crate::grpc_client::GrpcClient;
 use crate::signal_map::SignalMap;
 use crate::ui_state::UiState;
 use common::msg::Msg;
@@ -24,7 +24,18 @@ impl Context {
         let rt = Runtime::new().unwrap();
         let signal_map = SignalMap::new();
         let broadcaster = Broadcaster::new();
-        let client = GrpcClient::new(rt.handle().clone(), &broadcaster).unwrap();
+        let mut ui_state = UiState::new(rt.handle().clone());
+        let client = {
+            let server_address = ui_state
+                .state
+                .read()
+                .unwrap()
+                .robot_addresses
+                .first()
+                .expect("Can't find robot address in ui_state")
+                .clone();
+            GrpcClient::new(rt.handle().clone(), &broadcaster, server_address).unwrap()
+        };
         let (input_sender, input_receiver) = broadcast::channel(12);
         let mut ui_state = UiState::new(rt.handle().clone());
 

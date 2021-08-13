@@ -46,7 +46,10 @@ impl Status {
 
         {
             let btn = find_node::<Node>(&*owner, "EnableAutoNavToggle".into());
-            let mut recv_toggled = context.signal_map.connect_b(owner, &btn.get_path().to_string(), "toggled");
+            let mut recv_toggled =
+                context
+                    .signal_map
+                    .connect_b(owner, &btn.get_path().to_string(), "toggled");
             let publisher = context.broadcaster.publisher();
             context.runtime().spawn(async move {
                 while let Some(sig) = recv_toggled.recv().await {
@@ -57,7 +60,37 @@ impl Status {
             });
         }
 
-        
+        // set initial value for connection address
+        find_node::<LineEdit>(&*owner, "ConnectionAddress".into()).set_text(
+            context
+                .ui_state
+                .state
+                .read()
+                .unwrap()
+                .robot_addresses
+                .first()
+                .unwrap(),
+        );
+
+        // set initial values to connection history
+        let connection_history = find_node::<MenuButton>(&*owner, "ConnectionHistory".into());
+        for (idx, robot_address) in context
+            .ui_state
+            .state
+            .read()
+            .unwrap()
+            .robot_addresses
+            .iter()
+            .enumerate()
+        {
+            unsafe {
+                connection_history
+                    .get_popup()
+                    .unwrap()
+                    .assume_safe()
+                    .add_item(robot_address, idx as i64, 0);
+            }
+        }
 
         Status {
             tracking_state,
@@ -78,7 +111,8 @@ impl Updatable for Status {
 
         let enable_auto_nav = &*self.enable_auto_nav.borrow();
         if let Some(enable_auto_nav) = enable_auto_nav {
-            let enable_auto_switch = find_node::<CheckButton>(&*owner, "EnableAutoNavToggle".into());
+            let enable_auto_switch =
+                find_node::<CheckButton>(&*owner, "EnableAutoNavToggle".into());
             enable_auto_switch.set_pressed(*enable_auto_nav);
         }
     }

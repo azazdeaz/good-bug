@@ -130,10 +130,11 @@ impl Game {
     }
 
     #[export]
-    fn reconnect(&mut self, _owner: TRef<Node>) {
+    fn reconnect(&mut self, _owner: TRef<Node>, robot_address: String) {
         let client = Arc::clone(&self.context.client);
+        self.context.ui_state.add_robot_address(robot_address.clone());
         self.context.rt.block_on(async {
-            client.write().await.reconnect().await;
+            client.write().await.reconnect(robot_address).await.ok();
         });
     }
 

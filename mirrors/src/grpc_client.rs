@@ -1,6 +1,5 @@
 use common::{
     msg::{Broadcaster, Msg},
-    settings::Settings,
 };
 use hello_world::greeter_client::GreeterClient;
 use hello_world::{Empty, Serde};
@@ -23,10 +22,10 @@ pub struct GrpcClient {
 unsafe impl Send for GrpcClient {}
 
 impl GrpcClient {
-    pub fn new(rt: Handle, broadcaster: &Broadcaster) -> anyhow::Result<Self> {
+    pub fn new(rt: Handle, broadcaster: &Broadcaster, robot_address: String) -> anyhow::Result<Self> {
         let client = rt.block_on(async {
-            Self::create_client().await
-        })?;
+            Self::create_client(robot_address).await
+        });
         let client = Arc::new(Mutex::new(client));
 
         {
@@ -76,20 +75,17 @@ impl GrpcClient {
         Ok(Self { client })
     }
 
-    async fn create_client() -> anyhow::Result<GreeterClient<Channel>> {
-        let settings = Settings::new()?;
-        
-        let dst = format!("http://{}:{}", settings.rover_address, settings.grpc_port);
-        let conn = tonic::transport::Endpoint::new(dst)
+    async fn create_client(robot_address: String) -> GreeterClient<Channel> {
+        let conn = tonic::transport::Endpoint::new(robot_address)
             .unwrap()
             .connect_lazy()
             .unwrap();
-        Ok(GreeterClient::new(conn))
+        GreeterClient::new(conn)
     }
 
-    pub async fn reconnect(&mut self) -> anyhow::Result<()> {
+    pub async fn reconnect(&mut self, robot_address: String) -> anyhow::Result<()> {
         let mut client = self.client.lock().await;
-        *client = Self::create_client().await.unwrap();
+        *client = Self::create_client(robot_address).await;
         Ok(())
     }
 }

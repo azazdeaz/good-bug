@@ -5,6 +5,7 @@ use tokio::{
     sync::{broadcast, watch},
 };
 use serde::{Deserialize, Serialize};
+use itertools::Itertools;
 
 const STATE_FILE_PATH: &str = "user://mirrors_state.json";
 
@@ -27,7 +28,7 @@ impl Default for MirrorsState {
         Self {
             viz_scale: 2.0,
             map_scale: 1.0,
-            robot_addresses: Vec::new(),
+            robot_addresses: vec!["http://127.0.0.1:50051".into()],
             annotator: Annotator::default(),
         }
     }
@@ -49,13 +50,18 @@ pub struct UiState {
 impl UiState {
     pub fn new(rt: Handle) -> Self {
         let file = File::new();
-        let state = if file.open(STATE_FILE_PATH, File::READ).is_ok() {
+        let mut state = if file.open(STATE_FILE_PATH, File::READ).is_ok() {
             let state = file.get_as_text().to_string();
             serde_json::from_str(&state).unwrap_or_default()
         }
         else {
             MirrorsState::default()
         };
+
+        if state.robot_addresses.is_empty() {
+            state.robot_addresses.push("http://127.0.0.1:50051".into());
+        }
+
         let state = Arc::new(RwLock::new(state));
         
 
@@ -119,5 +125,15 @@ impl UiState {
             }
         });
         rx
+    }
+
+    pub fn add_robot_address(&mut self, robot_address: String) {
+        {
+            let mut state = self.state.write().unwrap();
+            state.robot_addresses.insert(0, robot_address);
+            state.robot_addresses = state.robot_addresses.clone().into_iter().unique().collect();
+        }
+        
+        self.publish.send(()).ok();
     }
 }

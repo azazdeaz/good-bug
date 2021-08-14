@@ -19,12 +19,20 @@ pub enum Msg {
     //OpenVSlam input
     TerminateSlam,
     SaveMapDB(String),
+    SelectMap(Option<String>),
     UseRawPreview(bool),
 
     // Mirrors output
     Teleop((f64, f64)),
     EnableAutoNav(bool),
     NavTarget(Point3),
+
+    RequestToRobot
+}
+
+pub enum Req {
+    SetWaypoints(Vec<Point3>),
+    GetSettings()
 }
 
 impl Msg {
@@ -41,6 +49,9 @@ impl Msg {
     }
 }
 
+struct RobotSettings {
+    
+}
 #[derive(Debug)]
 pub struct Broadcaster {
     sender: broadcast::Sender<Msg>,

@@ -14,6 +14,7 @@ tonic = "0.5"
 nalgebra = "0.27"
 prost = "0.8"
 zmq = "0.9"
+dirs = "3.0.2"
 common = { path = "../common" }
 
 [build-dependencies]

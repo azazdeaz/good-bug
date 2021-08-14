@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -11,6 +11,7 @@
 [ext_resource path="res://scenes/PoseGTMat.tres" type="Material" id=9]
 [ext_resource path="res://scenes/RestartSlamBtn.gd" type="Script" id=10]
 [ext_resource path="res://scenes/Connection.gd" type="Script" id=11]
+[ext_resource path="res://scenes/MapHandle.gd" type="Script" id=12]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -73,7 +74,7 @@ script = ExtResource( 4 )
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
 margin_top = 72.0
 margin_right = 615.0
-margin_bottom = 822.0
+margin_bottom = 794.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -82,14 +83,14 @@ stretch_mode = 5
 script = ExtResource( 6 )
 
 [node name="Tabs" type="Tabs" parent="GUI/VBox"]
-margin_top = 826.0
+margin_top = 798.0
 margin_right = 615.0
-margin_bottom = 850.0
+margin_bottom = 822.0
 
 [node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 854.0
+margin_top = 826.0
 margin_right = 615.0
-margin_bottom = 908.0
+margin_bottom = 880.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
 margin_left = 7.0
@@ -133,9 +134,9 @@ margin_bottom = 40.0
 text = "enable auto nav"
 
 [node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
-margin_top = 912.0
+margin_top = 884.0
 margin_right = 615.0
-margin_bottom = 936.0
+margin_bottom = 908.0
 script = ExtResource( 5 )
 
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
@@ -149,6 +150,24 @@ margin_left = 530.0
 margin_right = 615.0
 margin_bottom = 24.0
 text = "Save Image"
+
+[node name="MapHandle" type="HBoxContainer" parent="GUI/VBox"]
+margin_top = 912.0
+margin_right = 615.0
+margin_bottom = 936.0
+script = ExtResource( 12 )
+
+[node name="MapName" type="LineEdit" parent="GUI/VBox/MapHandle"]
+margin_right = 539.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+text = "new_map"
+
+[node name="SaveMapBtn" type="Button" parent="GUI/VBox/MapHandle"]
+margin_left = 543.0
+margin_right = 615.0
+margin_bottom = 24.0
+text = "Save Map"
 
 [node name="RestartSlamBtn" type="Button" parent="GUI/VBox"]
 margin_top = 940.0
@@ -222,5 +241,6 @@ height = 4.0
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
+[connection signal="pressed" from="GUI/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

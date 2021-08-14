@@ -1,5 +1,10 @@
 use prost::Message;
-use std::{io::Cursor, path::Path, process::{Child, Command, Stdio, exit}, sync::{Arc}};
+use std::{
+    io::Cursor,
+    path::Path,
+    process::{exit, Child, Command, Stdio},
+    sync::Arc,
+};
 pub mod pb {
     tonic::include_proto!("openvslam_api"); // The string specified here must match the proto package name
 }
@@ -46,7 +51,10 @@ fn get_path(path: &str) -> String {
 }
 
 impl OpenVSlamWrapper {
-    pub fn run_with_auto_restart(broadcaster: &Broadcaster, async_handle: tokio::runtime::Handle) -> anyhow::Result<Self> {
+    pub fn run_with_auto_restart(
+        broadcaster: &Broadcaster,
+        async_handle: tokio::runtime::Handle,
+    ) -> anyhow::Result<Self> {
         let context = zmq::Context::new();
 
         let req_handle = {
@@ -58,21 +66,30 @@ impl OpenVSlamWrapper {
 
                 loop {
                     let msg = async_handle.block_on(async { receiver.recv().await });
-                    
-                    
+
                     if let Ok(msg) = msg {
                         let pb_request = match msg {
                             Msg::TerminateSlam => Some(pb::request::Msg::Terminate(
                                 pb::request::Terminate::default(),
                             )),
-                            Msg::SaveMapDB(path) => {
+                            Msg::SaveMapDB(name) => {
+                                let mut path = dirs::data_local_dir().unwrap();
+                                path.push("good_bug");
+                                path.push("maps");
+                                path.set_file_name(&name);
+                                path.set_extension("db");
+                                let path = path.into_os_string().into_string().unwrap();
+                                Settings::new().unwrap().add_map(name, path.clone());
                                 Some(pb::request::Msg::SaveMapDb(pb::request::SaveMapDb { path }))
+                            }
+                            Msg::SelectMap(name) => {
+                                Settings::new().unwrap().set_current_map_name(name);
+                                None
                             }
                             Msg::UseRawPreview(use_raw) => {
                                 let preview_type = if use_raw {
                                     pb::request::PreviewType::Raw
-                                }
-                                else {
+                                } else {
                                     pb::request::PreviewType::SlamInfo
                                 };
                                 Some(pb::request::Msg::SetPreviewType(preview_type.into()))
@@ -179,7 +196,7 @@ impl OpenVSlamWrapper {
                                 };
                                 Msg::TrackingState(tracking_state)
                             }
-                            pb::stream::Msg::Frame(pb_frame) => Msg::Frame(pb_frame.jpeg)
+                            pb::stream::Msg::Frame(pb_frame) => Msg::Frame(pb_frame.jpeg),
                         };
                         publisher.send(msg).ok();
                     }
@@ -187,24 +204,19 @@ impl OpenVSlamWrapper {
             })
         };
 
-        let thread = std::thread::spawn(move || {
-            loop {
-                println!("Starting OpenVSlam...");
-                let exit_status = Self::start_openvslam_thread().wait();
-                println!("OpenVSlam closed with status: {:?}", exit_status);
-                if exit_status.is_ok() && exit_status.unwrap().success() {
-                    println!("OpenVSlam terminated without error. Restarting...");
-                }
-                else {
-                    break;
-                }
+        let thread = std::thread::spawn(move || loop {
+            println!("Starting OpenVSlam...");
+            let exit_status = Self::start_openvslam_thread().wait();
+            println!("OpenVSlam closed with status: {:?}", exit_status);
+            if exit_status.is_ok() && exit_status.unwrap().success() {
+                println!("OpenVSlam terminated without error. Restarting...");
+            } else {
+                break;
             }
         });
 
         let thread = Arc::new(Mutex::new(thread));
-        Ok(OpenVSlamWrapper {
-            thread,
-        })
+        Ok(OpenVSlamWrapper { thread })
     }
 
     fn start_openvslam_thread() -> Child {
@@ -215,30 +227,26 @@ impl OpenVSlamWrapper {
         let mut cmd = Command::new(bin);
         cmd.stdin(Stdio::null());
 
-        let config = settings.slam.openvslam_config;
+        let config = &settings.slam.openvslam_config;
         // let config = "config/cfg.yaml";
         cmd.arg("-c").arg(config);
 
-        let vocab = settings.slam.vocab;
+        let vocab = &settings.slam.vocab;
         cmd.arg("-v").arg(vocab);
 
-        if let Some(video) = settings.slam.video {
-            let video = video;
+        if let Some(video) = &settings.slam.video {
             cmd.arg("-m").arg(video);
         }
 
-        if let Some(mask) = settings.slam.mask {
-            let mask = mask;
+        if let Some(mask) = &settings.slam.mask {
             cmd.arg("--mask").arg(mask);
         }
 
-        if let Some(map) = settings.slam.map {
-            let map = map;
-            cmd.arg("--map").arg(map);
+        if let Some(map) = &settings.slam.get_current_map() {
+            cmd.arg("--map").arg(map.get_abs_db_path());
         }
 
         if let Some(gstreamer_pipeline) = settings.slam.gstreamer_pipeline {
-            let gstreamer_pipeline = gstreamer_pipeline;
             cmd.arg("--gstreamer_pipeline").arg(gstreamer_pipeline);
         }
 

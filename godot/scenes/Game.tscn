@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=20 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -12,6 +12,10 @@
 [ext_resource path="res://scenes/RestartSlamBtn.gd" type="Script" id=10]
 [ext_resource path="res://scenes/Connection.gd" type="Script" id=11]
 [ext_resource path="res://scenes/MapHandle.gd" type="Script" id=12]
+[ext_resource path="res://scenes/Navigation.gd" type="Script" id=13]
+[ext_resource path="res://assets/icons/Joypad.svg" type="Texture" id=15]
+[ext_resource path="res://assets/icons/LoopInterpolation.svg" type="Texture" id=16]
+[ext_resource path="res://assets/icons/Pin.svg" type="Texture" id=17]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -74,7 +78,7 @@ script = ExtResource( 4 )
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
 margin_top = 72.0
 margin_right = 615.0
-margin_bottom = 794.0
+margin_bottom = 428.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -83,14 +87,14 @@ stretch_mode = 5
 script = ExtResource( 6 )
 
 [node name="Tabs" type="Tabs" parent="GUI/VBox"]
-margin_top = 798.0
+margin_top = 432.0
 margin_right = 615.0
-margin_bottom = 822.0
+margin_bottom = 456.0
 
 [node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 826.0
+margin_top = 460.0
 margin_right = 615.0
-margin_bottom = 880.0
+margin_bottom = 514.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
 margin_left = 7.0
@@ -133,28 +137,95 @@ margin_right = 601.0
 margin_bottom = 40.0
 text = "enable auto nav"
 
-[node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
+[node name="Navigation" type="PanelContainer" parent="GUI/VBox"]
+margin_top = 518.0
+margin_right = 615.0
+margin_bottom = 880.0
+script = ExtResource( 13 )
+_teleop_container = NodePath("VBox/TeleopContainer")
+_goal_container = NodePath("VBox/GoalContainer")
+_waypoints_container = NodePath("VBox/WaypointContainer")
+_goal_marker = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/GoalMarker")
+_waypoint_markers = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers")
+
+[node name="VBox" type="VBoxContainer" parent="GUI/VBox/Navigation"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 608.0
+margin_bottom = 355.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Header" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
+margin_right = 601.0
+margin_bottom = 22.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/Header"]
+margin_top = 4.0
+margin_right = 111.0
+margin_bottom = 18.0
+text = "Navigation Mode:"
+
+[node name="ModeSelector" type="OptionButton" parent="GUI/VBox/Navigation/VBox/Header"]
+margin_left = 115.0
+margin_right = 205.0
+margin_bottom = 22.0
+text = "Teleop"
+icon = ExtResource( 15 )
+items = [ "Teleop", ExtResource( 15 ), false, 0, null, "One Goal", ExtResource( 17 ), false, 1, null, "Waypoint Mission", ExtResource( 16 ), false, 2, null ]
+selected = 0
+
+[node name="TeleopContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
+margin_top = 26.0
+margin_right = 601.0
+margin_bottom = 57.0
+
+[node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/TeleopContainer"]
+margin_right = 601.0
+margin_bottom = 31.0
+text = "
+Use your gamepad to control the robot"
+
+[node name="GoalContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
+margin_top = 61.0
+margin_right = 601.0
+margin_bottom = 109.0
+
+[node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/GoalContainer"]
+margin_right = 601.0
+margin_bottom = 48.0
+text = "
+Double click on the map to set the target
+"
+
+[node name="WaypointContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
+margin_top = 113.0
+margin_right = 601.0
+margin_bottom = 348.0
+
+[node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
+margin_right = 601.0
+margin_bottom = 31.0
+text = "
+Double click on the map to add new waypoints"
+
+[node name="WaypointsList" type="Tree" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
+margin_top = 35.0
+margin_right = 601.0
+margin_bottom = 235.0
+rect_min_size = Vector2( 0, 200 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MapHandle" type="HBoxContainer" parent="GUI/VBox"]
 margin_top = 884.0
 margin_right = 615.0
 margin_bottom = 908.0
-script = ExtResource( 5 )
-
-[node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
-margin_right = 526.0
-margin_bottom = 24.0
-size_flags_horizontal = 3
-text = "saved_images"
-
-[node name="SaveImageBtn" type="Button" parent="GUI/VBox/SaveImage"]
-margin_left = 530.0
-margin_right = 615.0
-margin_bottom = 24.0
-text = "Save Image"
-
-[node name="MapHandle" type="HBoxContainer" parent="GUI/VBox"]
-margin_top = 912.0
-margin_right = 615.0
-margin_bottom = 936.0
 script = ExtResource( 12 )
 
 [node name="MapName" type="LineEdit" parent="GUI/VBox/MapHandle"]
@@ -168,6 +239,24 @@ margin_left = 543.0
 margin_right = 615.0
 margin_bottom = 24.0
 text = "Save Map"
+
+[node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
+margin_top = 912.0
+margin_right = 615.0
+margin_bottom = 936.0
+script = ExtResource( 5 )
+
+[node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
+margin_right = 526.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+text = "saved_images"
+
+[node name="SaveImageBtn" type="Button" parent="GUI/VBox/SaveImage"]
+margin_left = 530.0
+margin_right = 615.0
+margin_bottom = 24.0
+text = "Save Image"
 
 [node name="RestartSlamBtn" type="Button" parent="GUI/VBox"]
 margin_top = 940.0
@@ -207,13 +296,29 @@ transform = Transform( 0.00333333, 0, 0, 0, 0.01, 0, 0, 0, 0.00333333, 0, 0, 0 )
 transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
 shape = SubResource( 3 )
 
-[node name="Waypoint" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+[node name="WaypointMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+
+[node name="Waypoint" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0 )
+visible = false
 material_override = ExtResource( 9 )
 radius = 0.151
 height = 0.6
 sides = 23
 cone = true
+
+[node name="GoalMarker" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+
+[node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
+transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 2, 0 )
+radius = 0.3
+height = 0.2
+sides = 23
+cone = true
+
+[node name="Pole" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
+radius = 0.04
+height = 4.0
 
 [node name="CamTarget" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
 
@@ -223,24 +328,11 @@ script = ExtResource( 7 )
 stabilize_horizon = true
 joystick_enabled = false
 
-[node name="NextTarget" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
-visible = false
-
-[node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/NextTarget"]
-transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 2, 0 )
-radius = 0.3
-height = 0.2
-sides = 23
-cone = true
-
-[node name="Pole" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/NextTarget"]
-radius = 0.04
-height = 4.0
-
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
-[connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
+[connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/ModeSelector" to="GUI/VBox/Navigation" method="_on_OptionButton_item_selected"]
 [connection signal="pressed" from="GUI/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
+[connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

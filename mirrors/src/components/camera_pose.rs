@@ -14,7 +14,7 @@ use crate::watch_msg;
 
 pub struct CameraPose {
     camera_pose: Receiver<Option<Iso3>>,
-    nav_target: Receiver<Option<Point3>>,
+    // nav_target: Receiver<Option<Point3>>,
     viz_scale: Receiver<f64>,
     mesh_path: String,
 }
@@ -22,7 +22,7 @@ pub struct CameraPose {
 impl CameraPose {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let camera_pose = watch_msg!(context, Msg::CameraPose);
-        let nav_target = watch_msg!(context, Msg::NavTarget);
+        // let nav_target = watch_msg!(context, Msg::NavTarget);
         let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
         let mesh_name = "camera_pose_box";
         let mesh_path = format!("{}/{}", path, mesh_name);
@@ -37,7 +37,7 @@ impl CameraPose {
 
         let camera_pose = CameraPose {
             camera_pose,
-            nav_target,
+            // nav_target,
             mesh_path,
             viz_scale,
         };
@@ -67,15 +67,15 @@ impl Updatable for CameraPose {
             ));
         }
 
-        if let Some(nav_target) = *self.nav_target.borrow() {
-            let viz_scale = *self.viz_scale.borrow();
-            let marker = find_node::<Spatial>(owner, "NextTarget".into());
-            marker.set_translation(Vector3::new(
-                (nav_target.x * viz_scale) as f32,
-                (nav_target.y * viz_scale * 0.0) as f32,
-                (nav_target.z * viz_scale) as f32,
-            ));
-            marker.set_visible(true);
-        }
+        // if let Some(nav_target) = *self.nav_target.borrow() {
+        //     let viz_scale = *self.viz_scale.borrow();
+        //     let marker = find_node::<Spatial>(owner, "NextTarget".into());
+        //     marker.set_translation(Vector3::new(
+        //         (nav_target.x * viz_scale) as f32,
+        //         (nav_target.y * viz_scale * 0.0) as f32,
+        //         (nav_target.z * viz_scale) as f32,
+        //     ));
+        //     marker.set_visible(true);
+        // }
     }
 }

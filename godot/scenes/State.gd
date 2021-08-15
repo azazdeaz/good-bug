@@ -62,6 +62,7 @@ func set_goal(goal):
 		
 func set_navigation_mode(nav_mode):
 	state.nav_mode = nav_mode
+	get_node("/root/Game").set_navigation_mode(nav_mode)
 	emit_all()
 	
 func set_current_map_name(name: String):

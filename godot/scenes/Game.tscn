@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=2]
+[gd_scene load_steps=23 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -18,6 +18,7 @@
 [ext_resource path="res://assets/icons/LoopInterpolation.svg" type="Texture" id=16]
 [ext_resource path="res://assets/icons/Pin.svg" type="Texture" id=17]
 [ext_resource path="res://scenes/MapSelector.gd" type="Script" id=18]
+[ext_resource path="res://scenes/EnableAutoNavBtn.gd" type="Script" id=19]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -40,47 +41,47 @@ __meta__ = {
 }
 
 [node name="VBox" type="VBoxContainer" parent="GUI"]
-margin_right = 615.0
+margin_right = 809.0
 margin_bottom = 960.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Connection" type="HBoxContainer" parent="GUI/VBox"]
-margin_right = 615.0
+margin_right = 809.0
 margin_bottom = 24.0
 script = ExtResource( 11 )
 
 [node name="ConnectionAddress" type="LineEdit" parent="GUI/VBox/Connection"]
-margin_right = 472.0
+margin_right = 666.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 align = 1
 expand_to_text_length = true
 
 [node name="ReconnectBtn" type="Button" parent="GUI/VBox/Connection"]
-margin_left = 476.0
-margin_right = 555.0
+margin_left = 670.0
+margin_right = 749.0
 margin_bottom = 24.0
 text = "Reconnect"
 
 [node name="ConnectionHistory" type="MenuButton" parent="GUI/VBox/Connection"]
-margin_left = 559.0
-margin_right = 615.0
+margin_left = 753.0
+margin_right = 809.0
 margin_bottom = 24.0
 text = "history"
 
 [node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
 margin_top = 28.0
-margin_right = 615.0
+margin_right = 809.0
 margin_bottom = 68.0
 text = "show raw image"
 script = ExtResource( 4 )
 
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
 margin_top = 72.0
-margin_right = 615.0
-margin_bottom = 428.0
+margin_right = 809.0
+margin_bottom = 436.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -89,28 +90,27 @@ stretch_mode = 5
 script = ExtResource( 6 )
 
 [node name="Tabs" type="Tabs" parent="GUI/VBox"]
-margin_top = 432.0
-margin_right = 615.0
-margin_bottom = 456.0
+margin_top = 440.0
+margin_right = 809.0
+margin_bottom = 464.0
 
 [node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 460.0
-margin_right = 615.0
-margin_bottom = 514.0
+margin_top = 468.0
+margin_right = 809.0
+margin_bottom = 496.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 608.0
-margin_bottom = 47.0
+margin_right = 802.0
+margin_bottom = 21.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Title" type="Label" parent="GUI/VBox/PanelContainer/HBoxContainer"]
-margin_top = 13.0
 margin_right = 96.0
-margin_bottom = 27.0
+margin_bottom = 14.0
 text = "Tracking State: "
 __meta__ = {
 "_edit_use_anchors_": false
@@ -118,9 +118,8 @@ __meta__ = {
 
 [node name="TrackingStateLabel" type="Label" parent="GUI/VBox/PanelContainer/HBoxContainer"]
 margin_left = 100.0
-margin_top = 13.0
 margin_right = 172.0
-margin_bottom = 27.0
+margin_bottom = 14.0
 text = "Unknown"
 uppercase = true
 __meta__ = {
@@ -129,19 +128,13 @@ __meta__ = {
 
 [node name="Gap" type="Control" parent="GUI/VBox/PanelContainer/HBoxContainer"]
 margin_left = 176.0
-margin_right = 416.0
-margin_bottom = 40.0
+margin_right = 795.0
+margin_bottom = 14.0
 size_flags_horizontal = 3
 
-[node name="EnableAutoNavToggle" type="CheckButton" parent="GUI/VBox/PanelContainer/HBoxContainer"]
-margin_left = 420.0
-margin_right = 601.0
-margin_bottom = 40.0
-text = "enable auto nav"
-
 [node name="Navigation" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 518.0
-margin_right = 615.0
+margin_top = 500.0
+margin_right = 809.0
 margin_bottom = 908.0
 script = ExtResource( 13 )
 _teleop_container = NodePath("VBox/TeleopContainer")
@@ -153,29 +146,29 @@ _waypoint_markers = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/Wa
 [node name="VBox" type="VBoxContainer" parent="GUI/VBox/Navigation"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 608.0
-margin_bottom = 383.0
+margin_right = 802.0
+margin_bottom = 401.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Header" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_right = 601.0
-margin_bottom = 22.0
+margin_right = 795.0
+margin_bottom = 40.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/Header"]
-margin_top = 4.0
+margin_top = 13.0
 margin_right = 111.0
-margin_bottom = 18.0
+margin_bottom = 27.0
 text = "Navigation Mode:"
 
 [node name="ModeSelector" type="OptionButton" parent="GUI/VBox/Navigation/VBox/Header"]
 margin_left = 115.0
 margin_right = 205.0
-margin_bottom = 22.0
+margin_bottom = 40.0
 text = "Teleop"
 icon = ExtResource( 15 )
 items = [ "Teleop", ExtResource( 15 ), false, 0, null, "One Goal", ExtResource( 17 ), false, 1, null, "Waypoint Mission", ExtResource( 16 ), false, 2, null ]
@@ -184,60 +177,72 @@ selected = 0
 [node name="VSeparator" type="VSeparator" parent="GUI/VBox/Navigation/VBox/Header"]
 margin_left = 209.0
 margin_right = 213.0
-margin_bottom = 22.0
+margin_bottom = 40.0
 
 [node name="Label2" type="Label" parent="GUI/VBox/Navigation/VBox/Header"]
 margin_left = 217.0
-margin_top = 4.0
+margin_top = 13.0
 margin_right = 244.0
-margin_bottom = 18.0
+margin_bottom = 27.0
 text = "Map"
 
 [node name="MapSelector" type="OptionButton" parent="GUI/VBox/Navigation/VBox/Header"]
 margin_left = 248.0
 margin_right = 320.0
-margin_bottom = 22.0
+margin_bottom = 40.0
 text = "Item 0"
 selected = 0
 script = ExtResource( 18 )
 
+[node name="VSeparator2" type="VSeparator" parent="GUI/VBox/Navigation/VBox/Header"]
+margin_left = 324.0
+margin_right = 328.0
+margin_bottom = 40.0
+
+[node name="EnableAutoNavBtn" type="CheckButton" parent="GUI/VBox/Navigation/VBox/Header"]
+margin_left = 332.0
+margin_right = 555.0
+margin_bottom = 40.0
+text = "Enable auto navigation"
+script = ExtResource( 19 )
+
 [node name="TeleopContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_top = 26.0
-margin_right = 601.0
-margin_bottom = 57.0
+margin_top = 44.0
+margin_right = 795.0
+margin_bottom = 75.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/TeleopContainer"]
-margin_right = 601.0
+margin_right = 795.0
 margin_bottom = 31.0
 text = "
 Use your gamepad to control the robot"
 
 [node name="GoalContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_top = 61.0
-margin_right = 601.0
-margin_bottom = 109.0
+margin_top = 79.0
+margin_right = 795.0
+margin_bottom = 127.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/GoalContainer"]
-margin_right = 601.0
+margin_right = 795.0
 margin_bottom = 48.0
 text = "
 Double click on the map to set the target
 "
 
 [node name="WaypointContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_top = 113.0
-margin_right = 601.0
-margin_bottom = 348.0
+margin_top = 131.0
+margin_right = 795.0
+margin_bottom = 366.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
-margin_right = 601.0
+margin_right = 795.0
 margin_bottom = 31.0
 text = "
 Double click on the map to add new waypoints"
 
 [node name="WaypointsList" type="Tree" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
 margin_top = 35.0
-margin_right = 601.0
+margin_right = 795.0
 margin_bottom = 235.0
 rect_min_size = Vector2( 0, 200 )
 __meta__ = {
@@ -245,57 +250,57 @@ __meta__ = {
 }
 
 [node name="MapHandle" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_top = 352.0
-margin_right = 601.0
-margin_bottom = 376.0
+margin_top = 370.0
+margin_right = 795.0
+margin_bottom = 394.0
 script = ExtResource( 12 )
 
 [node name="MapName" type="LineEdit" parent="GUI/VBox/Navigation/VBox/MapHandle"]
-margin_right = 525.0
+margin_right = 719.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "new_map"
 
 [node name="SaveMapBtn" type="Button" parent="GUI/VBox/Navigation/VBox/MapHandle"]
-margin_left = 529.0
-margin_right = 601.0
+margin_left = 723.0
+margin_right = 795.0
 margin_bottom = 24.0
 text = "Save Map"
 
 [node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
 margin_top = 912.0
-margin_right = 615.0
+margin_right = 809.0
 margin_bottom = 936.0
 script = ExtResource( 5 )
 
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
-margin_right = 526.0
+margin_right = 720.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "saved_images"
 
 [node name="SaveImageBtn" type="Button" parent="GUI/VBox/SaveImage"]
-margin_left = 530.0
-margin_right = 615.0
+margin_left = 724.0
+margin_right = 809.0
 margin_bottom = 24.0
 text = "Save Image"
 
 [node name="RestartSlamBtn" type="Button" parent="GUI/VBox"]
 margin_top = 940.0
-margin_right = 615.0
+margin_right = 809.0
 margin_bottom = 960.0
 text = "Restart Slam"
 script = ExtResource( 10 )
 
 [node name="ViewportContainer" type="ViewportContainer" parent="GUI"]
-margin_left = 627.0
+margin_left = 821.0
 margin_right = 1280.0
 margin_bottom = 960.0
 stretch = true
 script = ExtResource( 8 )
 
 [node name="Viewport" type="Viewport" parent="GUI/ViewportContainer"]
-size = Vector2( 653, 960 )
+size = Vector2( 459, 960 )
 size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 3
@@ -359,6 +364,7 @@ joystick_enabled = false
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/ModeSelector" to="GUI/VBox/Navigation" method="_on_OptionButton_item_selected"]
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/MapSelector" to="GUI/VBox/Navigation/VBox/Header/MapSelector" method="_on_MapSelector_item_selected"]
+[connection signal="toggled" from="GUI/VBox/Navigation/VBox/Header/EnableAutoNavBtn" to="GUI/VBox/Navigation/VBox/Header/EnableAutoNavBtn" method="_on_EnableAutoNavBtn_toggled"]
 [connection signal="pressed" from="GUI/VBox/Navigation/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/Navigation/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]

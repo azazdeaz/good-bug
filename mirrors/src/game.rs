@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use common::types::NavGoal;
+use common::types::NavigationMode;
 use common::types::RobotParams;
 use gdnative::api::*;
 use gdnative::prelude::*;
@@ -108,6 +109,14 @@ impl Game {
         }
     }
 
+    fn send_to_robot(&mut self, msg: Msg) {
+        self.context
+            .broadcaster
+            .publisher()
+            .send(msg)
+            .ok();
+    }
+
     #[export]
     fn signal_map_callback(&mut self, _owner: TRef<Node>, id: u32) {
         self.context.signal_map.callback(id, SignalData::Empty);
@@ -184,6 +193,14 @@ impl Game {
         self.context.broadcaster.publisher().send(Msg::SaveMapDB(map_name)).ok();
     }
 
+
+
+    #[export]
+    fn set_navigation_mode(&mut self, _owner: TRef<Node>, nav_mode: usize) {
+        let nav_mode = [NavigationMode::Teleop, NavigationMode::Goal, NavigationMode::Waypoints][nav_mode];
+        self.send_to_robot(Msg::SetNavigationMode(nav_mode));
+    }
+
     #[export]
     fn select_target(&mut self, _owner: TRef<Node>, x: f64, z: f64) {
         let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
@@ -206,6 +223,15 @@ impl Game {
             .broadcaster
             .publisher()
             .send(Msg::Waypoints(waypoints))
+            .ok();
+    }
+
+    #[export]
+    fn enable_auto_nav(&mut self, _owner: TRef<Node>, enable: bool) {
+        self.context
+            .broadcaster
+            .publisher()
+            .send(Msg::EnableAutoNav(enable))
             .ok();
     }
 

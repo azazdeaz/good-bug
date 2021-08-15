@@ -27,6 +27,7 @@ pub enum Msg {
     SetNavigationMode(NavigationMode),
     NavTarget(NavGoal),
     Waypoints(Vec<NavGoal>),
+    EnableAutoNav(bool),
     RequestRobotParams,
     RobotParams(RobotParams),
 
@@ -48,6 +49,7 @@ impl Msg {
                 | Msg::SaveMapDB(_)
                 | Msg::NavTarget(_)
                 | Msg::Waypoints(_)
+                | Msg::EnableAutoNav(_)
                 | Msg::TerminateSlam
                 | Msg::UseRawPreview(_)
                 | Msg::RequestRobotParams

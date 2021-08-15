@@ -61,9 +61,11 @@ struct NavState {
     cam_pose: (Iso3, Instant),
     target_pose: Option<NavGoal>,
     navigation_mode: NavigationMode,
+    auto_nav_enabled: bool,
     tracker_state: TrackingState,
     slam_scale: f64,
     settings: Navigation,
+    waypoints: Vec<NavGoal>,
 }
 
 impl NavState {
@@ -74,10 +76,21 @@ impl NavState {
             teleop_speed: ((0.0, 0.0), Instant::now()),
             cam_pose: (Iso3::identity(), Instant::now()),
             target_pose: None,
+            auto_nav_enabled: false,
             navigation_mode: NavigationMode::Teleop,
             tracker_state: TrackingState::NotInitialized,
             slam_scale: 1.0,
             settings,
+            waypoints: Vec::new(),
+        }
+    }
+
+    fn udpate_waypoints(&mut self) {
+        let settings = Settings::new().unwrap();
+        if let Some(map) = settings.slam.get_current_map() {
+            self.waypoints = map.waypoints.clone();
+        } else {
+            self.waypoints.clear();
         }
     }
 
@@ -95,6 +108,11 @@ impl NavState {
 
     fn set_navigation_mode(&mut self, mode: NavigationMode) {
         self.navigation_mode = mode;
+    }
+
+    fn enable_auto_nav(&mut self, enable: bool) {
+        self.auto_nav_enabled = enable;
+        self.udpate_waypoints();
     }
 
     fn set_tracker_state(&mut self, tracker_state: TrackingState) {
@@ -157,7 +175,8 @@ impl NavState {
                 }
             }
             NavigationMode::Goal => {
-                if NavState::is_expired(self.cam_pose.1)
+                if !self.auto_nav_enabled
+                    || NavState::is_expired(self.cam_pose.1)
                     || !matches!(self.tracker_state, TrackingState::Tracking)
                 {
                     (0.0, 0.0)
@@ -191,6 +210,7 @@ impl Navigator {
                                 Msg::CameraPose(iso3) => state.set_cam_pose(iso3),
                                 Msg::NavTarget(nav_goal) => state.set_target_pose(nav_goal),
                                 Msg::Teleop(speed) => state.set_teleop_speed(speed),
+                                Msg::EnableAutoNav(enable) => state.enable_auto_nav(enable),
                                 Msg::SetNavigationMode(mode) => state.set_navigation_mode(mode),
                                 Msg::TrackingState(tracking_state) => {
                                     state.set_tracker_state(tracking_state)

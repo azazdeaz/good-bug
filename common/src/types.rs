@@ -14,7 +14,7 @@ pub struct BoxDetection {
     pub class: u32,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant, FromVariant)]
 pub enum NavigationMode {
     Teleop,
     Goal,

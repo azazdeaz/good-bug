@@ -65,7 +65,6 @@ impl Status {
             let got_first_robot_params_update = Arc::clone(&got_first_robot_params_update);
             context.runtime().spawn(async move {
                 while !*got_first_robot_params_update.read().unwrap() {
-                    println!("ping for params");
                     publisher.send(Msg::RequestRobotParams).ok();
                     tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
                 }

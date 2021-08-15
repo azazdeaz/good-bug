@@ -1,4 +1,9 @@
-use common::{msg::{Broadcaster, Msg}, robot_body::RobotBody, settings::{Navigation, Settings}, types::{NavGoal, NavigationMode, Point3, TrackingState}};
+use common::{
+    msg::{Broadcaster, Msg},
+    robot_body::RobotBody,
+    settings::{Navigation, Settings},
+    types::{NavGoal, NavigationMode, TrackingState},
+};
 use drivers::Wheels;
 use nalgebra as na;
 use std::{
@@ -29,6 +34,25 @@ fn angle_difference(bearing_from: f64, bearing_to: f64) -> f64 {
 //     println!("{} {}", angle_difference(pi, -pi), 0.0);
 //     println!("{} {}", angle_difference(-pi, pi-0.1), -0.1);
 // }
+
+fn point_to_line_segment_distance(
+    p: na::Vector2<f64>,
+    a: na::Vector2<f64>,
+    b: na::Vector2<f64>,
+) -> f64 {
+    let m = b - a;
+    // segment length
+    let l = m.magnitude();
+    // normalized segment direction
+    let m = m / l;
+    // distance of closest point from `a` on line(a,b)
+    let t: f64 = (p - a).dot(&m);
+    // distance of closest point from `a` on line_segment(a,b)
+    let t0 = t.max(0.0).min(l);
+    // closest point on segment
+    let i = a + m * t0;
+    (p - i).magnitude()
+}
 
 #[derive(Debug)]
 struct NavState {
@@ -85,6 +109,44 @@ impl NavState {
         time.checked_add(Duration::from_millis(600)).unwrap() < Instant::now()
     }
 
+    fn compute_speed_towards_goal(&self, goal: NavGoal) -> (f64, f64) {
+        // robot pose on the slam map
+        let pose = RobotBody::base_pose(self.cam_pose.0, self.slam_scale);
+
+        let p = na::Point3::new(0.0, 0.0, 1.0);
+        let p = pose.rotation * p;
+        let yaw_bot = p.x.atan2(p.z);
+
+        let dx = goal.x - pose.translation.vector.x;
+        let dz = goal.z - pose.translation.vector.z;
+        let yaw_target = dx.atan2(dz);
+        let yawd = angle_difference(yaw_bot, yaw_target);
+        let distance = dx.hypot(dz);
+        let distance = RobotBody::real_distance(distance, self.slam_scale);
+
+        println!(
+            "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
+            pose.translation.vector, goal, dx, dz, distance, yaw_target, yaw_bot, yawd
+        );
+
+        if distance < self.settings.xy_goal_tolerance {
+            (0., 0.)
+        } else if yawd.abs() < 0.3 {
+            (self.settings.travel_thrust, self.settings.travel_thrust)
+        } else if yawd > 0. {
+            // turning left
+            (
+                self.settings.turn_right_thrust.1,
+                self.settings.turn_right_thrust.0,
+            )
+        } else {
+            (
+                self.settings.turn_right_thrust.0,
+                self.settings.turn_right_thrust.1,
+            )
+        }
+    }
+
     fn compute_speed(&self) -> (f64, f64) {
         match self.navigation_mode {
             NavigationMode::Teleop => {
@@ -99,48 +161,8 @@ impl NavState {
                     || !matches!(self.tracker_state, TrackingState::Tracking)
                 {
                     (0.0, 0.0)
-                } else if let Some(target_pose) = self.target_pose {
-                    let pose = RobotBody::base_pose(self.cam_pose.0, self.slam_scale);
-
-                    let p = na::Point3::new(0.0, 0.0, 1.0);
-                    let p = pose.rotation * p;
-                    let yaw_bot = p.x.atan2(p.z);
-
-                    let dx = target_pose.x - pose.translation.vector.x;
-                    let dz = target_pose.z - pose.translation.vector.z;
-                    let yaw_target = dx.atan2(dz);
-                    let yawd = angle_difference(yaw_bot, yaw_target);
-                    let distance = dx.hypot(dz);
-                    let distance = RobotBody::real_distance(distance, self.slam_scale);
-
-                    println!(
-                        "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
-                        pose.translation.vector,
-                        target_pose,
-                        dx,
-                        dz,
-                        distance,
-                        yaw_target,
-                        yaw_bot,
-                        yawd
-                    );
-
-                    if distance < self.settings.xy_goal_tolerance {
-                        (0., 0.)
-                    } else if yawd.abs() < 0.3 {
-                        (self.settings.travel_thrust, self.settings.travel_thrust)
-                    } else if yawd > 0. {
-                        // turning left
-                        (
-                            self.settings.turn_right_thrust.1,
-                            self.settings.turn_right_thrust.0,
-                        )
-                    } else {
-                        (
-                            self.settings.turn_right_thrust.0,
-                            self.settings.turn_right_thrust.1,
-                        )
-                    }
+                } else if let Some(goal) = self.target_pose {
+                    self.compute_speed_towards_goal(goal)
                 } else {
                     (0.0, 0.0)
                 }
@@ -154,8 +176,8 @@ pub struct Navigator {}
 
 impl Navigator {
     pub fn new(broadcaster: &Broadcaster) -> Self {
-        let mut state = Arc::new(tokio::sync::RwLock::new(NavState::new()));
-        let mut wheels = Wheels::new();
+        let state = Arc::new(tokio::sync::RwLock::new(NavState::new()));
+        let wheels = Wheels::new();
 
         {
             let mut updates = broadcaster.stream();

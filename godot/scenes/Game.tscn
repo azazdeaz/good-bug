@@ -354,7 +354,6 @@ script = ExtResource( 7 )
 stabilize_horizon = true
 joystick_enabled = false
 
-[connection signal="robot_params" from="." to="GUI" method="_on_Game_robot_params"]
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]

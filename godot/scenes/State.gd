@@ -28,6 +28,7 @@ var state = {
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	yield(get_tree().create_timer(0.1),"timeout")
+	get_node("/root/Game").connect("robot_params", self, "_on_Game_robot_params")
 	emit_all()
 	
 func get_current_map():
@@ -70,4 +71,5 @@ func set_current_map_name(name: String):
 func _on_Game_robot_params(robot_params):
 	state.current_map_name = robot_params.current_map_name
 	state.maps = robot_params.maps
+	emit_all()
 	

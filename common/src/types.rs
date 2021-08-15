@@ -21,10 +21,20 @@ pub enum NavigationMode {
     Waypoints
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToVariant, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant, FromVariant, Default)]
 pub struct NavGoal {
     pub x: f64,
-    pub y: f64,
+    pub z: f64,
+}
+impl NavGoal {
+    pub fn new(x: f64, z: f64) -> Self {
+        Self {x, z}
+    }
+
+    pub fn scale_to_map(&mut self, map_to_viz_scale: f64) {
+        self.x /= map_to_viz_scale;
+        self.z /= map_to_viz_scale;
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToVariant)]

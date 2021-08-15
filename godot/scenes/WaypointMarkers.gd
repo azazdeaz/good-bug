@@ -16,5 +16,6 @@ func set_markers(poses):
 			marker.visible = false
 		else:
 			marker.visible = true
-			marker.translation = poses[i]
+			marker.translation.x = poses[i].x
+			marker.translation.z = poses[i].z
 

@@ -5,7 +5,7 @@ signal current_map_update(map)
 signal maps_update(maps)
 signal waypoints_update(waypoints)
 signal nav_mode_update(nav_mode)
-signal goal_update(goal)
+signal goal_update(goal)	
 
 enum NavMode { TELEOP, GOAL, WAYPOINTS }
 
@@ -27,6 +27,7 @@ var state = {
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	yield(get_tree().create_timer(0.1),"timeout")
 	emit_all()
 	
 func get_current_map():
@@ -43,23 +44,27 @@ func emit_all():
 	emit_signal("nav_mode_update", state.nav_mode)
 	emit_signal("goal_update", state.goal)
 
-func add_waypoint(waypoint: Vector3):
+func add_waypoint(waypoint):
 	var map = get_current_map()
 	if map:
 		map.waypoints.push_back(waypoint)
+		get_node("/root/Game").set_waypoints(map.waypoints)
 		emit_all()
 
-func set_goal(goal: Vector3):
-#	get_node("/root/Game").select_target(
-#		goal.x,
-#		goal.y,
-#		goal.z
-#	)
+func set_goal(goal):
+	get_node("/root/Game").select_target(
+		goal.x,
+		goal.z
+	)
 	state.goal = goal
 	emit_all()
 		
 func set_navigation_mode(nav_mode):
 	state.nav_mode = nav_mode
+	emit_all()
+	
+func set_current_map_name(name: String):
+	state.current_map_name = name
 	emit_all()
 
 func _on_Game_robot_params(robot_params):

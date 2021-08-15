@@ -6,6 +6,7 @@ use tokio;
 mod navigator;
 mod scale_estimator;
 mod robot_params_echo;
+mod map_updater;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,6 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     scale_estimator::ScaleEstimator::new(&broadcaster);
     detector::Detector::run(&broadcaster);
     robot_params_echo::RobotParamsEcho::run(&broadcaster);
+    map_updater::MapUpdater::run(&broadcaster);
     grpc_server::start_server(broadcaster).await?;
     Ok(())
 }

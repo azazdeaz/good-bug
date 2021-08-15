@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use common::types::Point3;
+use common::types::NavGoal;
 use common::types::RobotParams;
 use gdnative::api::*;
 use gdnative::prelude::*;
@@ -185,13 +185,27 @@ impl Game {
     }
 
     #[export]
-    fn select_target(&mut self, _owner: TRef<Node>, x: f64, y: f64, z: f64) {
+    fn select_target(&mut self, _owner: TRef<Node>, x: f64, z: f64) {
         let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
-        let point = Point3::new(x / scale, y / scale, z / scale);
+        let mut goal = NavGoal::new(x, z);
+        goal.scale_to_map(scale);
         self.context
             .broadcaster
             .publisher()
-            .send(Msg::NavTarget(point))
+            .send(Msg::NavTarget(goal))
+            .ok();
+    }
+
+    #[export]
+    fn set_waypoints(&mut self, _owner: TRef<Node>, mut waypoints: Vec<NavGoal>) {
+        let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
+        for nav_goal in &mut waypoints {
+            nav_goal.scale_to_map(scale);
+        }
+        self.context
+            .broadcaster
+            .publisher()
+            .send(Msg::Waypoints(waypoints))
             .ok();
     }
 

@@ -36,7 +36,9 @@ func on_waypoints_update(waypoints):
 	waypoint_markers.set_markers(waypoints)
 
 func on_goal_update(goal):
-	goal_marker.translation = goal
+	if goal:
+		goal_marker.translation.x = goal.x
+		goal_marker.translation.z = goal.z
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -60,7 +62,11 @@ func _on_OptionButton_item_selected(index):
 
 
 func _on_Ground_map_click(position):
+	var goal = {
+		"x": position.x,
+		"z": position.z,
+	}
 	if current_navigation_mode == NavMode.GOAL:
-		state.set_goal(position)
+		state.set_goal(goal)
 	elif current_navigation_mode == NavMode.WAYPOINTS:
-		state.add_waypoint(position)
+		state.add_waypoint(goal)

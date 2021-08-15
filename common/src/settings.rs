@@ -1,9 +1,12 @@
-use crate::types::{Point3, Map};
+use crate::types::{Map, NavGoal, Point3};
 use config::{Config, ConfigError, File};
+use eyre::{Result, WrapErr};
 use serde::{Deserialize, Serialize};
-use std::{env, io::Write, path::{Path, PathBuf}};
-use eyre::{WrapErr, Result};
-
+use std::{
+    env,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 impl Map {
     pub fn get_abs_db_path(&self) -> String {
@@ -24,15 +27,21 @@ pub struct Slam {
 }
 
 impl Slam {
-    pub fn get_current_map(&self) -> Option<Map> {
-        if let (Some(maps), Some(map_name)) = (&self.maps, &self.current_map_name) {
-            for map in maps {
-                if &map.name == map_name {
-                    return Some(map.clone());
-                }
-            }
+    pub fn get_current_map(&self) -> Option<&Map> {
+        if let (Some(maps), Some(current_map_name)) = (&self.maps, &self.current_map_name) {
+            maps.into_iter().find(|map| &map.name == current_map_name)
         }
-        None
+        else {
+            None
+        }
+    }
+    pub fn get_current_map_mut(&mut self) -> Option<&mut Map> {
+        if let (Some(maps), Some(current_map_name)) = (&mut self.maps, &self.current_map_name) {
+            maps.into_iter().find(|map| &map.name == current_map_name)
+        }
+        else {
+            None
+        }
     }
 }
 
@@ -62,12 +71,15 @@ fn path_in_config_folder(path: &str) -> PathBuf {
 
 fn absolute_path(path: &str) -> Result<String> {
     let path = path_in_config_folder(path);
-    Ok(path.canonicalize()
-        .wrap_err_with(|| format!(
-            "can't find {:?} from {:?}",
-            path,
-            Path::new(".").canonicalize()
-        ))?
+    Ok(path
+        .canonicalize()
+        .wrap_err_with(|| {
+            format!(
+                "can't find {:?} from {:?}",
+                path,
+                Path::new(".").canonicalize()
+            )
+        })?
         .to_str()
         .unwrap()
         .into())
@@ -141,6 +153,13 @@ impl Settings {
     pub fn set_current_map_name(&mut self, map_name: Option<String>) {
         self.slam.current_map_name = map_name;
         self.save();
+    }
+
+    pub fn set_waypoints(&mut self, waypoints: Vec<NavGoal>) {
+        if let Some(map) = &mut self.slam.get_current_map_mut() {
+            map.waypoints = waypoints;
+            self.save();
+        }
     }
 
     pub fn save(&self) {

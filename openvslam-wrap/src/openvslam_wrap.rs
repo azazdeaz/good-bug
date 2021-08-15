@@ -76,15 +76,13 @@ impl OpenVSlamWrapper {
                                 let mut path = dirs::data_local_dir().unwrap();
                                 path.push("good_bug");
                                 path.push("maps");
-                                path.set_file_name(&name);
+                                std::fs::create_dir_all(&path).expect("failed the create the maps folder");
+                                path.push(&name);
                                 path.set_extension("db");
                                 let path = path.into_os_string().into_string().unwrap();
+                                
                                 Settings::new().unwrap().add_map(name, path.clone());
                                 Some(pb::request::Msg::SaveMapDb(pb::request::SaveMapDb { path }))
-                            }
-                            Msg::SelectMap(name) => {
-                                Settings::new().unwrap().set_current_map_name(name);
-                                None
                             }
                             Msg::UseRawPreview(use_raw) => {
                                 let preview_type = if use_raw {

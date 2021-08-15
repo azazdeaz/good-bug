@@ -1,9 +1,4 @@
-use common::{
-    msg::{Broadcaster, Msg},
-    robot_body::RobotBody,
-    settings::{Navigation, Settings},
-    types::{NavigationMode, Point3, TrackingState},
-};
+use common::{msg::{Broadcaster, Msg}, robot_body::RobotBody, settings::{Navigation, Settings}, types::{NavGoal, NavigationMode, Point3, TrackingState}};
 use drivers::Wheels;
 use nalgebra as na;
 use std::{
@@ -40,7 +35,7 @@ struct NavState {
     speed: (f64, f64),
     teleop_speed: ((f64, f64), Instant),
     cam_pose: (Iso3, Instant),
-    target_pose: Option<Point3>,
+    target_pose: Option<NavGoal>,
     navigation_mode: NavigationMode,
     tracker_state: TrackingState,
     slam_scale: f64,
@@ -70,7 +65,7 @@ impl NavState {
         self.cam_pose = (cam_pose, Instant::now());
     }
 
-    fn set_target_pose(&mut self, target_pose: Point3) {
+    fn set_target_pose(&mut self, target_pose: NavGoal) {
         self.target_pose = Some(target_pose);
     }
 
@@ -172,7 +167,7 @@ impl Navigator {
                             let mut state = state.write().await;
                             match msg {
                                 Msg::CameraPose(iso3) => state.set_cam_pose(iso3),
-                                Msg::NavTarget(point3) => state.set_target_pose(point3),
+                                Msg::NavTarget(nav_goal) => state.set_target_pose(nav_goal),
                                 Msg::Teleop(speed) => state.set_teleop_speed(speed),
                                 Msg::SetNavigationMode(mode) => state.set_navigation_mode(mode),
                                 Msg::TrackingState(tracking_state) => {

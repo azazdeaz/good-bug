@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=2]
+[gd_scene load_steps=22 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -17,6 +17,7 @@
 [ext_resource path="res://assets/icons/Joypad.svg" type="Texture" id=15]
 [ext_resource path="res://assets/icons/LoopInterpolation.svg" type="Texture" id=16]
 [ext_resource path="res://assets/icons/Pin.svg" type="Texture" id=17]
+[ext_resource path="res://scenes/MapSelector.gd" type="Script" id=18]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -194,8 +195,11 @@ text = "Map"
 
 [node name="MapSelector" type="OptionButton" parent="GUI/VBox/Navigation/VBox/Header"]
 margin_left = 248.0
-margin_right = 277.0
+margin_right = 320.0
 margin_bottom = 22.0
+text = "Item 0"
+selected = 0
+script = ExtResource( 18 )
 
 [node name="TeleopContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 26.0
@@ -315,6 +319,7 @@ transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
 shape = SubResource( 3 )
 
 [node name="WaypointMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+visible = false
 script = ExtResource( 14 )
 
 [node name="Waypoint" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers"]
@@ -328,6 +333,7 @@ sides = 23
 cone = true
 
 [node name="GoalMarker" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+visible = false
 
 [node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
 transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 2, 0 )
@@ -353,6 +359,7 @@ joystick_enabled = false
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/ModeSelector" to="GUI/VBox/Navigation" method="_on_OptionButton_item_selected"]
+[connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/MapSelector" to="GUI/VBox/Navigation/VBox/Header/MapSelector" method="_on_MapSelector_item_selected"]
 [connection signal="pressed" from="GUI/VBox/Navigation/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/Navigation/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]

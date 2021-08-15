@@ -1,15 +1,9 @@
-use crate::types::Point3;
+use crate::types::{Point3, Map};
 use config::{Config, ConfigError, File};
 use serde::{Deserialize, Serialize};
 use std::{env, io::Write, path::{Path, PathBuf}};
 use eyre::{WrapErr, Result};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Map {
-    name: String,
-    db_path: String,
-    waypoints: Vec<Point3>,
-}
 
 impl Map {
     pub fn get_abs_db_path(&self) -> String {

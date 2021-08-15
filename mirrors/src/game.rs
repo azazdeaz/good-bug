@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use common::types::Point3;
+use common::types::RobotParams;
 use gdnative::api::*;
 use gdnative::prelude::*;
 use tokio_stream::StreamExt;
@@ -16,7 +17,7 @@ use common::msg::Msg;
 #[register_with(Self::register_signals)]
 pub struct Game {
     name: String,
-    components: Vec<Box<components::traits::Updatable>>,
+    components: Vec<Box<dyn components::traits::Updatable>>,
     context: components::context::Context,
 }
 
@@ -37,23 +38,36 @@ impl Game {
     }
 
     fn register_signals(builder: &ClassBuilder<Self>) {
-        builder.add_signal(Signal {
-            name: "current_frame",
-            // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
-            args: &[SignalArgument {
-                name: "data",
-                default: Variant::from_array(&VariantArray::new_shared()),
-                export_info: ExportInfo::new(VariantType::Vector3Array),
-                usage: PropertyUsage::DEFAULT,
-            }],
-        });
+        // builder.add_signal(Signal {
+        //     name: "current_frame",
+        //     // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
+        //     args: &[SignalArgument {
+        //         name: "data",
+        //         default: Variant::from_array(&VariantArray::new_shared()),
+        //         export_info: ExportInfo::new(VariantType::Vector3Array),
+        //         usage: PropertyUsage::DEFAULT,
+        //     }],
+        // });
+
+        // builder.add_signal(Signal {
+        //     name: "message",
+        //     // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
+        //     args: &[SignalArgument {
+        //         name: "data",
+        //         default: Variant::from_str(""),
+        //         export_info: ExportInfo::new(VariantType::GodotString),
+        //         usage: PropertyUsage::DEFAULT,
+        //     }],
+        // });
+
+
 
         builder.add_signal(Signal {
-            name: "message",
+            name: "robot_params",
             // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
             args: &[SignalArgument {
-                name: "data",
-                default: Variant::from_str(""),
+                name: "robot_params",
+                default: RobotParams::default().to_variant(),
                 export_info: ExportInfo::new(VariantType::GodotString),
                 usage: PropertyUsage::DEFAULT,
             }],

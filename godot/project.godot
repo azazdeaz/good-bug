@@ -18,6 +18,10 @@ config/name="mirrors"
 run/main_scene="res://scenes/Game.tscn"
 config/icon="res://assets/godot-ferris-32x32.png"
 
+[autoload]
+
+State="*res://scenes/State.gd"
+
 [debug]
 
 settings/fps/force_fps=60

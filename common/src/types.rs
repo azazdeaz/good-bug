@@ -14,6 +14,34 @@ pub struct BoxDetection {
     pub class: u32,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
+pub enum NavigationMode {
+    Teleop,
+    Goal,
+    Waypoints
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant, Default)]
+pub struct NavGoal {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant)]
+pub struct Map {
+    pub name: String,
+    pub db_path: String,
+    pub waypoints: Vec<NavGoal>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant, Default)]
+pub struct RobotParams {
+    pub maps: Vec<Map>,
+    pub current_map_name: Option<String>,
+}
+
+
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Landmark {
     pub id: u32,

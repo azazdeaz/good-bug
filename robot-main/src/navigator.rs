@@ -1,8 +1,8 @@
 use common::{
     msg::{Broadcaster, Msg},
     robot_body::RobotBody,
-    types::{Point3, TrackingState},
-    settings::{Settings, Navigation},
+    settings::{Navigation, Settings},
+    types::{NavigationMode, Point3, TrackingState},
 };
 use drivers::Wheels;
 use nalgebra as na;
@@ -41,7 +41,7 @@ struct NavState {
     teleop_speed: ((f64, f64), Instant),
     cam_pose: (Iso3, Instant),
     target_pose: Option<Point3>,
-    self_drive_enabled: bool,
+    navigation_mode: NavigationMode,
     tracker_state: TrackingState,
     slam_scale: f64,
     settings: Navigation,
@@ -55,7 +55,7 @@ impl NavState {
             teleop_speed: ((0.0, 0.0), Instant::now()),
             cam_pose: (Iso3::identity(), Instant::now()),
             target_pose: None,
-            self_drive_enabled: false,
+            navigation_mode: NavigationMode::Teleop,
             tracker_state: TrackingState::NotInitialized,
             slam_scale: 1.0,
             settings,
@@ -74,8 +74,8 @@ impl NavState {
         self.target_pose = Some(target_pose);
     }
 
-    fn set_self_drive_enabled(&mut self, enable: bool) {
-        self.self_drive_enabled = enable;
+    fn set_navigation_mode(&mut self, mode: NavigationMode) {
+        self.navigation_mode = mode;
     }
 
     fn set_tracker_state(&mut self, tracker_state: TrackingState) {
@@ -91,46 +91,66 @@ impl NavState {
     }
 
     fn compute_speed(&self) -> (f64, f64) {
-        if !self.self_drive_enabled {
-            if NavState::is_expired(self.teleop_speed.1) {
-                (0.0, 0.0)
-            } else {
-                self.teleop_speed.0
+        match self.navigation_mode {
+            NavigationMode::Teleop => {
+                if NavState::is_expired(self.teleop_speed.1) {
+                    (0.0, 0.0)
+                } else {
+                    self.teleop_speed.0
+                }
             }
-        } else if NavState::is_expired(self.cam_pose.1)
-            || !matches!(self.tracker_state, TrackingState::Tracking)
-        {
-            (0.0, 0.0)
-        } else if let Some(target_pose) = self.target_pose {
-            let pose = RobotBody::base_pose(self.cam_pose.0, self.slam_scale);
+            NavigationMode::Goal => {
+                if NavState::is_expired(self.cam_pose.1)
+                    || !matches!(self.tracker_state, TrackingState::Tracking)
+                {
+                    (0.0, 0.0)
+                } else if let Some(target_pose) = self.target_pose {
+                    let pose = RobotBody::base_pose(self.cam_pose.0, self.slam_scale);
 
-            let p = na::Point3::new(0.0, 0.0, 1.0);
-            let p = pose.rotation * p;
-            let yaw_bot = p.x.atan2(p.z);
+                    let p = na::Point3::new(0.0, 0.0, 1.0);
+                    let p = pose.rotation * p;
+                    let yaw_bot = p.x.atan2(p.z);
 
-            let dx = target_pose.x - pose.translation.vector.x;
-            let dz = target_pose.z - pose.translation.vector.z;
-            let yaw_target = dx.atan2(dz);
-            let yawd = angle_difference(yaw_bot, yaw_target);
-            let distance = dx.hypot(dz);
-            let distance = RobotBody::real_distance(distance, self.slam_scale);
+                    let dx = target_pose.x - pose.translation.vector.x;
+                    let dz = target_pose.z - pose.translation.vector.z;
+                    let yaw_target = dx.atan2(dz);
+                    let yawd = angle_difference(yaw_bot, yaw_target);
+                    let distance = dx.hypot(dz);
+                    let distance = RobotBody::real_distance(distance, self.slam_scale);
 
-            println!(
-                "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
-                pose.translation.vector, target_pose, dx, dz, distance, yaw_target, yaw_bot, yawd
-            );
+                    println!(
+                        "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
+                        pose.translation.vector,
+                        target_pose,
+                        dx,
+                        dz,
+                        distance,
+                        yaw_target,
+                        yaw_bot,
+                        yawd
+                    );
 
-            if distance < self.settings.xy_goal_tolerance {
-                (0., 0.)
-            } else if yawd.abs() < 0.3 {
-                (self.settings.travel_thrust, self.settings.travel_thrust)
-            } else if yawd > 0. { // turning left
-                (self.settings.turn_right_thrust.1, self.settings.turn_right_thrust.0)
-            } else {
-                (self.settings.turn_right_thrust.0, self.settings.turn_right_thrust.1)
+                    if distance < self.settings.xy_goal_tolerance {
+                        (0., 0.)
+                    } else if yawd.abs() < 0.3 {
+                        (self.settings.travel_thrust, self.settings.travel_thrust)
+                    } else if yawd > 0. {
+                        // turning left
+                        (
+                            self.settings.turn_right_thrust.1,
+                            self.settings.turn_right_thrust.0,
+                        )
+                    } else {
+                        (
+                            self.settings.turn_right_thrust.0,
+                            self.settings.turn_right_thrust.1,
+                        )
+                    }
+                } else {
+                    (0.0, 0.0)
+                }
             }
-        } else {
-            (0.0, 0.0)
+            NavigationMode::Waypoints => (0.0, 0.0),
         }
     }
 }
@@ -154,7 +174,7 @@ impl Navigator {
                                 Msg::CameraPose(iso3) => state.set_cam_pose(iso3),
                                 Msg::NavTarget(point3) => state.set_target_pose(point3),
                                 Msg::Teleop(speed) => state.set_teleop_speed(speed),
-                                Msg::EnableAutoNav(enable) => state.set_self_drive_enabled(enable),
+                                Msg::SetNavigationMode(mode) => state.set_navigation_mode(mode),
                                 Msg::TrackingState(tracking_state) => {
                                     state.set_tracker_state(tracking_state)
                                 }

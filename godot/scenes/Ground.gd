@@ -19,12 +19,13 @@ func _on_StaticBody_input_event(camera, event, click_position, click_normal, sha
 			print("Mouse Click/Unclick at: ", event.position, " shape:", shape_idx)
 			click_position = Vector3(click_position)
 			print(click_position)
+			emit_signal("map_click", click_position)
 			
-			get_node("/root/Game").select_target(
-				click_position.x,
-				click_position.y,
-				click_position.z
-			)
+#			get_node("/root/Game").select_target(
+#				click_position.x,
+#				click_position.y,
+#				click_position.z
+#			)
 			
 #			var mark = CSGCylinder.new()
 #			mark.radius = 0.3

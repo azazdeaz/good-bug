@@ -1,4 +1,4 @@
-use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, Point3, TrackingState};
+use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, NavigationMode, Point3, RobotParams, TrackingState};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
@@ -22,10 +22,13 @@ pub enum Msg {
     SelectMap(Option<String>),
     UseRawPreview(bool),
 
-    // Mirrors output
+    // Mirrors 
     Teleop((f64, f64)),
-    EnableAutoNav(bool),
+    SetNavigationMode(NavigationMode),
     NavTarget(Point3),
+    RequestRobotParams,
+    RobotParams(RobotParams),
+
 
     RequestToRobot
 }
@@ -40,11 +43,12 @@ impl Msg {
         matches!(
             self,
             Msg::Teleop(_)
-                | Msg::EnableAutoNav(_)
+                | Msg::SetNavigationMode(_)
                 | Msg::SaveMapDB(_)
                 | Msg::NavTarget(_)
                 | Msg::TerminateSlam
                 | Msg::UseRawPreview(_)
+                | Msg::RequestRobotParams
         )
     }
 }

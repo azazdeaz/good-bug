@@ -4,6 +4,7 @@ pub type Iso3 = nalgebra::Isometry3<f64>;
 pub type Point3 = nalgebra::Point3<f64>;
 
 use gdnative::prelude::*;
+use nalgebra as na;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
 pub struct BoxDetection {
     pub ymin: f32,
@@ -31,9 +32,20 @@ impl NavGoal {
         Self {x, z}
     }
 
-    pub fn scale_to_map(&mut self, map_to_viz_scale: f64) {
-        self.x /= map_to_viz_scale;
-        self.z /= map_to_viz_scale;
+    pub fn div(&mut self, scale: f64) {
+        self.x /= scale;
+        self.z /= scale;
+    }
+
+    pub fn as_vector2(&self) -> na::Vector2<f64> {
+        na::Vector2::new(self.x, self.z)
+    }
+}
+
+impl std::ops::MulAssign<f64> for NavGoal {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.x *= rhs;
+        self.z *= rhs;
     }
 }
 
@@ -48,6 +60,13 @@ pub struct Map {
 pub struct RobotParams {
     pub maps: Vec<Map>,
     pub current_map_name: Option<String>,
+}
+
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant, Default)]
+pub struct NavigatorState {
+    pub goal: Option<NavGoal>,
+    pub speed: (f64, f64),
 }
 
 

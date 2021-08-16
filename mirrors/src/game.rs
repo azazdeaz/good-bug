@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use common::types::NavGoal;
 use common::types::NavigationMode;
+use common::types::NavigatorState;
 use common::types::RobotParams;
 use gdnative::api::*;
 use gdnative::prelude::*;
@@ -39,36 +40,23 @@ impl Game {
     }
 
     fn register_signals(builder: &ClassBuilder<Self>) {
-        // builder.add_signal(Signal {
-        //     name: "current_frame",
-        //     // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
-        //     args: &[SignalArgument {
-        //         name: "data",
-        //         default: Variant::from_array(&VariantArray::new_shared()),
-        //         export_info: ExportInfo::new(VariantType::Vector3Array),
-        //         usage: PropertyUsage::DEFAULT,
-        //     }],
-        // });
-
-        // builder.add_signal(Signal {
-        //     name: "message",
-        //     // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
-        //     args: &[SignalArgument {
-        //         name: "data",
-        //         default: Variant::from_str(""),
-        //         export_info: ExportInfo::new(VariantType::GodotString),
-        //         usage: PropertyUsage::DEFAULT,
-        //     }],
-        // });
-
-
-
         builder.add_signal(Signal {
             name: "robot_params",
             // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
             args: &[SignalArgument {
                 name: "robot_params",
                 default: RobotParams::default().to_variant(),
+                export_info: ExportInfo::new(VariantType::GodotString),
+                usage: PropertyUsage::DEFAULT,
+            }],
+        });
+
+        builder.add_signal(Signal {
+            name: "navigator_state",
+            // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
+            args: &[SignalArgument {
+                name: "navigator_state",
+                default: NavigatorState::default().to_variant(),
                 export_info: ExportInfo::new(VariantType::GodotString),
                 usage: PropertyUsage::DEFAULT,
             }],
@@ -205,7 +193,7 @@ impl Game {
     fn select_target(&mut self, _owner: TRef<Node>, x: f64, z: f64) {
         let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
         let mut goal = NavGoal::new(x, z);
-        goal.scale_to_map(scale);
+        goal.div(scale);
         self.context
             .broadcaster
             .publisher()
@@ -217,7 +205,7 @@ impl Game {
     fn set_waypoints(&mut self, _owner: TRef<Node>, mut waypoints: Vec<NavGoal>) {
         let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
         for nav_goal in &mut waypoints {
-            nav_goal.scale_to_map(scale);
+            nav_goal.div(scale);
         }
         self.context
             .broadcaster

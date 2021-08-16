@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use common::msg::Msg;
+use common::types::NavigatorState;
 use common::types::RobotParams;
 use common::utils::LastValue;
 use gdnative::api::*;
@@ -18,13 +19,17 @@ use common::types::TrackingState;
 pub struct Status {
     tracking_state: Receiver<Option<TrackingState>>,
     robot_params: Arc<RwLock<LastValue<RobotParams>>>,
+    navigator_state: Arc<RwLock<LastValue<NavigatorState>>>,
     got_first_robot_params_update: Arc<RwLock<bool>>,
+    viz_scale: Receiver<f64>,
 }
 
 impl Status {
     pub fn new(owner: TRef<Node>, _path: String, context: &mut Context) -> Self {
         let tracking_state = watch_msg!(context, Msg::TrackingState);
         let robot_params = watch_msg_once!(context, Msg::RobotParams);
+        let navigator_state = watch_msg_once!(context, Msg::NavigatorState);
+        let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         // set initial value for connection address
         find_node::<LineEdit>(&*owner, "ConnectionAddress".into()).set_text(
@@ -74,6 +79,8 @@ impl Status {
         Status {
             tracking_state,
             robot_params,
+            navigator_state,
+            viz_scale,
             got_first_robot_params_update,
         }
     }
@@ -90,6 +97,14 @@ impl Updatable for Status {
         if let Some(robot_params) = self.robot_params.write().unwrap().pop() {
             *self.got_first_robot_params_update.write().unwrap() = true;
             owner.emit_signal("robot_params", &[robot_params.to_variant()]);
+        }
+
+        if let Some(navigator_state) = self.navigator_state.write().unwrap().pop() {
+            if let Some(mut goal) = navigator_state.goal {
+                goal *= *self.viz_scale.borrow();
+            }
+
+            owner.emit_signal("navigator_state", &[navigator_state.to_variant()]);
         }
     }
 }

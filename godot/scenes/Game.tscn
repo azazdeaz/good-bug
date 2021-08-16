@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -19,6 +19,7 @@
 [ext_resource path="res://assets/icons/Pin.svg" type="Texture" id=17]
 [ext_resource path="res://scenes/MapSelector.gd" type="Script" id=18]
 [ext_resource path="res://scenes/EnableAutoNavBtn.gd" type="Script" id=19]
+[ext_resource path="res://scenes/NavigatorGoalMarker.gd" type="Script" id=20]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -191,7 +192,6 @@ margin_left = 248.0
 margin_right = 320.0
 margin_bottom = 40.0
 text = "Item 0"
-selected = 0
 script = ExtResource( 18 )
 
 [node name="VSeparator2" type="VSeparator" parent="GUI/VBox/Navigation/VBox/Header"]
@@ -338,7 +338,6 @@ sides = 23
 cone = true
 
 [node name="GoalMarker" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
-visible = false
 
 [node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
 transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 2, 0 )
@@ -350,6 +349,13 @@ cone = true
 [node name="Pole" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
 radius = 0.04
 height = 4.0
+
+[node name="NavigatorGoalMarker" type="CSGTorus" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+transform = Transform( 0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0 )
+sides = 21
+ring_sides = 8
+material = ExtResource( 9 )
+script = ExtResource( 20 )
 
 [node name="CamTarget" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
 

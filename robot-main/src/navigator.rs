@@ -1,9 +1,4 @@
-use common::{
-    msg::{Broadcaster, Msg},
-    robot_body::RobotBody,
-    settings::{Navigation, Settings},
-    types::{NavGoal, NavigationMode, TrackingState},
-};
+use common::{msg::{Broadcaster, Msg}, robot_body::RobotBody, settings::{Navigation, Settings}, types::{NavGoal, NavigationMode, NavigatorState, TrackingState}};
 use drivers::Wheels;
 use nalgebra as na;
 use std::{
@@ -59,7 +54,8 @@ struct NavState {
     speed: (f64, f64),
     teleop_speed: ((f64, f64), Instant),
     cam_pose: (Iso3, Instant),
-    target_pose: Option<NavGoal>,
+    user_goal: Option<NavGoal>,
+    next_goal: Option<NavGoal>,
     navigation_mode: NavigationMode,
     auto_nav_enabled: bool,
     tracker_state: TrackingState,
@@ -75,7 +71,8 @@ impl NavState {
             speed: (0.0, 0.0),
             teleop_speed: ((0.0, 0.0), Instant::now()),
             cam_pose: (Iso3::identity(), Instant::now()),
-            target_pose: None,
+            user_goal: None,
+            next_goal: None,
             auto_nav_enabled: false,
             navigation_mode: NavigationMode::Teleop,
             tracker_state: TrackingState::NotInitialized,
@@ -102,8 +99,8 @@ impl NavState {
         self.cam_pose = (cam_pose, Instant::now());
     }
 
-    fn set_target_pose(&mut self, target_pose: NavGoal) {
-        self.target_pose = Some(target_pose);
+    fn user_goal(&mut self, user_goal: NavGoal) {
+        self.user_goal = Some(user_goal);
     }
 
     fn set_navigation_mode(&mut self, mode: NavigationMode) {
@@ -127,9 +124,44 @@ impl NavState {
         time.checked_add(Duration::from_millis(600)).unwrap() < Instant::now()
     }
 
+    fn robot_pose_on_slam_map(&self) -> Iso3 {
+        RobotBody::base_pose(self.cam_pose.0, self.slam_scale)
+    }
+
+    fn select_next_waypoint(&self) -> Option<NavGoal> {
+        let wp_count = self.waypoints.len();
+        if wp_count < 2 {
+            None
+        } else {
+            let pose = self.robot_pose_on_slam_map();
+            let pose = na::Vector2::new(pose.translation.vector.x, pose.translation.vector.z);
+            let mut smallest_distance = f64::MAX;
+            let mut selected_idx = 0;
+
+            for i in 0..wp_count {
+                let prev = self.waypoints[(wp_count + i - 1) % wp_count];
+                let next = self.waypoints[i];
+                let prev2d = na::Vector2::new(prev.x, prev.z);
+                let next2d = na::Vector2::new(next.x, next.z);
+                let distance = point_to_line_segment_distance(pose, prev2d, next2d);
+                if distance < smallest_distance {
+                    smallest_distance = distance;
+                    selected_idx = i;
+                }
+            }
+
+            let mut goal = self.waypoints[selected_idx];
+            let slam_map_distance = (pose - goal.as_vector2()).magnitude();
+            let real_distance = RobotBody::real_distance(slam_map_distance, self.slam_scale);
+            if real_distance < self.settings.xy_goal_tolerance {
+                goal = self.waypoints[(selected_idx + 1) / wp_count];
+            }
+            Some(goal)
+        }
+    }
+
     fn compute_speed_towards_goal(&self, goal: NavGoal) -> (f64, f64) {
-        // robot pose on the slam map
-        let pose = RobotBody::base_pose(self.cam_pose.0, self.slam_scale);
+        let pose = self.robot_pose_on_slam_map();
 
         let p = na::Point3::new(0.0, 0.0, 1.0);
         let p = pose.rotation * p;
@@ -139,13 +171,13 @@ impl NavState {
         let dz = goal.z - pose.translation.vector.z;
         let yaw_target = dx.atan2(dz);
         let yawd = angle_difference(yaw_bot, yaw_target);
-        let distance = dx.hypot(dz);
-        let distance = RobotBody::real_distance(distance, self.slam_scale);
+        let slam_map_distance = dx.hypot(dz);
+        let distance = RobotBody::real_distance(slam_map_distance, self.slam_scale);
 
-        println!(
-            "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
-            pose.translation.vector, goal, dx, dz, distance, yaw_target, yaw_bot, yawd
-        );
+        // println!(
+        //     "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
+        //     pose.translation.vector, goal, dx, dz, distance, yaw_target, yaw_bot, yawd
+        // );
 
         if distance < self.settings.xy_goal_tolerance {
             (0., 0.)
@@ -165,29 +197,31 @@ impl NavState {
         }
     }
 
-    fn compute_speed(&self) -> (f64, f64) {
-        match self.navigation_mode {
-            NavigationMode::Teleop => {
-                if NavState::is_expired(self.teleop_speed.1) {
-                    (0.0, 0.0)
-                } else {
-                    self.teleop_speed.0
+    fn compute_speed(&mut self) -> (f64, f64) {
+        if matches!(self.navigation_mode, NavigationMode::Teleop) {
+            // stop if didn't receive command in a while
+            if !NavState::is_expired(self.teleop_speed.1) {
+                self.next_goal = None;
+                return self.teleop_speed.0;
+            }
+        } else {
+            let cant_auto_navigate = !self.auto_nav_enabled
+                || NavState::is_expired(self.cam_pose.1)
+                || !matches!(self.tracker_state, TrackingState::Tracking);
+
+            if !cant_auto_navigate {
+                if matches!(self.navigation_mode, NavigationMode::Goal) {
+                    self.next_goal = self.user_goal;
+                } else if matches!(self.navigation_mode, NavigationMode::Waypoints) {
+                    self.next_goal = self.select_next_waypoint();
+                }
+                if let Some(goal) = self.next_goal {
+                    return self.compute_speed_towards_goal(goal);
                 }
             }
-            NavigationMode::Goal => {
-                if !self.auto_nav_enabled
-                    || NavState::is_expired(self.cam_pose.1)
-                    || !matches!(self.tracker_state, TrackingState::Tracking)
-                {
-                    (0.0, 0.0)
-                } else if let Some(goal) = self.target_pose {
-                    self.compute_speed_towards_goal(goal)
-                } else {
-                    (0.0, 0.0)
-                }
-            }
-            NavigationMode::Waypoints => (0.0, 0.0),
         }
+        self.next_goal = None;
+        (0.0, 0.0)
     }
 }
 
@@ -208,7 +242,7 @@ impl Navigator {
                             let mut state = state.write().await;
                             match msg {
                                 Msg::CameraPose(iso3) => state.set_cam_pose(iso3),
-                                Msg::NavTarget(nav_goal) => state.set_target_pose(nav_goal),
+                                Msg::NavTarget(nav_goal) => state.user_goal(nav_goal),
                                 Msg::Teleop(speed) => state.set_teleop_speed(speed),
                                 Msg::EnableAutoNav(enable) => state.enable_auto_nav(enable),
                                 Msg::SetNavigationMode(mode) => state.set_navigation_mode(mode),
@@ -228,9 +262,18 @@ impl Navigator {
             let state = Arc::clone(&state);
             let freq = 50.0;
             let tick_time = tokio::time::Duration::from_secs_f64(1.0 / freq);
+            let publisher = broadcaster.publisher();
             tokio::spawn(async move {
                 loop {
-                    let speed = state.read().await.compute_speed();
+                    let speed = {
+                        let mut state = state.write().await;
+                        let speed = state.compute_speed();
+                        publisher.send(Msg::NavigatorState(NavigatorState {
+                            speed,
+                            goal: state.next_goal,
+                        })).ok();
+                        speed
+                    };
                     wheels
                         .speed_sender
                         .send(speed)

@@ -3,6 +3,9 @@ extends Spatial
 var markers = []
 
 func set_markers(poses):
+	if !poses:
+		return
+		
 	for i in range(poses.size()):
 		if !range(markers.size()).has(i):
 			print("add marker")

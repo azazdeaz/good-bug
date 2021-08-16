@@ -14,7 +14,6 @@ use std::collections::HashMap;
 pub struct Edges {
     edges: Receiver<Option<Vec<Edge>>>,
     keyframes: Receiver<Option<Vec<Keyframe>>>,
-    map_scale: Receiver<Option<f64>>,
     viz_scale: Receiver<f64>,
     geometry_path: String,
 }
@@ -23,8 +22,7 @@ impl Edges {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let edges = watch_msg!(context, Msg::Edges);
         let keyframes = watch_msg!(context, Msg::Keyframes);
-        let map_scale = watch_msg!(context, Msg::MapScale);
-        let viz_scale = context.ui_state.watch(|s| s.viz_scale);
+        let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         let geometry = ImmediateGeometry::new();
         let geometry_name = "edges";
@@ -43,7 +41,6 @@ impl Edges {
         let edges = Edges {
             edges,
             keyframes,
-            map_scale,
             viz_scale,
             geometry_path,
         };
@@ -57,7 +54,6 @@ impl Updatable for Edges {
         let edges = &*self.edges.borrow();
         let keyframes = &*self.keyframes.borrow();
         let viz_scale = *self.viz_scale.borrow();   
-        let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
         if let (Some(edges), Some(keyframes)) = (edges, keyframes) {
             let edges_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
 
@@ -85,14 +81,14 @@ impl Updatable for Edges {
                 let keyframe1 = keyframes.get(&edge.id1);
                 if let (Some(keyframe0), Some(keyframe1)) = (keyframe0, keyframe1) {
                     let p0 = Vector3::new(
-                        (keyframe0.pose.translation.vector[0] * map_scale) as f32,
-                        (keyframe0.pose.translation.vector[1] * map_scale) as f32,
-                        (keyframe0.pose.translation.vector[2] * map_scale) as f32,
+                        (keyframe0.pose.translation.vector[0] * viz_scale) as f32,
+                        (keyframe0.pose.translation.vector[1] * viz_scale) as f32,
+                        (keyframe0.pose.translation.vector[2] * viz_scale) as f32,
                     );
                     let p1 = Vector3::new(
-                        (keyframe1.pose.translation.vector[0] * map_scale) as f32,
-                        (keyframe1.pose.translation.vector[1] * map_scale) as f32,
-                        (keyframe1.pose.translation.vector[2] * map_scale) as f32,
+                        (keyframe1.pose.translation.vector[0] * viz_scale) as f32,
+                        (keyframe1.pose.translation.vector[1] * viz_scale) as f32,
+                        (keyframe1.pose.translation.vector[2] * viz_scale) as f32,
                     );
                     edges_mesh.add_vertex(p0);
                     edges_mesh.add_vertex(p1);

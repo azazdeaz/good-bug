@@ -13,7 +13,6 @@ use common::types::Landmark;
 
 pub struct Landmarks {
     landmarks: Receiver<Option<Vec<Landmark>>>,
-    map_scale: Receiver<Option<f64>>,
     viz_scale: Receiver<f64>,
     geometry_path: String,
 }
@@ -21,8 +20,7 @@ pub struct Landmarks {
 impl Landmarks {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let landmarks = watch_msg!(context, Msg::Landmarks);
-        let map_scale = watch_msg!(context, Msg::MapScale);
-        let viz_scale = context.ui_state.watch(|s| s.viz_scale);
+        let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         let geometry = ImmediateGeometry::new();
         let geometry_name = "landmarks_component";
@@ -39,7 +37,6 @@ impl Landmarks {
 
         let landmarks = Landmarks {
             landmarks,
-            map_scale,
             viz_scale,
             geometry_path,
         };
@@ -52,7 +49,6 @@ impl Updatable for Landmarks {
     fn update(&self, owner: &Node) {
         let landmarks = &*self.landmarks.borrow();
         let viz_scale = *self.viz_scale.borrow();   
-        let map_scale = self.map_scale.borrow().unwrap_or(1.0) * viz_scale;
         if let Some(landmarks) = landmarks {
             let colormap: ListedColorMap = ListedColorMap::plasma();
             let landmark_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
@@ -74,9 +70,9 @@ impl Updatable for Landmarks {
                 let color = Color::rgb(color[0] as f32, color[1] as f32, color[2] as f32);
 
                 let point = Vector3::new(
-                    (landmark.point.x * map_scale) as f32,
-                    (landmark.point.y * map_scale) as f32,
-                    (landmark.point.z * map_scale) as f32,
+                    (landmark.point.x * viz_scale) as f32,
+                    (landmark.point.y * viz_scale) as f32,
+                    (landmark.point.z * viz_scale) as f32,
                 );
                 landmark_mesh.set_color(color);
                 landmark_mesh.add_vertex(point);

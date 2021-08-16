@@ -176,9 +176,11 @@ run:
 	make build-x86_64-unknown-linux-gnu-debug
 	CONFIG_ROOT="../config" godot --path godot/ -d
 
+build-mirrors-release:
+	make build-x86_64-unknown-linux-gnu-release
 
 run-mirrors-release:
-	make build-x86_64-unknown-linux-gnu-release
+	make build-mirrors-release
 	CONFIG_ROOT="../config" godot --path godot/ -d
 
 shell:

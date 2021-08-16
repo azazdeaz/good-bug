@@ -74,10 +74,10 @@ struct SetSpeedSoftPwm {
 impl SetSpeedSoftPwm {
     fn new() -> Result<Self, Box<dyn Error>> {
         // TODO move these to settings
-        let in1 = 19;
-        let in2 = 26;
-        let in3 = 12;
-        let in4 = 13;
+        let in1 = 23;
+        let in2 = 12;
+        let in3 = 15;
+        let in4 = 14;
 
         Ok(Self {
             in1: Gpio::new()?.get(in1)?.into_output(),

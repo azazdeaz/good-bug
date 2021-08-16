@@ -49,8 +49,10 @@ const MAX_SPEED: f64 = 1.0;
 impl Teleop {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let joy_state = Arc::new(RwLock::new(JoyState::new()));
-        let publisher = context.broadcaster.publisher();
+
+        // convert user input to speed commands and broadcast them 
         {
+            let publisher = context.broadcaster.publisher();
             let mut input_receiver = context.subscribe_input();
             let joy_state = Arc::clone(&joy_state);
             context.runtime().spawn(async move {
@@ -86,6 +88,19 @@ impl Teleop {
                             break;
                         }
                     }
+                }
+            });
+        }
+
+        // HACK! periodically resend latest speed message because the robot stops if the latest command is too old
+        {
+            let publisher = context.broadcaster.publisher();
+            let joy_state = Arc::clone(&joy_state);
+            context.runtime().spawn(async move {
+                loop {
+                    let (left, right) = joy_state.read().await.left_right();
+                    publisher.send(Msg::Teleop((left, right))).ok();
+                    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
                 }
             });
         }

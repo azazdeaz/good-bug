@@ -121,7 +121,7 @@ impl NavState {
     }
 
     fn is_expired(time: Instant) -> bool {
-        time.checked_add(Duration::from_millis(600)).unwrap() < Instant::now()
+        time.checked_add(Duration::from_millis(2000)).unwrap() < Instant::now()
     }
 
     fn robot_pose_on_slam_map(&self) -> Iso3 {

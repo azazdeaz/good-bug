@@ -16,7 +16,7 @@ var state = {
 	"maps":[{
 		"db_path": "/good_bug/map.db", 
 		"name": "no_map", 
-		"waypoints":[]
+		"waypoints":[{"x": 0, "z": 3},{"x": .31, "z": 0},{"x": 0, "z": 0},{"x": .30, "z": .530}]
 	}, {
 		"db_path": "/good_bug/saved_images.db,", 
 		"name":"saved_images", 
@@ -54,6 +54,13 @@ func add_waypoint(waypoint):
 	var map = get_current_map()
 	if map:
 		map.waypoints.push_back(waypoint)
+		get_node("/root/Game").set_waypoints(map.waypoints)
+		emit_all()
+		
+func remove_waypoint(idx: int):
+	var map = get_current_map()
+	if map:
+		map.waypoints.remove(idx)
 		get_node("/root/Game").set_waypoints(map.waypoints)
 		emit_all()
 

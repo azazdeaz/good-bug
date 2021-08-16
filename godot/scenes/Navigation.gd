@@ -1,7 +1,5 @@
 extends Node
 
-var close_icon = load("res://assets/icons/Remove.svg")
-
 
 onready var state = $"/root/State"
 onready var NavMode = state.NavMode
@@ -45,9 +43,6 @@ func _ready():
 	state.connect("nav_mode_update", self, "on_nav_mode_update")
 	state.connect("waypoints_update", self, "on_waypoints_update")
 	state.connect("goal_update", self, "on_goal_update")
-	var item1 = $VBox/WaypointContainer/WaypointsList.create_item()
-	item1.set_text(0, "item1")
-	item1.add_button(0, close_icon)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

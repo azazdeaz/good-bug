@@ -8,7 +8,6 @@ func set_markers(poses):
 		
 	for i in range(poses.size()):
 		if !range(markers.size()).has(i):
-			print("add marker")
 			var marker = $Waypoint.duplicate()
 			add_child(marker);
 			markers.push_back(marker)

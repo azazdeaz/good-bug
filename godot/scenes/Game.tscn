@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=25 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -20,6 +20,7 @@
 [ext_resource path="res://scenes/MapSelector.gd" type="Script" id=18]
 [ext_resource path="res://scenes/EnableAutoNavBtn.gd" type="Script" id=19]
 [ext_resource path="res://scenes/NavigatorGoalMarker.gd" type="Script" id=20]
+[ext_resource path="res://scenes/WaypointInfo.gd" type="Script" id=21]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -233,6 +234,7 @@ Double click on the map to set the target
 margin_top = 131.0
 margin_right = 795.0
 margin_bottom = 366.0
+script = ExtResource( 21 )
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
 margin_right = 795.0
@@ -371,6 +373,7 @@ joystick_enabled = false
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/ModeSelector" to="GUI/VBox/Navigation" method="_on_OptionButton_item_selected"]
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/MapSelector" to="GUI/VBox/Navigation/VBox/Header/MapSelector" method="_on_MapSelector_item_selected"]
 [connection signal="toggled" from="GUI/VBox/Navigation/VBox/Header/EnableAutoNavBtn" to="GUI/VBox/Navigation/VBox/Header/EnableAutoNavBtn" method="_on_EnableAutoNavBtn_toggled"]
+[connection signal="button_pressed" from="GUI/VBox/Navigation/VBox/WaypointContainer/WaypointsList" to="GUI/VBox/Navigation/VBox/WaypointContainer" method="_on_WaypointsList_button_pressed"]
 [connection signal="pressed" from="GUI/VBox/Navigation/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/Navigation/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]

@@ -232,6 +232,8 @@ impl OpenVSlamWrapper {
         let vocab = &settings.slam.vocab;
         cmd.arg("-v").arg(vocab);
 
+        cmd.arg("--debug");
+
         if let Some(video) = &settings.slam.video {
             cmd.arg("-m").arg(video);
         }

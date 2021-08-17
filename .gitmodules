@@ -1,3 +1,4 @@
 [submodule "openvslam-wrap/openvslam"]
 	path = openvslam-wrap/openvslam
 	url = git@github.com:azazdeaz/openvslam.git
+	branch = main

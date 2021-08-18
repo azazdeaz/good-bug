@@ -37,6 +37,11 @@ impl NavGoal {
         self.z /= scale;
     }
 
+    pub fn mul(&mut self, scale: f64) {
+        self.x *= scale;
+        self.z *= scale;
+    }
+
     pub fn as_vector2(&self) -> na::Vector2<f64> {
         na::Vector2::new(self.x, self.z)
     }

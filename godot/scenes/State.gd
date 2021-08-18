@@ -5,7 +5,7 @@ signal current_map_update(map)
 signal maps_update(maps)
 signal waypoints_update(waypoints)
 signal nav_mode_update(nav_mode)
-signal goal_update(goal)	
+signal goal_update(goal)
 
 enum NavMode { TELEOP, GOAL, WAYPOINTS }
 
@@ -16,7 +16,7 @@ var state = {
 	"maps":[{
 		"db_path": "/good_bug/map.db", 
 		"name": "no_map", 
-		"waypoints":[{"x": 0, "z": 3},{"x": .31, "z": 0},{"x": 0, "z": 0},{"x": .30, "z": .530}]
+		"waypoints":[]
 	}, {
 		"db_path": "/good_bug/saved_images.db,", 
 		"name":"saved_images", 

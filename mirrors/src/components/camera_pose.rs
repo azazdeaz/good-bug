@@ -22,7 +22,6 @@ pub struct CameraPose {
 impl CameraPose {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let camera_pose = watch_msg!(context, Msg::CameraPose);
-        // let nav_target = watch_msg!(context, Msg::NavTarget);
         let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
         let mesh_name = "camera_pose_box";
         let mesh_path = format!("{}/{}", path, mesh_name);

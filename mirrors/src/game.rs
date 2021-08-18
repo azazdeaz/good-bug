@@ -193,12 +193,16 @@ impl Game {
     fn select_target(&mut self, _owner: TRef<Node>, x: f64, z: f64) {
         let scale = self.context.ui_state.state.read().unwrap().map_to_viz_scale();
         let mut goal = NavGoal::new(x, z);
+        println!("goal {:?} / scale {}", goal, scale);
         goal.div(scale);
-        self.context
-            .broadcaster
-            .publisher()
-            .send(Msg::NavTarget(goal))
-            .ok();
+        println!("=goal {:?}", goal);
+        self.send_to_robot(Msg::NavTarget(goal));
+
+        //DELETEME snnd value back for testing
+        self.send_to_robot(Msg::NavigatorState(common::types::NavigatorState {
+            goal: Some(goal),
+            speed: (0.0, 0.0)
+        }));
     }
 
     #[export]
@@ -207,11 +211,14 @@ impl Game {
         for nav_goal in &mut waypoints {
             nav_goal.div(scale);
         }
-        self.context
-            .broadcaster
-            .publisher()
-            .send(Msg::Waypoints(waypoints))
-            .ok();
+
+        //DELETEME snnd value back for testing
+        self.send_to_robot(Msg::NavigatorState(common::types::NavigatorState {
+            goal: Some(*waypoints.last().clone().unwrap()),
+            speed: (0.0, 0.0)
+        }));
+
+        self.send_to_robot(Msg::Waypoints(waypoints));
     }
 
     #[export]

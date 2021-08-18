@@ -153,6 +153,7 @@ impl NavState {
             let mut goal = self.waypoints[selected_idx];
             let slam_map_distance = (pose - goal.as_vector2()).magnitude();
             let real_distance = RobotBody::real_distance(slam_map_distance, self.slam_scale);
+            // if the waypoint is reached, select the next
             if real_distance < self.settings.xy_goal_tolerance {
                 goal = self.waypoints[(selected_idx + 1) / wp_count];
             }

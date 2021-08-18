@@ -99,11 +99,10 @@ impl Updatable for Status {
             owner.emit_signal("robot_params", &[robot_params.to_variant()]);
         }
 
-        if let Some(navigator_state) = self.navigator_state.write().unwrap().pop() {
-            if let Some(mut goal) = navigator_state.goal {
-                goal *= *self.viz_scale.borrow();
+        if let Some(mut navigator_state) = self.navigator_state.write().unwrap().pop() {
+            if let Some(ref mut goal) = navigator_state.goal {
+                goal.mul(*self.viz_scale.borrow());
             }
-
             owner.emit_signal("navigator_state", &[navigator_state.to_variant()]);
         }
     }

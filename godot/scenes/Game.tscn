@@ -142,7 +142,7 @@ script = ExtResource( 13 )
 _teleop_container = NodePath("VBox/TeleopContainer")
 _goal_container = NodePath("VBox/GoalContainer")
 _waypoints_container = NodePath("VBox/WaypointContainer")
-_goal_marker = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/GoalMarker")
+_goal_marker = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/GoalMarkers")
 _waypoint_markers = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers")
 
 [node name="VBox" type="VBoxContainer" parent="GUI/VBox/Navigation"]
@@ -339,16 +339,16 @@ height = 0.6
 sides = 23
 cone = true
 
-[node name="GoalMarker" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+[node name="GoalMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
 
-[node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
+[node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarkers"]
 transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 2, 0 )
 radius = 0.3
 height = 0.2
 sides = 23
 cone = true
 
-[node name="Pole" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarker"]
+[node name="Pole" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarkers"]
 radius = 0.04
 height = 4.0
 

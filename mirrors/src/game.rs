@@ -181,7 +181,11 @@ impl Game {
         self.send_to_robot(Msg::SaveMapDB(map_name));
     }
 
-
+    #[export]
+    fn select_map(&mut self, _owner: TRef<Node>, map_name: String) {
+        let map_name = if map_name.is_empty() { None } else { Some(map_name) };
+        self.send_to_robot(Msg::SelectMap(map_name));
+    }
 
     #[export]
     fn set_navigation_mode(&mut self, _owner: TRef<Node>, nav_mode: usize) {

@@ -79,6 +79,7 @@ func set_navigation_mode(nav_mode):
 	
 func set_current_map_name(name: String):
 	state.current_map_name = name
+	get_node("/root/Game").select_map(name)
 	emit_all()
 
 func _on_Game_robot_params(robot_params):

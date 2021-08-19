@@ -49,6 +49,7 @@ impl Msg {
                 | Msg::SetNavigationMode(_)
                 | Msg::SaveMapDB(_)
                 | Msg::NavTarget(_)
+                | Msg::SelectMap(_)
                 | Msg::Waypoints(_)
                 | Msg::EnableAutoNav(_)
                 | Msg::TerminateSlam

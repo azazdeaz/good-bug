@@ -94,14 +94,21 @@ impl Updatable for Status {
             track_label.set_text(format!("{:?}", tracking_state));
         }
 
-        if let Some(robot_params) = self.robot_params.write().unwrap().pop() {
+        let viz_scale = *self.viz_scale.borrow();
+
+        if let Some(ref mut robot_params) = self.robot_params.write().unwrap().pop() {
             *self.got_first_robot_params_update.write().unwrap() = true;
+            for map in &mut robot_params.maps {
+                for waypoint in &mut map.waypoints {
+                    waypoint.mul(viz_scale);
+                }
+            }
             owner.emit_signal("robot_params", &[robot_params.to_variant()]);
         }
 
         if let Some(mut navigator_state) = self.navigator_state.write().unwrap().pop() {
             if let Some(ref mut goal) = navigator_state.goal {
-                goal.mul(*self.viz_scale.borrow());
+                goal.mul(viz_scale);
             }
             owner.emit_signal("navigator_state", &[navigator_state.to_variant()]);
         }

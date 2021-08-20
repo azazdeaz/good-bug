@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=2]
+[gd_scene load_steps=26 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -29,6 +29,8 @@ height = 480
 [sub_resource type="PlaneMesh" id=2]
 
 [sub_resource type="BoxShape" id=3]
+
+[sub_resource type="CylinderShape" id=4]
 
 [node name="Game" type="Node"]
 script = ExtResource( 1 )
@@ -326,18 +328,22 @@ transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
 shape = SubResource( 3 )
 
 [node name="WaypointMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
-visible = false
 script = ExtResource( 14 )
 
 [node name="Waypoint" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0 )
-visible = false
+transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0.3, 0 )
 material_override = ExtResource( 9 )
 use_collision = true
 radius = 0.151
-height = 0.6
+height = 1.79665
 sides = 23
 cone = true
+
+[node name="StaticBody" type="StaticBody" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers/Waypoint"]
+
+[node name="CollisionShape" type="CollisionShape" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers/Waypoint/StaticBody"]
+transform = Transform( 0.163, 0, 0, 0, 0.892, 0, 0, 0, 0.176, 0, 0, 0 )
+shape = SubResource( 4 )
 
 [node name="GoalMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
 
@@ -378,4 +384,5 @@ joystick_enabled = false
 [connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
 [connection signal="map_click" from="GUI/ViewportContainer/Viewport/Spatial/Ground" to="GUI/VBox/Navigation" method="_on_Ground_map_click"]
+[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers" method="on_StaticBody_input_event" binds= [ -1 ]]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

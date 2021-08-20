@@ -57,6 +57,13 @@ func add_waypoint(waypoint):
 		get_node("/root/Game").set_waypoints(map.waypoints)
 		emit_all()
 		
+func update_waypoint(idx, waypoint):
+	var map = get_current_map()
+	if map:
+		map.waypoints[idx] = waypoint
+		get_node("/root/Game").set_waypoints(map.waypoints)
+		emit_all()
+		
 func remove_waypoint(idx: int):
 	var map = get_current_map()
 	if map:

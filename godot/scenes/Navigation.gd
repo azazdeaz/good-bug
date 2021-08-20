@@ -26,7 +26,6 @@ func on_nav_mode_update(mode):
 	goal_container.visible = mode == NavMode.GOAL
 	goal_marker.visible = mode == NavMode.GOAL
 	waypoints_container.visible = mode == NavMode.WAYPOINTS
-	waypoint_markers.visible = mode == NavMode.WAYPOINTS
 	
 	$VBox/Header/ModeSelector.select(option_id_to_mode.find(mode))
 	

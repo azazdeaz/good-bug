@@ -120,8 +120,8 @@ func _ready():  # this allows overriding through inheritance
 	ready()
 #	set_reference_transform(self.transform)
 
-
-func _input(event):  # this allows overriding through inheritance
+# HACK! turned off, the Ground node calls input(event) when it doesnt use the event
+func __unhandled_input(event):  # this allows overriding through inheritance
 	input(event)
 
 

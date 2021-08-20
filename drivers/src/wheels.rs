@@ -75,7 +75,7 @@ impl SetSpeedSoftPwm {
     fn new() -> Result<Self, Box<dyn Error>> {
         // TODO move these to settings
         let in1 = 23;
-        let in2 = 12;
+        let in2 = 18;
         let in3 = 15;
         let in4 = 14;
 

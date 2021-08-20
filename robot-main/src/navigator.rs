@@ -130,7 +130,7 @@ impl NavState {
 
     fn select_next_waypoint(&self) -> Option<NavGoal> {
         let wp_count = self.waypoints.len();
-        if wp_count < 2 {
+        if wp_count < 3 {
             None
         } else {
             let pose = self.robot_pose_on_slam_map();
@@ -155,7 +155,7 @@ impl NavState {
             let real_distance = RobotBody::real_distance(slam_map_distance, self.slam_scale);
             // if the waypoint is reached, select the next
             if real_distance < self.settings.xy_goal_tolerance {
-                goal = self.waypoints[(selected_idx + 1) / wp_count];
+                goal = self.waypoints[(selected_idx + 1) % wp_count];
             }
             Some(goal)
         }
@@ -179,8 +179,11 @@ impl NavState {
         //     "\nfrom {:?} to {:?} is |{},{}|={}; yaw_target={} yaw_bot={} yawd={}",
         //     pose.translation.vector, goal, dx, dz, distance, yaw_target, yaw_bot, yawd
         // );
+        
+        // HACK! select_next_waypoint should select a goal far enough
+        let stop_on_goal_reach = matches!(self.navigation_mode, NavigationMode::Goal);
 
-        if distance < self.settings.xy_goal_tolerance {
+        if stop_on_goal_reach && distance < self.settings.xy_goal_tolerance {
             (0., 0.)
         } else if yawd.abs() < 0.3 {
             (self.settings.travel_thrust, self.settings.travel_thrust)

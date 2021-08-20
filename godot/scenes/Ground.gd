@@ -4,7 +4,6 @@ signal map_click(position)
 
 
 func _on_StaticBody_input_event(camera, event, click_position, click_normal, shape_idx):
-	print("ground event", event)
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_LEFT and event.doubleclick:
 			print("Mouse Click/Unclick at: ", event.position, " shape:", shape_idx)

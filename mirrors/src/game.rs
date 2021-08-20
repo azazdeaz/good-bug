@@ -162,7 +162,7 @@ impl Game {
             
             tokio::select! {
                 Some(Msg::Frame(frame)) = stream.next() => {
-                    let path = std::path::Path::new("/tmp").join(folder);
+                    let path = dirs::picture_dir().unwrap().join(folder);
                     std::fs::create_dir_all(path.clone()).expect("Failed to create directory for images");
                     let path = path.join(filename);
                     println!("save image {:?}", path);
@@ -237,11 +237,6 @@ impl Game {
             &mut self.context,
         )));
         self.components.push(Box::new(components::Edges::new(
-            owner,
-            "GUI/ViewportContainer/Viewport/Spatial".into(),
-            &mut self.context,
-        )));
-        self.components.push(Box::new(components::GroundPlane::new(
             owner,
             "GUI/ViewportContainer/Viewport/Spatial".into(),
             &mut self.context,

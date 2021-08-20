@@ -17,7 +17,16 @@ func _ready():
 
 var idx = 0;
 
-func _on_SaveImageBtn_pressed():
+func save_image():
 	var filename = "image_%s.jpg" %  idx
 	idx += 1;
 	get_node("/root/Game").save_image($SaveImageFolder.text, filename)
+	
+func _on_SaveImageBtn_pressed():
+	save_image()
+
+func _unhandled_input(event):
+	if event is InputEventJoypadButton:
+		if event.button_index == 0 and event.is_pressed() and !event.is_echo():
+			save_image()
+			

@@ -8,6 +8,7 @@ use gdnative::api::*;
 use gdnative::prelude::*;
 
 use crate::components::Context;
+use crate::ui_state::MirrorsState;
 use tokio;
 use tokio::sync::watch::Receiver;
 
@@ -20,6 +21,7 @@ pub struct Status {
     tracking_state: Receiver<Option<TrackingState>>,
     robot_params: Arc<RwLock<LastValue<RobotParams>>>,
     navigator_state: Arc<RwLock<LastValue<NavigatorState>>>,
+    ui_state: tokio::sync::watch::Receiver<MirrorsState>,
     got_first_robot_params_update: Arc<RwLock<bool>>,
     viz_scale: Receiver<f64>,
 }
@@ -75,11 +77,11 @@ impl Status {
                 }
             });
         }
-
         Status {
             tracking_state,
             robot_params,
             navigator_state,
+            ui_state: context.ui_state.watch_all(),
             viz_scale,
             got_first_robot_params_update,
         }
@@ -112,5 +114,9 @@ impl Updatable for Status {
             }
             owner.emit_signal("navigator_state", &[navigator_state.to_variant()]);
         }
+
+        // TODO only emit if changed
+        let ui_state = self.ui_state.borrow();
+        owner.emit_signal("ui_state", &[ui_state.to_variant()]);
     }
 }

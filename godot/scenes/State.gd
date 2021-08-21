@@ -25,6 +25,9 @@ var state = {
 	"navigator_state": {
 		"goal": null,
 		"speed": [0, 0],
+	},
+	"ui_state": {
+		"viz_scale": 1,
 	}
 }
 
@@ -34,6 +37,7 @@ func _ready():
 	yield(get_tree().create_timer(0.1),"timeout")
 	get_node("/root/Game").connect("robot_params", self, "_on_Game_robot_params")
 	get_node("/root/Game").connect("navigator_state", self, "_on_Game_navigator_state")
+	get_node("/root/Game").connect("ui_state", self, "_on_Game_ui_state")
 	emit_all()
 	
 func get_current_map():
@@ -96,6 +100,12 @@ func _on_Game_robot_params(robot_params):
 	
 
 func _on_Game_navigator_state(navigator_state):
-	state.navigator_state = navigator_state
-	emit_all()
+	if navigator_state.hash() != state.navigator_state.hash():
+		state.navigator_state = navigator_state
+		emit_all()
+
+func _on_Game_ui_state(ui_state):
+	if ui_state.hash() != state.ui_state.hash():
+		state.ui_state = ui_state
+		emit_all()
 	

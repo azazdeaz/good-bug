@@ -9,6 +9,7 @@ use gdnative::prelude::*;
 use tokio_stream::StreamExt;
 
 use crate::components;
+use crate::ui_state::MirrorsState;
 
 use common::msg::Msg;
 
@@ -57,6 +58,17 @@ impl Game {
             args: &[SignalArgument {
                 name: "navigator_state",
                 default: NavigatorState::default().to_variant(),
+                export_info: ExportInfo::new(VariantType::GodotString),
+                usage: PropertyUsage::DEFAULT,
+            }],
+        });
+
+        builder.add_signal(Signal {
+            name: "ui_state",
+            // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
+            args: &[SignalArgument {
+                name: "ui_state",
+                default: MirrorsState::default().to_variant(),
                 export_info: ExportInfo::new(VariantType::GodotString),
                 usage: PropertyUsage::DEFAULT,
             }],
@@ -147,6 +159,15 @@ impl Game {
         self.context.rt.block_on(async {
             client.write().await.reconnect(robot_address).await.ok();
         });
+    }
+
+    #[export]
+    fn set_viz_scale(&mut self, _owner: TRef<Node>, viz_scale: f64) {
+        let client = Arc::clone(&self.context.client);
+        self.context.ui_state.set_viz_scale(viz_scale);
+        // self.context.rt.block_on(async {        
+        //     client.write().await.reconnect(robot_address).await.ok();
+        // });
     }
 
     #[export]

@@ -6,16 +6,17 @@ use tokio::{
 };
 use serde::{Deserialize, Serialize};
 use itertools::Itertools;
+use gdnative::prelude::*;
 
 const STATE_FILE_PATH: &str = "user://mirrors_state.json";
 
-#[derive(Default, Clone, Copy, Deserialize, Serialize)]
+#[derive(Default, Clone, Copy, Deserialize, Serialize, ToVariant)]
 pub struct Annotator {
     topleft: (f64, f64),
     bottomright: (f64, f64),
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ToVariant)]
 pub struct MirrorsState {
     pub viz_scale: f64,
     pub map_scale: f64,
@@ -127,11 +128,24 @@ impl UiState {
         rx
     }
 
+    pub fn watch_all(&self) -> watch::Receiver<MirrorsState> {
+        self.receive.clone()
+    }
+
     pub fn add_robot_address(&mut self, robot_address: String) {
         {
             let mut state = self.state.write().unwrap();
             state.robot_addresses.insert(0, robot_address);
             state.robot_addresses = state.robot_addresses.clone().into_iter().unique().collect();
+        }
+        
+        self.publish.send(()).ok();
+    }
+
+    pub fn set_viz_scale(&mut self, viz_scale: f64) {
+        {
+            let mut state = self.state.write().unwrap();
+            state.viz_scale = viz_scale;
         }
         
         self.publish.send(()).ok();

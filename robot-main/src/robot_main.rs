@@ -13,6 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let broadcaster = Broadcaster::new();
     OpenVSlamWrapper::run_with_auto_restart(&broadcaster, tokio::runtime::Handle::current())?;
     navigator::Navigator::new(&broadcaster);
+    drivers::Weeder::run(&broadcaster);
     scale_estimator::ScaleEstimator::new(&broadcaster);
     detector::Detector::run(&broadcaster);
     robot_params_echo::RobotParamsEcho::run(&broadcaster);

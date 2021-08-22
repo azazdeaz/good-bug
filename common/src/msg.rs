@@ -25,6 +25,7 @@ pub enum Msg {
 
     // Mirrors 
     Teleop((f64, f64)),
+    SetWeederSpeed(f64),
     SetNavigationMode(NavigationMode),
     NavTarget(NavGoal),
     Waypoints(Vec<NavGoal>),
@@ -46,6 +47,7 @@ impl Msg {
         matches!(
             self,
             Msg::Teleop(_)
+                | Msg::SetWeederSpeed(_)
                 | Msg::SetNavigationMode(_)
                 | Msg::SaveMapDB(_)
                 | Msg::NavTarget(_)

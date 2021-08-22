@@ -19,6 +19,7 @@ struct JoyState {
     right: f64,
     left_reversed: bool,
     right_reversed: bool,
+    weeder_speed: f64,
 }
 impl JoyState {
     fn new() -> Self {
@@ -27,6 +28,7 @@ impl JoyState {
             right: 0.0,
             left_reversed: false,
             right_reversed: false,
+            weeder_speed: 0.0,
         }
     }
     fn left_right(&self) -> (f64, f64) {
@@ -75,10 +77,14 @@ impl Teleop {
                                         } else if event.button_index == 5 {
                                             joy_state.right_reversed = event.pressed;
                                         }
+                                        else if event.button_index == 1 {
+                                            joy_state.weeder_speed = if event.pressed { 1.0 } else { 0.0 };
+                                        }
                                     }
                                 }
                                 let (left, right) = joy_state.left_right();
                                 publisher.send(Msg::Teleop((left, right))).ok();
+                                publisher.send(Msg::SetWeederSpeed(joy_state.weeder_speed)).ok();
                             }
                         }
                         Err(RecvError::Lagged(lagged)) => {

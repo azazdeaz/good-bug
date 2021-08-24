@@ -4,6 +4,7 @@ use common::types::NavGoal;
 use common::types::NavigationMode;
 use common::types::NavigatorState;
 use common::types::RobotParams;
+use common::types::SystemStatus;
 use gdnative::api::*;
 use gdnative::prelude::*;
 use tokio_stream::StreamExt;
@@ -69,6 +70,18 @@ impl Game {
             args: &[SignalArgument {
                 name: "ui_state",
                 default: MirrorsState::default().to_variant(),
+                export_info: ExportInfo::new(VariantType::GodotString),
+                usage: PropertyUsage::DEFAULT,
+            }],
+        });
+
+
+        builder.add_signal(Signal {
+            name: "system_status",
+            // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
+            args: &[SignalArgument {
+                name: "system_status",
+                default: SystemStatus::default().to_variant(),
                 export_info: ExportInfo::new(VariantType::GodotString),
                 usage: PropertyUsage::DEFAULT,
             }],

@@ -1,4 +1,4 @@
-use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, NavGoal, NavigationMode, NavigatorState, Point3, RobotParams, TrackingState};
+use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, NavGoal, NavigationMode, NavigatorState, Point3, RobotParams, SystemStatus, TrackingState};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
@@ -16,6 +16,7 @@ pub enum Msg {
     Detections(Vec<BoxDetection>),
     MapScale(f64),
     NavigatorState(NavigatorState),
+    SystemStatus(SystemStatus),
 
     //OpenVSlam input
     TerminateSlam,

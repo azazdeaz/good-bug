@@ -3,6 +3,7 @@ use std::sync::{Arc, RwLock};
 use common::msg::Msg;
 use common::types::NavigatorState;
 use common::types::RobotParams;
+use common::types::SystemStatus;
 use common::utils::LastValue;
 use gdnative::api::*;
 use gdnative::prelude::*;
@@ -21,6 +22,7 @@ pub struct Status {
     tracking_state: Receiver<Option<TrackingState>>,
     robot_params: Arc<RwLock<LastValue<RobotParams>>>,
     navigator_state: Arc<RwLock<LastValue<NavigatorState>>>,
+    system_status: Arc<RwLock<LastValue<SystemStatus>>>,
     ui_state: tokio::sync::watch::Receiver<MirrorsState>,
     got_first_robot_params_update: Arc<RwLock<bool>>,
     viz_scale: Receiver<f64>,
@@ -31,6 +33,7 @@ impl Status {
         let tracking_state = watch_msg!(context, Msg::TrackingState);
         let robot_params = watch_msg_once!(context, Msg::RobotParams);
         let navigator_state = watch_msg_once!(context, Msg::NavigatorState);
+        let system_status = watch_msg_once!(context, Msg::SystemStatus);
         let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         // set initial value for connection address
@@ -81,6 +84,7 @@ impl Status {
             tracking_state,
             robot_params,
             navigator_state,
+            system_status,
             ui_state: context.ui_state.watch_all(),
             viz_scale,
             got_first_robot_params_update,
@@ -113,6 +117,10 @@ impl Updatable for Status {
                 goal.mul(viz_scale);
             }
             owner.emit_signal("navigator_state", &[navigator_state.to_variant()]);
+        }
+
+        if let Some(mut system_status) = self.system_status.write().unwrap().pop() {
+            owner.emit_signal("system_status", &[system_status.to_variant()]);
         }
 
         // TODO only emit if changed

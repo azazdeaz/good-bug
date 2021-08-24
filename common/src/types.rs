@@ -74,6 +74,15 @@ pub struct NavigatorState {
     pub speed: (f64, f64),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant, Default)]
+pub struct SystemStatus {
+    pub total_memory: u64,
+    pub used_memory: u64,
+    pub total_swap: u64,
+    pub used_swap: u64,
+    pub cpu_temperature: f32,
+}
+
 
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

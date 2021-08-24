@@ -20,4 +20,9 @@ common = { path = "../common" }
 
 [[bin]]
 name = "try-motors"
-path = "src/main.rs"
+path = "src/bin/try_motors.rs"
+
+
+[[bin]]
+name = "try-system-info"
+path = "src/bin/try_system_info.rs"

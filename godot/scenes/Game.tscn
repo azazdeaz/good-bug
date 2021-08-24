@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=2]
+[gd_scene load_steps=28 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -22,6 +22,7 @@
 [ext_resource path="res://scenes/NavigatorGoalMarker.gd" type="Script" id=20]
 [ext_resource path="res://scenes/WaypointInfo.gd" type="Script" id=21]
 [ext_resource path="res://scenes/VizScale.gd" type="Script" id=22]
+[ext_resource path="res://scenes/SystemStatus.gd" type="Script" id=23]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -76,15 +77,24 @@ margin_right = 809.0
 margin_bottom = 24.0
 text = "history"
 
-[node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
+[node name="SystemStatus" type="HBoxContainer" parent="GUI/VBox"]
 margin_top = 28.0
 margin_right = 809.0
-margin_bottom = 68.0
+margin_bottom = 42.0
+script = ExtResource( 23 )
+
+[node name="Label" type="Label" parent="GUI/VBox/SystemStatus"]
+margin_bottom = 14.0
+
+[node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
+margin_top = 46.0
+margin_right = 809.0
+margin_bottom = 86.0
 text = "show raw image"
 script = ExtResource( 4 )
 
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
-margin_top = 72.0
+margin_top = 90.0
 margin_right = 809.0
 margin_bottom = 408.0
 size_flags_horizontal = 3
@@ -396,6 +406,7 @@ script = ExtResource( 7 )
 stabilize_horizon = true
 joystick_enabled = false
 
+[connection signal="system_status" from="." to="GUI/VBox/SystemStatus" method="_on_Game_system_status"]
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]
 [connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]

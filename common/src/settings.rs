@@ -56,7 +56,6 @@ pub struct Navigation {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
     pub grpc_port: u16,
-    pub rover_address: String,
     pub slam: Slam,
     pub navigation: Navigation,
     pub detecor_model: Option<String>,

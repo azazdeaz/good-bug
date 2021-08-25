@@ -15,6 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     navigator::Navigator::new(&broadcaster);
     drivers::Weeder::run(&broadcaster);
     drivers::SystemInfo::run(&broadcaster);
+    drivers::CoolingFan::run(&broadcaster);
     scale_estimator::ScaleEstimator::new(&broadcaster);
     detector::Detector::run(&broadcaster);
     robot_params_echo::RobotParamsEcho::run(&broadcaster);

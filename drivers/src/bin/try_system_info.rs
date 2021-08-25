@@ -4,6 +4,7 @@ use common::msg::{Broadcaster, Msg};
 async fn main() -> anyhow::Result<()> {
     let broadcaster = Broadcaster::new();
     drivers::SystemInfo::run(&broadcaster);
+    drivers::CoolingFan::run(&broadcaster);
     
     let mut sub = broadcaster.subscribe();
     let handle = tokio::spawn(async move {

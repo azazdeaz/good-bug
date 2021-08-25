@@ -183,15 +183,14 @@ run-mirrors-release:
 	make build-mirrors-release
 	CONFIG_ROOT="../config" godot --path godot/ -d
 
+build-robot-release:
+	cargo build --release --bin robot
+	
+run-robot-release:
+	cargo run --release --bin robot
+
 shell:
 	nix-shell --pure
 
 test: clean
 	cargo test
-
-
-build-rover:
-	cargo build -p common -p drivers -p grpc-server -p openvslam-wrap
-
-run-robot-release:
-	cargo run --release --bin robot

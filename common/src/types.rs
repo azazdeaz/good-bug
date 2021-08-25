@@ -81,6 +81,8 @@ pub struct SystemStatus {
     pub total_swap: u64,
     pub used_swap: u64,
     pub cpu_temperature: f32,
+    pub cpu_usage: f32,
+    pub battery: f32,
 }
 
 

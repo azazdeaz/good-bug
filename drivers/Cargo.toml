@@ -15,6 +15,7 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 anyhow = "1"
 clap = "3.0.0-beta.2"
 sysinfo = "0.20.0"
+ina219 = "0.1.0"
 
 common = { path = "../common" }
 

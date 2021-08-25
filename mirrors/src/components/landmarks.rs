@@ -1,3 +1,6 @@
+use std::sync::{Arc, RwLock};
+
+use common::utils::LastValue;
 use gdnative::api::*;
 use gdnative::prelude::*;
 
@@ -8,18 +11,18 @@ use tokio::sync::watch::Receiver;
 
 use crate::components::traits::Updatable;
 use crate::utils::get_node;
-use crate::watch_msg;
+use crate::watch_msg_once;
 use common::types::Landmark;
 
 pub struct Landmarks {
-    landmarks: Receiver<Option<Vec<Landmark>>>,
+    landmarks: Arc<RwLock<LastValue<Vec<Landmark>>>>,
     viz_scale: Receiver<f64>,
     geometry_path: String,
 }
 
 impl Landmarks {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let landmarks = watch_msg!(context, Msg::Landmarks);
+        let landmarks = watch_msg_once!(context, Msg::Landmarks);
         let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         let geometry = ImmediateGeometry::new();
@@ -47,19 +50,10 @@ impl Landmarks {
 
 impl Updatable for Landmarks {
     fn update(&self, owner: &Node) {
-        let landmarks = &*self.landmarks.borrow();
-        let viz_scale = *self.viz_scale.borrow();   
-        if let Some(landmarks) = landmarks {
+        if let Some(landmarks) = self.landmarks.write().unwrap().pop() {
+            let viz_scale = *self.viz_scale.borrow();
             let colormap: ListedColorMap = ListedColorMap::plasma();
             let landmark_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
-            // let landmark_mesh = unsafe {
-            //     owner
-            //         .get_node(&self.geometry_path)
-            //         .unwrap()
-            //         .assume_safe()
-            //         .cast::<ImmediateGeometry>()
-            //         .unwrap()
-            // };
 
             landmark_mesh.clear();
             landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());

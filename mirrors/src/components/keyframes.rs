@@ -1,4 +1,6 @@
-use std::ops::Mul;
+use std::sync::{Arc, RwLock};
+
+use common::utils::LastValue;
 
 use gdnative::api::*;
 use gdnative::prelude::*;
@@ -10,11 +12,11 @@ use tokio::sync::watch::Receiver;
 
 use crate::components::traits::Updatable;
 use crate::utils::get_node;
-use crate::watch_msg;
+use crate::watch_msg_once;
 use common::types::Keyframe;
 
 pub struct Keyframes {
-    keyframes: Receiver<Option<Vec<Keyframe>>>,
+    keyframes: Arc<RwLock<LastValue<Vec<Keyframe>>>>,
     viz_scale: Receiver<f64>,
     geometry_path: String,
     wireframe: [na::Point3<f64>; 12],
@@ -22,7 +24,7 @@ pub struct Keyframes {
 
 impl Keyframes {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
-        let keyframes = watch_msg!(context, Msg::Keyframes);
+        let keyframes = watch_msg_once!(context, Msg::Keyframes);
         let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         let geometry = ImmediateGeometry::new();
@@ -64,9 +66,9 @@ impl Keyframes {
 
 impl Updatable for Keyframes {
     fn update(&self, owner: &Node) {
-        let keyframes = &*self.keyframes.borrow();
-        let viz_scale = *self.viz_scale.borrow();
-        if let Some(keyframes) = keyframes {
+        
+        if let Some(keyframes) = self.keyframes.write().unwrap().pop() {
+            let viz_scale = *self.viz_scale.borrow();
             let keyframe_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
 
             keyframe_mesh.clear();

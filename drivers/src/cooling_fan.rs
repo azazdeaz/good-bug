@@ -39,7 +39,7 @@ struct SetSpeedNoop {}
 
 impl SetSpeed for SetSpeedNoop {
     fn set(&mut self, _speed: f64) {
-        println!("[CoolingFan noop] speed: {}", _speed);
+        // println!("[CoolingFan noop] speed: {}", _speed);
     }
 }
 

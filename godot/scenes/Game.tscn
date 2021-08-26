@@ -47,56 +47,135 @@ __meta__ = {
 }
 
 [node name="VBox" type="VBoxContainer" parent="GUI"]
-margin_right = 809.0
+margin_right = 913.0
 margin_bottom = 960.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Connection" type="HBoxContainer" parent="GUI/VBox"]
-margin_right = 809.0
+margin_right = 913.0
 margin_bottom = 24.0
 script = ExtResource( 11 )
 
 [node name="ConnectionAddress" type="LineEdit" parent="GUI/VBox/Connection"]
-margin_right = 666.0
+margin_right = 770.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 align = 1
 expand_to_text_length = true
 
-[node name="ReconnectBtn" type="Button" parent="GUI/VBox/Connection"]
-margin_left = 670.0
-margin_right = 749.0
-margin_bottom = 24.0
-text = "Reconnect"
-
 [node name="ConnectionHistory" type="MenuButton" parent="GUI/VBox/Connection"]
-margin_left = 753.0
-margin_right = 809.0
+margin_left = 774.0
+margin_right = 830.0
 margin_bottom = 24.0
 text = "history"
 
-[node name="SystemStatus" type="HBoxContainer" parent="GUI/VBox"]
+[node name="ReconnectBtn" type="Button" parent="GUI/VBox/Connection"]
+margin_left = 834.0
+margin_right = 913.0
+margin_bottom = 24.0
+text = "Reconnect"
+
+[node name="SystemStatus" type="PanelContainer" parent="GUI/VBox"]
 margin_top = 28.0
-margin_right = 809.0
-margin_bottom = 42.0
+margin_right = 913.0
+margin_bottom = 56.0
 script = ExtResource( 23 )
 
 [node name="Label" type="Label" parent="GUI/VBox/SystemStatus"]
-margin_bottom = 14.0
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 906.0
+margin_bottom = 21.0
 
-[node name="EnableRaw" type="CheckButton" parent="GUI/VBox"]
-margin_top = 46.0
-margin_right = 809.0
-margin_bottom = 86.0
+[node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
+margin_top = 60.0
+margin_right = 913.0
+margin_bottom = 114.0
+
+[node name="VBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 906.0
+margin_bottom = 47.0
+
+[node name="EnableRaw" type="CheckButton" parent="GUI/VBox/PanelContainer/VBoxContainer"]
+margin_right = 182.0
+margin_bottom = 40.0
 text = "show raw image"
 script = ExtResource( 4 )
 
+[node name="VSeparator" type="VSeparator" parent="GUI/VBox/PanelContainer/VBoxContainer"]
+margin_left = 186.0
+margin_right = 190.0
+margin_bottom = 40.0
+
+[node name="VizScale" type="HBoxContainer" parent="GUI/VBox/PanelContainer/VBoxContainer"]
+margin_left = 194.0
+margin_right = 394.0
+margin_bottom = 40.0
+script = ExtResource( 22 )
+
+[node name="Label" type="Label" parent="GUI/VBox/PanelContainer/VBoxContainer/VizScale"]
+margin_top = 13.0
+margin_right = 122.0
+margin_bottom = 27.0
+text = "Vizulalization Scale"
+
+[node name="SpinBox" type="SpinBox" parent="GUI/VBox/PanelContainer/VBoxContainer/VizScale"]
+margin_left = 126.0
+margin_right = 200.0
+margin_bottom = 40.0
+max_value = 12.0
+step = 0.1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VSeparator2" type="VSeparator" parent="GUI/VBox/PanelContainer/VBoxContainer"]
+margin_left = 398.0
+margin_right = 402.0
+margin_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer/VBoxContainer"]
+margin_left = 406.0
+margin_right = 582.0
+margin_bottom = 40.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="GUI/VBox/PanelContainer/VBoxContainer/HBoxContainer"]
+margin_top = 13.0
+margin_right = 96.0
+margin_bottom = 27.0
+text = "Tracking State: "
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TrackingStateLabel" type="Label" parent="GUI/VBox/PanelContainer/VBoxContainer/HBoxContainer"]
+margin_left = 100.0
+margin_top = 13.0
+margin_right = 172.0
+margin_bottom = 27.0
+text = "Unknown"
+uppercase = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Gap" type="Control" parent="GUI/VBox/PanelContainer/VBoxContainer/HBoxContainer"]
+margin_left = 176.0
+margin_right = 176.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
-margin_top = 90.0
-margin_right = 809.0
-margin_bottom = 408.0
+margin_top = 118.0
+margin_right = 913.0
+margin_bottom = 506.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -104,75 +183,10 @@ expand = true
 stretch_mode = 5
 script = ExtResource( 6 )
 
-[node name="Tabs" type="Tabs" parent="GUI/VBox"]
-margin_top = 412.0
-margin_right = 809.0
-margin_bottom = 436.0
-
-[node name="VizScale" type="HBoxContainer" parent="GUI/VBox"]
-margin_top = 440.0
-margin_right = 809.0
-margin_bottom = 464.0
-script = ExtResource( 22 )
-
-[node name="Label" type="Label" parent="GUI/VBox/VizScale"]
-margin_top = 5.0
-margin_right = 122.0
-margin_bottom = 19.0
-text = "Vizulalization Scale"
-
-[node name="SpinBox" type="SpinBox" parent="GUI/VBox/VizScale"]
-margin_left = 126.0
-margin_right = 200.0
-margin_bottom = 24.0
-max_value = 12.0
-step = 0.1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 468.0
-margin_right = 809.0
-margin_bottom = 496.0
-
-[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
-margin_left = 7.0
-margin_top = 7.0
-margin_right = 802.0
-margin_bottom = 21.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Title" type="Label" parent="GUI/VBox/PanelContainer/HBoxContainer"]
-margin_right = 96.0
-margin_bottom = 14.0
-text = "Tracking State: "
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="TrackingStateLabel" type="Label" parent="GUI/VBox/PanelContainer/HBoxContainer"]
-margin_left = 100.0
-margin_right = 172.0
-margin_bottom = 14.0
-text = "Unknown"
-uppercase = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Gap" type="Control" parent="GUI/VBox/PanelContainer/HBoxContainer"]
-margin_left = 176.0
-margin_right = 795.0
-margin_bottom = 14.0
-size_flags_horizontal = 3
-
 [node name="Navigation" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 500.0
-margin_right = 809.0
-margin_bottom = 908.0
+margin_top = 510.0
+margin_right = 913.0
+margin_bottom = 918.0
 script = ExtResource( 13 )
 _teleop_container = NodePath("VBox/TeleopContainer")
 _goal_container = NodePath("VBox/GoalContainer")
@@ -183,14 +197,14 @@ _waypoint_markers = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/Wa
 [node name="VBox" type="VBoxContainer" parent="GUI/VBox/Navigation"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 802.0
+margin_right = 906.0
 margin_bottom = 401.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Header" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 40.0
 __meta__ = {
 "_edit_use_anchors_": false
@@ -242,24 +256,36 @@ margin_bottom = 40.0
 text = "Enable auto navigation"
 script = ExtResource( 19 )
 
+[node name="VSeparator3" type="VSeparator" parent="GUI/VBox/Navigation/VBox/Header"]
+margin_left = 559.0
+margin_right = 563.0
+margin_bottom = 40.0
+
+[node name="RestartSlamBtn" type="Button" parent="GUI/VBox/Navigation/VBox/Header"]
+margin_left = 567.0
+margin_right = 659.0
+margin_bottom = 40.0
+text = "Restart Slam"
+script = ExtResource( 10 )
+
 [node name="TeleopContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 44.0
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 75.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/TeleopContainer"]
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 31.0
 text = "
 Use your gamepad to control the robot"
 
 [node name="GoalContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 79.0
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 127.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/GoalContainer"]
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 48.0
 text = "
 Double click on the map to set the target
@@ -267,19 +293,19 @@ Double click on the map to set the target
 
 [node name="WaypointContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 131.0
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 366.0
 script = ExtResource( 21 )
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 31.0
 text = "
 Double click on the map to add new waypoints"
 
 [node name="WaypointsList" type="Tree" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
 margin_top = 35.0
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 235.0
 rect_min_size = Vector2( 0, 200 )
 __meta__ = {
@@ -288,56 +314,55 @@ __meta__ = {
 
 [node name="MapHandle" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 370.0
-margin_right = 795.0
+margin_right = 899.0
 margin_bottom = 394.0
 script = ExtResource( 12 )
 
 [node name="MapName" type="LineEdit" parent="GUI/VBox/Navigation/VBox/MapHandle"]
-margin_right = 719.0
+margin_right = 823.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "new_map"
 
 [node name="SaveMapBtn" type="Button" parent="GUI/VBox/Navigation/VBox/MapHandle"]
-margin_left = 723.0
-margin_right = 795.0
+margin_left = 827.0
+margin_right = 899.0
 margin_bottom = 24.0
 text = "Save Map"
 
-[node name="SaveImage" type="HBoxContainer" parent="GUI/VBox"]
-margin_top = 912.0
-margin_right = 809.0
-margin_bottom = 936.0
+[node name="PanelContainer2" type="PanelContainer" parent="GUI/VBox"]
+margin_top = 922.0
+margin_right = 913.0
+margin_bottom = 960.0
+
+[node name="SaveImage" type="HBoxContainer" parent="GUI/VBox/PanelContainer2"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 906.0
+margin_bottom = 31.0
 script = ExtResource( 5 )
 
-[node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/SaveImage"]
-margin_right = 720.0
+[node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/PanelContainer2/SaveImage"]
+margin_right = 810.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "saved_images"
 
-[node name="SaveImageBtn" type="Button" parent="GUI/VBox/SaveImage"]
-margin_left = 724.0
-margin_right = 809.0
+[node name="SaveImageBtn" type="Button" parent="GUI/VBox/PanelContainer2/SaveImage"]
+margin_left = 814.0
+margin_right = 899.0
 margin_bottom = 24.0
 text = "Save Image"
 
-[node name="RestartSlamBtn" type="Button" parent="GUI/VBox"]
-margin_top = 940.0
-margin_right = 809.0
-margin_bottom = 960.0
-text = "Restart Slam"
-script = ExtResource( 10 )
-
 [node name="ViewportContainer" type="ViewportContainer" parent="GUI"]
-margin_left = 821.0
+margin_left = 925.0
 margin_right = 1280.0
 margin_bottom = 960.0
 stretch = true
 script = ExtResource( 8 )
 
 [node name="Viewport" type="Viewport" parent="GUI/ViewportContainer"]
-size = Vector2( 459, 960 )
+size = Vector2( 355, 960 )
 size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 3
@@ -408,16 +433,16 @@ joystick_enabled = false
 
 [connection signal="system_status" from="." to="GUI/VBox/SystemStatus" method="_on_Game_system_status"]
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]
-[connection signal="toggled" from="GUI/VBox/EnableRaw" to="GUI/VBox/EnableRaw" method="_on_EnableRaw_toggled"]
+[connection signal="toggled" from="GUI/VBox/PanelContainer/VBoxContainer/EnableRaw" to="GUI/VBox/PanelContainer/VBoxContainer/EnableRaw" method="_on_EnableRaw_toggled"]
+[connection signal="value_changed" from="GUI/VBox/PanelContainer/VBoxContainer/VizScale/SpinBox" to="GUI/VBox/PanelContainer/VBoxContainer/VizScale" method="_on_SpinBox_value_changed"]
 [connection signal="item_rect_changed" from="GUI/VBox/CameraImage" to="GUI/VBox/CameraImage" method="_on_CameraImage_item_rect_changed"]
-[connection signal="value_changed" from="GUI/VBox/VizScale/SpinBox" to="GUI/VBox/VizScale" method="_on_SpinBox_value_changed"]
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/ModeSelector" to="GUI/VBox/Navigation" method="_on_OptionButton_item_selected"]
 [connection signal="item_selected" from="GUI/VBox/Navigation/VBox/Header/MapSelector" to="GUI/VBox/Navigation/VBox/Header/MapSelector" method="_on_MapSelector_item_selected"]
 [connection signal="toggled" from="GUI/VBox/Navigation/VBox/Header/EnableAutoNavBtn" to="GUI/VBox/Navigation/VBox/Header/EnableAutoNavBtn" method="_on_EnableAutoNavBtn_toggled"]
+[connection signal="pressed" from="GUI/VBox/Navigation/VBox/Header/RestartSlamBtn" to="GUI/VBox/Navigation/VBox/Header/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
 [connection signal="button_pressed" from="GUI/VBox/Navigation/VBox/WaypointContainer/WaypointsList" to="GUI/VBox/Navigation/VBox/WaypointContainer" method="_on_WaypointsList_button_pressed"]
 [connection signal="pressed" from="GUI/VBox/Navigation/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/Navigation/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
-[connection signal="pressed" from="GUI/VBox/SaveImage/SaveImageBtn" to="GUI/VBox/SaveImage" method="_on_SaveImageBtn_pressed"]
-[connection signal="pressed" from="GUI/VBox/RestartSlamBtn" to="GUI/VBox/RestartSlamBtn" method="_on_RestartSlamBtn_pressed"]
+[connection signal="pressed" from="GUI/VBox/PanelContainer2/SaveImage/SaveImageBtn" to="GUI/VBox/PanelContainer2/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="map_click" from="GUI/ViewportContainer/Viewport/Spatial/Ground" to="GUI/VBox/Navigation" method="_on_Ground_map_click"]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers" method="on_StaticBody_input_event" binds= [ -1 ]]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

@@ -1,10 +1,11 @@
 use std::sync::{Arc, RwLock};
 
-use common::utils::LastValue;
+use common::{utils::LastValue, robot_body::RobotBody};
 use gdnative::api::*;
 use gdnative::prelude::*;
 
 use crate::components::Context;
+use crate::utils::find_node;
 use scarlet::colormap::ListedColorMap;
 use tokio;
 use tokio::sync::watch::Receiver;
@@ -73,6 +74,10 @@ impl Updatable for Landmarks {
             }
 
             landmark_mesh.end();
+
+            // update the vertical position of the ground plane
+            let mesh = find_node::<CSGMesh>(owner, "GroundMesh".into());
+            mesh.transform().origin.y = (-RobotBody::get_cam_height() * viz_scale) as f32;
         }
     }
 }

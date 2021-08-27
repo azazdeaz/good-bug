@@ -21,9 +21,9 @@ struct DetectionWorker {
 }
 
 impl DetectionWorker {
-    fn new(detecor_model: String) -> Self {
+    fn new(detector_model: String) -> Self {
         let settings = Settings::new().unwrap();
-        let buf = fs::read(detecor_model).expect("Couldn't find the detector model");
+        let buf = fs::read(detector_model).expect("Couldn't find the detector model");
         let model = FlatBufferModel::build_from_buffer(buf).unwrap();
 
         // TODO move these into settings
@@ -152,12 +152,13 @@ pub struct Detector {}
 
 impl Detector {
     pub fn run(broadcaster: &Broadcaster) {
-        let detector_model = Settings::new().unwrap().detecor_model;
+        let detector_model = Settings::new().unwrap().detector_model;
         // bail if model is not set
         if detector_model.is_none() {
             return;
         }
         let detector_model = detector_model.unwrap();
+        println!("Detector is running with {:?}", detector_model);
 
         let mut stream = broadcaster.stream().filter_map(|m| {
             if let Ok(Msg::Frame(frame)) = m {

@@ -58,7 +58,7 @@ pub struct Settings {
     pub grpc_port: u16,
     pub slam: Slam,
     pub navigation: Navigation,
-    pub detecor_model: Option<String>,
+    pub detector_model: Option<String>,
     // TODO add slam options
 }
 
@@ -110,8 +110,8 @@ impl Settings {
             None
         };
 
-        settings.detecor_model = if let Some(detecor_model) = settings.detecor_model {
-            Some(absolute_path(&detecor_model)?)
+        settings.detector_model = if let Some(detector_model) = settings.detector_model {
+            Some(absolute_path(&detector_model)?)
         } else {
             None
         };

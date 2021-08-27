@@ -1,11 +1,18 @@
 
 use common::msg::{Msg, Broadcaster};
+use clap::{AppSettings, Clap};
 
-const TEST_IMG: &str = "/home/azazdeaz/Downloads/dogs.jpeg";
+#[derive(Clap)]
+#[clap(setting = AppSettings::AllowLeadingHyphen)]
+struct Opts {
+    #[clap(about("Test image path"))]
+    image: String,
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let img = std::fs::read(TEST_IMG).unwrap();
+    let opts: Opts = Opts::parse();
+    let img = std::fs::read(opts.image).unwrap();
     let broadcaster = Broadcaster::new();
     // test_mnist(&FlatBufferModel::build_from_buffer(buf).unwrap());
     detector::Detector::run(&broadcaster);

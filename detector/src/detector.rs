@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use image::GenericImageView;
 use tflite::ops::builtin::BuiltinOpResolver;
-use tflite::{FlatBufferModel, InterpreterBuilder, Result};
+use tflite::{FlatBufferModel, InterpreterBuilder};
 use tokio::sync::{oneshot, Mutex};
 use tokio_stream::StreamExt;
 
@@ -22,7 +22,7 @@ struct DetectionWorker {
 
 impl DetectionWorker {
     fn new(detector_model: String) -> Self {
-        let settings = Settings::new().unwrap();
+        println!("Creating detector with model: {:?}", detector_model);
         let buf = fs::read(detector_model).expect("Couldn't find the detector model");
         let model = FlatBufferModel::build_from_buffer(buf).unwrap();
 
@@ -65,7 +65,7 @@ impl DetectionWorker {
 
             let output_tensor = interpreter.tensor_info(output_index).unwrap();
             println!("output_tensor {:?}", output_tensor);
-            assert_eq!(output_tensor.dims, vec![1, 25, 4]);
+            assert_eq!(output_tensor.dims, vec![1, 25, 3]);
 
             while let Ok((img, response)) = rx.recv() {
                 // input_file.read_exact(interpreter.tensor_data_mut(input_index)?)?;

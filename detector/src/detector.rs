@@ -48,14 +48,21 @@ impl DetectionWorker {
             let input_index = inputs[0];
 
             let outputs = interpreter.outputs().to_vec();
+
             assert_eq!(outputs.len(), 4);
 
-            let output_index = outputs[0];
-
-            let detection_boxes_idx = outputs[0];
-            let detection_classes_idx = outputs[1];
-            let detection_scores_idx = outputs[2];
-            let num_detections_idx = outputs[3];
+            // logic copied from pycoral: 
+            // https://github.com/google-coral/pycoral/blob/9972f8ec6dbb8b2f46321e8c0d2513e0b6b152ce/pycoral/adapters/detect.py#L214-L223
+            let (
+                detection_boxes_idx,
+                detection_classes_idx,
+                detection_scores_idx,
+                num_detections_idx,
+            ) = if interpreter.tensor_info(outputs[3]).unwrap().dims.len() == 1 {
+                (outputs[0], outputs[1], outputs[2], outputs[3])
+            } else {
+                (outputs[1], outputs[3], outputs[0], outputs[2])
+            };
 
             let input_tensor = interpreter.tensor_info(input_index).unwrap();
             assert_eq!(
@@ -63,9 +70,9 @@ impl DetectionWorker {
                 vec![1, input_height as usize, input_width as usize, 3]
             );
 
-            let output_tensor = interpreter.tensor_info(output_index).unwrap();
+            let output_tensor = interpreter.tensor_info(detection_boxes_idx).unwrap();
             println!("output_tensor {:?}", output_tensor);
-            assert_eq!(output_tensor.dims, vec![1, 25, 3]);
+            // assert_eq!(output_tensor.dims, vec![1, 25, 4]);
 
             while let Ok((img, response)) = rx.recv() {
                 // input_file.read_exact(interpreter.tensor_data_mut(input_index)?)?;
@@ -103,10 +110,10 @@ impl DetectionWorker {
                 let num_detections: &[f32] = interpreter.tensor_data(num_detections_idx).unwrap();
                 // let guess = output.iter().enumerate().max_by(|x, y| x.1.cmp(y.1)).unwrap().0;
 
-                // println!("detection_boxes {:?}", detection_boxes);
-                // println!("detection_classes {:?}", detection_classes);
-                // println!("detection_scores {:?}", detection_scores);
-                // println!("num_detections {:?}", num_detections);
+                println!("detection_boxes {:?}", detection_boxes);
+                println!("detection_classes {:?}", detection_classes);
+                println!("detection_scores {:?}", detection_scores);
+                println!("num_detections {:?}", num_detections);
 
                 let mut detections = Vec::new();
                 for i in 0..num_detections[0] as usize {
@@ -188,7 +195,6 @@ impl Detector {
                 loop {
                     let last_image = last_image.lock().await.pop();
                     if let Some(frame) = last_image {
-                        
                         let result = worker.detect(frame);
                         if let Ok(detections) = result.await {
                             publisher.send(Msg::Detections(detections)).ok();

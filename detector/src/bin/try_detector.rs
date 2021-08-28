@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     detector::Detector::run(&broadcaster);
     for _ in 0..10 {
         broadcaster.publisher().send(Msg::Frame(img.clone())).ok();
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
     }
     
     Ok(())

@@ -10,11 +10,7 @@ pub mod pb {
 }
 use tokio::sync::{oneshot, Mutex};
 
-use common::{
-    msg::{Broadcaster, Msg},
-    settings::Settings,
-    types::{Edge, Iso3, Keyframe, Landmark, Point3, TrackingState},
-};
+use common::{msg::{Broadcaster, Msg}, settings::Settings, types::{Edge, Feature, Iso3, Keyframe, Landmark, Point2, Point3, SlamFrame, TrackingState}};
 use nalgebra as na;
 
 fn mat44_to_iso3(m: &pb::stream::Mat44) -> Iso3 {
@@ -194,7 +190,35 @@ impl OpenVSlamWrapper {
                                 };
                                 Msg::TrackingState(tracking_state)
                             }
-                            pb::stream::Msg::Frame(pb_frame) => Msg::Frame(pb_frame.jpeg),
+                            pb::stream::Msg::Frame(pb_frame) => {
+                                let features: Vec<Feature> = pb_frame
+                                    .features
+                                    .iter()
+                                    .filter_map(|pb_feature| {
+                                        if let (Some(kp), Some(lm)) = (&pb_feature.keypoint, &pb_feature.landmark) {
+                                            Some((kp, lm))
+                                        }
+                                        else {
+                                            None
+                                        }
+                                    })
+                                    .map(|(kp, lm)| {
+                                        Feature {
+                                            keypoint: Point2::new(kp.x, kp.y),
+                                            landmark: Landmark {
+                                                id: lm.id,
+                                                point: z_up_point(Point3::new(lm.x, lm.y, lm.z)),
+                                                num_observations: lm.num_observations,
+                                            }
+                                        }
+                                    })
+                                    .collect();
+
+                                Msg::Frame(SlamFrame {
+                                    jpeg: pb_frame.jpeg,
+                                    features,
+                                })
+                            }
                         };
                         publisher.send(msg).ok();
                     }

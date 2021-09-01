@@ -200,7 +200,7 @@ impl Game {
                     std::fs::create_dir_all(path.clone()).expect("Failed to create directory for images");
                     let path = path.join(filename);
                     println!("save image {:?}", path);
-                    std::fs::write(path, frame).expect("Failed to save image");
+                    std::fs::write(path, frame.jpeg).expect("Failed to save image");
                 }
                 _ = tokio::time::sleep(tokio::time::Duration::from_secs(1)) => {
                     println!("didn't receive image to save");

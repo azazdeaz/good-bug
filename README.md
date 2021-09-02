@@ -1,6 +1,9 @@
 # :construction: - :seedling: 🤖 :tomato: 
 
 
+https://user-images.githubusercontent.com/2298371/131825008-d2005b22-2d0c-4f88-a363-b662437ef2e7.mp4
+
+
 ### Install notes (Ubuntu 21.04, RPi4)
 ```sh
 # clone the repo with `--recurse-submodules`

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::{
     runtime::Handle,
     sync::Mutex,
-    time::{sleep, Duration},
+    time::{sleep, timeout, Duration},
 };
 use tokio_stream::StreamExt;
 use tonic::transport::Channel;
@@ -32,8 +32,7 @@ impl GrpcClient {
         });
         let client = Arc::new(Mutex::new(client));
 
-        // let client = Arc::new(Mutex::new(Self::create_client(robot_address)));
-
+        // Send commands
         {
             let client = Arc::clone(&client);
             let mut input = broadcaster
@@ -47,11 +46,15 @@ impl GrpcClient {
                     let json = serde_json::to_string(&input).unwrap();
                     let request = tonic::Request::new(Serde { json });
                     // TODO handle send failure
-                    client.lock().await.input(request).await.ok();
+                    let mut client = client.lock().await;
+                    if let Err(_) = timeout(Duration::from_millis(100), client.input(request)).await {
+                        println!("failed to send request");
+                    };
                 }
             });
         }
 
+        // Receive update stream
         {
             let client = Arc::clone(&client);
             let publisher = broadcaster.publisher();
@@ -60,7 +63,8 @@ impl GrpcClient {
                 loop {
                     let mut response = loop {
                         let request = tonic::Request::new(Empty {});
-                        if let Ok(response) = client.lock().await.updates(request).await {
+                        let mut client = client.lock().await;
+                        if let Ok(Ok(response)) = timeout(Duration::from_millis(100), client.updates(request)).await {
                             break response.into_inner();
                         } else {
                             sleep(Duration::from_secs(1)).await;

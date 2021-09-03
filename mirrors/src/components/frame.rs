@@ -59,9 +59,6 @@ impl Frame {
 
 impl Updatable for Frame {
     fn update(&self, owner: &Node) {
-        let landmark_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
-        landmark_mesh.clear();
-
         if let Some(frame) = self.frame.write().unwrap().pop()  {
             let panel = find_node::<TextureRect>(owner, "CameraImage".into());
             let im = Image::new();
@@ -70,34 +67,36 @@ impl Updatable for Frame {
             let imt = ImageTexture::new();
             imt.create_from_image(im, 7);
             panel.set_texture(imt);
-            
-
-
-            let viz_scale = *self.viz_scale.borrow();
-            landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());
-            for Feature {landmark, ..} in frame.features {
-                let color = Color::rgb(1.0, 0.0, 0.0);
-
-                let point = Vector3::new(
-                    (landmark.point.x * viz_scale) as f32,
-                    (landmark.point.y * viz_scale) as f32,
-                    (landmark.point.z * viz_scale) as f32,
-                );
-                landmark_mesh.set_color(color);
-                landmark_mesh.add_vertex(point);
-            }
-
-            landmark_mesh.end();
         }
             
 
         if let Some(detections) = self.detections.write().unwrap().pop()  {
-            println!("Detections {:?}",detections);
+            println!("Detections {:?}",detections.len());
+            let landmark_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
+            landmark_mesh.clear();
             let gd_detections = detections.to_variant();
             let panel = find_node::<TextureRect>(owner, "CameraImage".into());
             unsafe {
                 panel.call("update_detections", &[gd_detections]);
             }
+
+            let viz_scale = *self.viz_scale.borrow();
+            landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());
+            for detection in detections {
+                for Feature {landmark, ..} in detection.features {
+                    let color = Color::rgb(1.0, 0.0, 0.0);
+    
+                    let point = Vector3::new(
+                        (landmark.point.x * viz_scale) as f32,
+                        (landmark.point.y * viz_scale) as f32,
+                        (landmark.point.z * viz_scale) as f32,
+                    );
+                    landmark_mesh.set_color(color);
+                    landmark_mesh.add_vertex(point);
+                }
+            }
+
+            landmark_mesh.end();
         }
     }
 }

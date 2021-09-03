@@ -1,5 +1,5 @@
 
-use common::msg::{Msg, Broadcaster};
+use common::{msg::{Msg, Broadcaster}, types::SlamFrame};
 use clap::{AppSettings, Clap};
 
 #[derive(Clap)]
@@ -17,7 +17,10 @@ async fn main() -> anyhow::Result<()> {
     // test_mnist(&FlatBufferModel::build_from_buffer(buf).unwrap());
     detector::Detector::run(&broadcaster);
     for _ in 0..10 {
-        broadcaster.publisher().send(Msg::Frame(img.clone())).ok();
+        broadcaster.publisher().send(Msg::Frame(SlamFrame {
+            jpeg: img.clone(),
+            features: Vec::new(),
+        })).ok();
         tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
     }
     

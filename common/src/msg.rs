@@ -1,4 +1,7 @@
-use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, NavGoal, NavigationMode, NavigatorState, Point3, RobotParams, SystemStatus, TrackingState};
+use crate::types::{
+    BoxDetection, Edge, Iso3, Keyframe, Landmark, NavGoal, NavigationMode, NavigatorState, Point3,
+    RobotParams, SlamFrame, SystemStatus, TrackingState,
+};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
@@ -11,7 +14,7 @@ pub enum Msg {
     Keyframes(Vec<Keyframe>),
     Landmarks(Vec<Landmark>),
     CameraPose(Iso3),
-    Frame(Vec<u8>),
+    Frame(SlamFrame),
 
     Detections(Vec<BoxDetection>),
     MapScale(f64),
@@ -24,7 +27,7 @@ pub enum Msg {
     SelectMap(Option<String>),
     UseRawPreview(bool),
 
-    // Mirrors 
+    // Mirrors
     Teleop((f64, f64)),
     SetWeederSpeed(f64),
     SetNavigationMode(NavigationMode),
@@ -34,13 +37,12 @@ pub enum Msg {
     RequestRobotParams,
     RobotParams(RobotParams),
 
-
-    RequestToRobot
+    RequestToRobot,
 }
 
 pub enum Req {
     SetWaypoints(Vec<Point3>),
-    GetSettings()
+    GetSettings(),
 }
 
 impl Msg {
@@ -62,9 +64,6 @@ impl Msg {
     }
 }
 
-struct RobotSettings {
-    
-}
 #[derive(Debug)]
 pub struct Broadcaster {
     sender: broadcast::Sender<Msg>,

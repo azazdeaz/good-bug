@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=2]
+[gd_scene load_steps=29 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -23,6 +23,7 @@
 [ext_resource path="res://scenes/WaypointInfo.gd" type="Script" id=21]
 [ext_resource path="res://scenes/VizScale.gd" type="Script" id=22]
 [ext_resource path="res://scenes/SystemStatus.gd" type="Script" id=23]
+[ext_resource path="res://assets/mini_model.gltf" type="PackedScene" id=24]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -430,6 +431,12 @@ transform = Transform( 1, 0, 0, 0, 0.900448, 0.434964, 0, -0.434964, 0.900448, 0
 script = ExtResource( 7 )
 stabilize_horizon = true
 joystick_enabled = false
+
+[node name="RobotBody" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
+
+[node name="RobotBodyMesh" parent="GUI/ViewportContainer/Viewport/Spatial/RobotBody" instance=ExtResource( 24 )]
+transform = Transform( 2.18557e-10, -1.91069e-17, 0.005, -4.37114e-10, -0.005, 0, 0.005, -4.37114e-10, -2.18557e-10, 0, 0.554146, -0.015 )
+visible = false
 
 [connection signal="system_status" from="." to="GUI/VBox/SystemStatus" method="_on_Game_system_status"]
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]

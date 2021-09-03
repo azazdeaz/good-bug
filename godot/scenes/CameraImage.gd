@@ -41,12 +41,13 @@ func _draw():
 		draw_line(b, c, color)
 		draw_line(c, d, color)
 		draw_line(d, a, color)
-#	var center = Vector2(200, 200)
-#	var radius = 80
-#	var angle_from = 75
-#	var angle_to = 195
-#	var color = Color(1.0, 0.0, 0.0)
-#	draw_circle_arc(center, radius, angle_from, angle_to, color)
+		
+		for feature in detection.features:
+			var center = Vector2(
+				feature.keypoint.x * frame_scale, 
+				feature.keypoint.y * frame_scale)
+			var radius = 8
+			draw_circle_arc(center, radius, 0, 360, color)
 
 
 

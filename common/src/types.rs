@@ -2,10 +2,24 @@ use serde::{Serialize, Deserialize};
 
 pub type Iso3 = nalgebra::Isometry3<f64>;
 pub type Point3 = nalgebra::Point3<f64>;
+pub type Point2 = nalgebra::Point2<f64>;
 
 use gdnative::prelude::*;
 use nalgebra as na;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
+
+fn point3_to_variant(p: &Point3) -> Vector3 {
+    let x = p.coords[0] as f32;
+    let y = p.coords[1] as f32;
+    let z = p.coords[2] as f32;
+    Vector3::new(x, y, z)
+}
+
+fn point2_to_variant(p: &Point2) -> Vector2 {
+    let x = p.coords[0] as f32;
+    let y = p.coords[1] as f32;
+    Vector2::new(x, y)
+}
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant)]
 pub struct BoxDetection {
     pub ymin: f32,
     pub xmin: f32,
@@ -13,6 +27,7 @@ pub struct BoxDetection {
     pub xmax: f32,
     pub score: f32,
     pub class: u32,
+    pub features: Vec<Feature>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant, FromVariant)]
@@ -85,11 +100,10 @@ pub struct SystemStatus {
     pub battery: f32,
 }
 
-
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
 pub struct Landmark {
     pub id: u32,
+    #[variant(to_variant_with = "point3_to_variant")]
     pub point: Point3,
     pub num_observations: u32,
 }
@@ -113,6 +127,19 @@ pub enum TrackingState {
     Initializing,
     Tracking,
     Lost,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant)]
+pub struct Feature {
+    #[variant(to_variant_with = "point2_to_variant")]
+    pub keypoint: Point2,
+    pub landmark: Landmark,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlamFrame {
+    pub jpeg: Vec<u8>,
+    pub features: Vec<Feature>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

@@ -2,6 +2,7 @@ use std::fs;
 use std::io::Read;
 use std::sync::Arc;
 
+use common::types::SlamFrame;
 use image::GenericImageView;
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder};
@@ -17,7 +18,7 @@ use common::{
 
 struct DetectionWorker {
     _thread: std::thread::JoinHandle<()>,
-    _sender: std::sync::mpsc::Sender<(Vec<u8>, oneshot::Sender<Vec<BoxDetection>>)>,
+    _sender: std::sync::mpsc::Sender<(SlamFrame, oneshot::Sender<Vec<BoxDetection>>)>,
 }
 
 impl DetectionWorker {
@@ -31,7 +32,8 @@ impl DetectionWorker {
         let input_width: u32 = 320;
         let input_height: u32 = 320;
 
-        let (sx, rx) = std::sync::mpsc::channel::<(Vec<u8>, oneshot::Sender<Vec<BoxDetection>>)>();
+        let (sx, rx) =
+            std::sync::mpsc::channel::<(SlamFrame, oneshot::Sender<Vec<BoxDetection>>)>();
 
         let handler = std::thread::spawn(move || {
             let resolver = BuiltinOpResolver::default();
@@ -51,7 +53,7 @@ impl DetectionWorker {
 
             assert_eq!(outputs.len(), 4);
 
-            // logic copied from pycoral: 
+            // logic copied from pycoral:
             // https://github.com/google-coral/pycoral/blob/9972f8ec6dbb8b2f46321e8c0d2513e0b6b152ce/pycoral/adapters/detect.py#L214-L223
             let (
                 detection_boxes_idx,
@@ -74,13 +76,15 @@ impl DetectionWorker {
             println!("output_tensor {:?}", output_tensor);
             // assert_eq!(output_tensor.dims, vec![1, 25, 4]);
 
-            while let Ok((img, response)) = rx.recv() {
+            while let Ok((frame, response)) = rx.recv() {
                 // input_file.read_exact(interpreter.tensor_data_mut(input_index)?)?;
                 // let mut img = ImageReader::open(format!("data/{}.png", i)).unwrap().decode().unwrap().grayscale();
-                // img.invert();
-                let img =
-                    image::load_from_memory_with_format(&img.as_slice(), image::ImageFormat::Jpeg)
-                        .expect("Detector: failed to read frame as Jpeg");
+
+                let img = image::load_from_memory_with_format(
+                    &frame.jpeg.as_slice(),
+                    image::ImageFormat::Jpeg,
+                )
+                .expect("Detector: failed to read frame as Jpeg");
                 let (im_width, im_height) = img.dimensions();
                 let img = img.resize_exact(
                     input_width,
@@ -121,6 +125,23 @@ impl DetectionWorker {
                         break;
                     }
                     let rect = &detection_boxes[i * 4..i * 4 + 4];
+
+                    let ymin = (rect[0] as f64) * (im_height as f64);
+                    let xmin = (rect[1] as f64) * (im_width as f64);
+                    let ymax = (rect[2] as f64) * (im_height as f64);
+                    let xmax = (rect[3] as f64) * (im_width as f64);
+
+                    // let features: Vec<Feature> = &frame.features.into_iter().filter_map(|f| {
+                    //     Some(f.clone())
+                    // }).collect();
+                    let mut features = Vec::new();
+                    for f in &frame.features {
+                        if (xmin..xmax).contains(&f.keypoint.coords[0])
+                            && (ymin..ymax).contains(&f.keypoint.coords[1])
+                        {
+                            features.push(f.clone());
+                        }
+                    }
                     detections.push(BoxDetection {
                         ymin: rect[0] * im_height as f32,
                         xmin: rect[1] * im_width as f32,
@@ -128,6 +149,7 @@ impl DetectionWorker {
                         xmax: rect[3] * im_width as f32,
                         score: detection_scores[i],
                         class: detection_classes[i] as u32,
+                        features,
                     });
                 }
                 println!("detections {:?}", detections);
@@ -140,9 +162,9 @@ impl DetectionWorker {
             _sender: sx,
         }
     }
-    fn detect(&self, img: Vec<u8>) -> oneshot::Receiver<Vec<BoxDetection>> {
+    fn detect(&self, frame: SlamFrame) -> oneshot::Receiver<Vec<BoxDetection>> {
         let (sx, rx) = oneshot::channel();
-        self._sender.send((img, sx));
+        self._sender.send((frame, sx)).ok();
         rx
     }
 }

@@ -19,7 +19,7 @@ pub struct Keyframes {
     keyframes: Arc<RwLock<LastValue<Vec<Keyframe>>>>,
     viz_scale: Receiver<f64>,
     geometry_path: String,
-    wireframe: [na::Point3<f64>; 12],
+    wireframe: [na::Point3<f64>; 15],
 }
 
 impl Keyframes {
@@ -47,10 +47,16 @@ impl Keyframes {
             let cy = 1.0 * scale;
             let c = na::Point3::new(0.0, 0.0, 0.0);
             let tl = na::Point3::new(-cx, cy, f);
+
+            // triangle on the top side of the frame
+            let t1 = na::Point3::new(-cx*0.1, cy, f);
+            let t2 = na::Point3::new(0.0, cy*1.2, f);
+            let t3 = na::Point3::new(cx*0.1, cy, f);
+
             let tr = na::Point3::new(cx, cy, f);
             let br = na::Point3::new(cx, -cy, f);
             let bl = na::Point3::new(-cx, -cy, f);
-            [c, tl, tr, c, tr, br, c, br, bl, c, bl, tl]
+            [c, tl, t1, t2, t3, tr, c, tr, br, c, br, bl, c, bl, tl]
         };
 
         let keyframes = Keyframes {

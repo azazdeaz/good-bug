@@ -76,8 +76,8 @@ impl Updatable for Landmarks {
             landmark_mesh.end();
 
             // update the vertical position of the ground plane
-            let mesh = find_node::<CSGMesh>(owner, "GroundMesh".into());
-            mesh.transform().origin.y = (-RobotBody::get_cam_height() * viz_scale) as f32;
+                let mesh = find_node::<Spatial>(owner, "Ground".into());
+            mesh.set_translation(Vector3::new(0.0, (-RobotBody::get_cam_height() * viz_scale) as f32, 0.0));
         }
     }
 }

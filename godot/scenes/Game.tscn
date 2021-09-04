@@ -387,6 +387,7 @@ transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
 shape = SubResource( 3 )
 
 [node name="WaypointMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+visible = false
 script = ExtResource( 14 )
 
 [node name="Waypoint" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers"]
@@ -405,6 +406,7 @@ transform = Transform( 0.163, 0, 0, 0, 0.892, 0, 0, 0, 0.176, 0, 0, 0 )
 shape = SubResource( 4 )
 
 [node name="GoalMarkers" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
+visible = false
 
 [node name="Flag" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/GoalMarkers"]
 transform = Transform( 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 2, 0 )
@@ -419,6 +421,7 @@ height = 4.0
 
 [node name="NavigatorGoalMarker" type="CSGTorus" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
 transform = Transform( 0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0 )
+visible = false
 sides = 21
 ring_sides = 8
 material = ExtResource( 9 )
@@ -433,10 +436,10 @@ stabilize_horizon = true
 joystick_enabled = false
 
 [node name="RobotBody" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
+visible = false
 
 [node name="RobotBodyMesh" parent="GUI/ViewportContainer/Viewport/Spatial/RobotBody" instance=ExtResource( 24 )]
-transform = Transform( 2.18557e-10, -1.91069e-17, 0.005, -4.37114e-10, -0.005, 0, 0.005, -4.37114e-10, -2.18557e-10, 0, 0.554146, -0.015 )
-visible = false
+transform = Transform( 1.31134e-10, -1.14641e-17, -0.003, -2.62268e-10, -0.003, 0, -0.003, 2.62268e-10, -1.31134e-10, 0, 0.328012, -0.015 )
 
 [connection signal="system_status" from="." to="GUI/VBox/SystemStatus" method="_on_Game_system_status"]
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]

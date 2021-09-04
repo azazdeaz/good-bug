@@ -37,7 +37,8 @@ impl CameraPose {
         let camera_pose = CameraPose {
             camera_pose,
             // nav_target,
-            mesh_path,
+            // mesh_path,
+            mesh_path: "GUI/ViewportContainer/Viewport/Spatial/RobotBody".into(),
             viz_scale,
         };
 
@@ -52,9 +53,10 @@ impl Updatable for CameraPose {
             let mut camera_pose = camera_pose.clone();
             camera_pose.translation.vector *= viz_scale;
 
-            let mesh = get_node::<CSGBox>(owner, self.mesh_path.clone());
+            let mesh = get_node::<Spatial>(owner, self.mesh_path.clone());
             mesh.set_transform(iso3_to_gd(&camera_pose));
-            mesh.set_scale(Vector3::new(0.2, 0.2, 0.2)); // TODO use calculated scale
+            mesh.set_visible(true);
+            // mesh.set_scale(Vector3::new(0.2, 0.2, 0.2)); // TODO use calculated scale
 
             let camera_target_path = "GUI/ViewportContainer/Viewport/Spatial/CamTarget";
             let camera_target = get_node::<Spatial>(owner, camera_target_path.into());

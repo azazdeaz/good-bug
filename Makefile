@@ -116,7 +116,7 @@ export-x86_64-unknown-linux-gnu-debug: clean build-x86_64-unknown-linux-gnu-debu
 	cd godot/ ; godot --export-debug "Linux/X11.x86_64-unknown-linux-gnu.debug" ../bin/x86_64-unknown-linux-gnu/mirrors.debug.x86_64-unknown-linux-gnu
 
 build-x86_64-unknown-linux-gnu-release:
-	cargo build --target x86_64-unknown-linux-gnu --release
+	cargo build --target x86_64-unknown-linux-gnu --release -p mirrors
 	mv -b ./target/x86_64-unknown-linux-gnu/release/*.so ./lib/x86_64-unknown-linux-gnu
 
 export-x86_64-unknown-linux-gnu-release: clean build-x86_64-unknown-linux-gnu-release

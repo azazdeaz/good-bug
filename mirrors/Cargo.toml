@@ -38,8 +38,3 @@ prost-build = { version = "0.7.0" }
 tonic-build = "0.5"
 
 
-[[bin]]
-name = "deleteme"
-path = "src/deleteme.rs"
-
-

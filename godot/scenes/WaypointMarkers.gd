@@ -47,7 +47,6 @@ func on_StaticBody_input_event(camera, event, click_position, click_normal, shap
 		print(event.button_index)
 		if event.button_index == BUTTON_LEFT:
 			if event.is_pressed():
-				print("grap", wp_idx)
 				grabbed_idx = wp_idx
 	elif event is InputEventMouseMotion:
 		if grabbed_idx >= 0:
@@ -60,5 +59,4 @@ func on_StaticBody_input_event(camera, event, click_position, click_normal, shap
 func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_LEFT and !event.is_pressed():
-			print("grap", null)
 			grabbed_idx = -1

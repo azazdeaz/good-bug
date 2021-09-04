@@ -8,6 +8,7 @@ use common::types::SystemStatus;
 use gdnative::api::*;
 use gdnative::prelude::*;
 use tokio_stream::StreamExt;
+use regex::Regex;
 
 use crate::components;
 use crate::ui_state::MirrorsState;
@@ -198,7 +199,19 @@ impl Game {
                 Some(Msg::Frame(frame)) = stream.next() => {
                     let path = dirs::picture_dir().unwrap().join(folder);
                     std::fs::create_dir_all(path.clone()).expect("Failed to create directory for images");
-                    let path = path.join(filename);
+                    let paths = std::fs::read_dir(path.clone()).unwrap();
+                    let re = Regex::new(r"_(\d+)\.jpe?g").unwrap();
+                    let mut max_index = 0;
+                    for path in paths {
+                        // println!("Name: {:?}", path.unwrap().path().file_name());
+                        if let Some(cap) = re.captures(&path.unwrap().path().file_name().unwrap().to_str().unwrap()) {
+                            let idx = cap[1].parse::<u32>().unwrap();
+                            if idx > max_index {
+                                max_index = idx;
+                            }
+                        }
+                    }
+                    let path = path.join(format!("image_{}.jpg", max_index+1));
                     println!("save image {:?}", path);
                     std::fs::write(path, frame.jpeg).expect("Failed to save image");
                 }

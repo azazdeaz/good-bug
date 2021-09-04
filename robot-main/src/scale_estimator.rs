@@ -56,6 +56,7 @@ impl ScaleEstimator {
 }
 
 fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
+    // get the height of all landmarks below the camera
     let z = landmarks.into_iter().filter_map(|v| {
         let height: f64 = v.point.y;
         if height.is_sign_negative() {
@@ -64,9 +65,12 @@ fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
             None
         }
     });
-
-    let z = ndarray::Array::from_iter(z);
-    let ground_level = z.mean();
+    let mut z = z.collect::<Vec<f64>>();
+    z.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+    // remove the upper half of the points
+    z.drain(0..(z.len() as f32 * 0.5) as usize);
+    // get the median of the remaining heights
+    let ground_level = z.get(z.len() / 2);
     
     if let Some(ground_level) = ground_level {
         Some(RobotBody::get_cam_height() / ground_level.abs() as f64)

@@ -18,6 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     drivers::CoolingFan::run(&broadcaster);
     scale_estimator::ScaleEstimator::new(&broadcaster);
     detector::Detector::run(&broadcaster);
+    detector::LandmarkClassifier::run(&broadcaster);
     robot_params_echo::RobotParamsEcho::run(&broadcaster);
     map_updater::MapUpdater::run(&broadcaster);
     grpc_server::start_server(broadcaster).await?;

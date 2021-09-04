@@ -40,7 +40,7 @@ impl Frame {
         geometry.set_name(geometry_name);
 
         let material = SpatialMaterial::new();
-        material.set_point_size(26.0);
+        material.set_point_size(5.0);
         material.set_flag(SpatialMaterial::FLAG_USE_POINT_SIZE, true);
         material.set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
         geometry.set_material_override(material);

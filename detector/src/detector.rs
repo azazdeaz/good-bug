@@ -114,14 +114,15 @@ impl DetectionWorker {
                 let num_detections: &[f32] = interpreter.tensor_data(num_detections_idx).unwrap();
                 // let guess = output.iter().enumerate().max_by(|x, y| x.1.cmp(y.1)).unwrap().0;
 
-                println!("detection_boxes {:?}", detection_boxes);
-                println!("detection_classes {:?}", detection_classes);
-                println!("detection_scores {:?}", detection_scores);
-                println!("num_detections {:?}", num_detections);
+                // println!("detection_boxes {:?}", detection_boxes);
+                // println!("detection_classes {:?}", detection_classes);
+                // println!("detection_scores {:?}", detection_scores);
+                // println!("num_detections {:?}", num_detections);
 
                 let mut detections = Vec::new();
                 for i in 0..num_detections[0] as usize {
-                    if min_score > detection_scores[i] {
+                    //DELETE THIS TEMP HACK
+                    if i>0&&min_score > detection_scores[i] {
                         break;
                     }
                     let rect = &detection_boxes[i * 4..i * 4 + 4];
@@ -181,13 +182,16 @@ pub struct Detector {}
 
 impl Detector {
     pub fn run(broadcaster: &Broadcaster) {
-        let detector_model = Settings::new().unwrap().detector_model;
-        // bail if model is not set
-        if detector_model.is_none() {
-            return;
+        let detector = Settings::new().unwrap().detector;
+
+        let detector = if let Some(detector) = detector {
+            if detector.enabled { detector } else { return }
         }
-        let detector_model = detector_model.unwrap();
-        println!("Detector is running with {:?}", detector_model);
+        else {
+            return;
+        };
+
+        println!("Detector is running with {:?}", detector);
 
         let mut stream = broadcaster.stream().filter_map(|m| {
             if let Ok(Msg::Frame(frame)) = m {
@@ -197,7 +201,7 @@ impl Detector {
             }
         });
 
-        let worker = DetectionWorker::new(detector_model);
+        let worker = DetectionWorker::new(detector.get_abs_model_path());
         let last_image = Arc::new(Mutex::new(LastValue::new()));
 
         {

@@ -13,6 +13,9 @@ image = "0.23"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
 clap = "3.0.0-beta.4"
+linfa = "0.4.0"
+linfa-clustering = "0.4.0"
+ndarray = "0.14"
 
 common = { path = "../common" }
 

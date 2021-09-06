@@ -1,5 +1,10 @@
 grpc_port = 50051
-# detector_model = "models/efficientdet-lite0-int8.tflite"
+
+[detector]
+enabled=true
+model = "models/efficientdet-lite0-int8.tflite"
+clustering_max_distance = 0.25
+clustering_min_landmarks = 3
 
 [slam]
 vocab = "slam/orb_vocab.fbow"

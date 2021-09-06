@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use common::types::LocalizedDetection;
 use common::types::NavGoal;
 use common::types::NavigationMode;
 use common::types::NavigatorState;
@@ -83,6 +84,18 @@ impl Game {
             args: &[SignalArgument {
                 name: "system_status",
                 default: SystemStatus::default().to_variant(),
+                export_info: ExportInfo::new(VariantType::GodotString),
+                usage: PropertyUsage::DEFAULT,
+            }],
+        });
+
+
+        builder.add_signal(Signal {
+            name: "localized_detections",
+            // Argument list used by the editor for GUI and generation of GDScript handlers. It can be omitted if the signal is only used from code.
+            args: &[SignalArgument {
+                name: "localized_detections",
+                default: Vec::<LocalizedDetection>::new().to_variant(),
                 export_info: ExportInfo::new(VariantType::GodotString),
                 usage: PropertyUsage::DEFAULT,
             }],

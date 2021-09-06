@@ -6,6 +6,7 @@ signal maps_update(maps)
 signal waypoints_update(waypoints)
 signal nav_mode_update(nav_mode)
 signal goal_update(goal)
+signal localized_detections_update(goal)
 
 enum NavMode { TELEOP, GOAL, WAYPOINTS }
 
@@ -28,7 +29,8 @@ var state = {
 	},
 	"ui_state": {
 		"viz_scale": 1,
-	}
+	},
+	"localized_detections": [],
 }
 
 
@@ -37,6 +39,7 @@ func _ready():
 	yield(get_tree().create_timer(0.1),"timeout")
 	get_node("/root/Game").connect("robot_params", self, "_on_Game_robot_params")
 	get_node("/root/Game").connect("navigator_state", self, "_on_Game_navigator_state")
+	get_node("/root/Game").connect("localized_detections", self, "_on_Game_localized_detections")
 	get_node("/root/Game").connect("ui_state", self, "_on_Game_ui_state")
 	emit_all()
 	
@@ -53,6 +56,7 @@ func emit_all():
 	emit_signal("waypoints_update", null if !map else map.waypoints)
 	emit_signal("nav_mode_update", state.nav_mode)
 	emit_signal("goal_update", state.goal)
+	emit_signal("localized_detections_update", state.localized_detections)
 
 func add_waypoint(waypoint):
 	var map = get_current_map()
@@ -102,6 +106,11 @@ func _on_Game_robot_params(robot_params):
 func _on_Game_navigator_state(navigator_state):
 	if navigator_state.hash() != state.navigator_state.hash():
 		state.navigator_state = navigator_state
+		emit_all()
+
+func _on_Game_localized_detections(localized_detections):
+	if localized_detections.hash() != state.localized_detections.hash():
+		state.localized_detections = localized_detections
 		emit_all()
 
 func _on_Game_ui_state(ui_state):

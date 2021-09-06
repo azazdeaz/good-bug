@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 
-use crate::types::{
-    BoxDetection, Edge, Iso3, Keyframe, Landmark, NavGoal, NavigationMode, NavigatorState, Point3,
-    RobotParams, SlamFrame, SystemStatus, TrackingState,
-};
+use crate::types::{BoxDetection, Edge, Iso3, Keyframe, Landmark, LocalizedDetection, NavGoal, NavigationMode, NavigatorState, Point3, RobotParams, SlamFrame, SystemStatus, TrackingState};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
@@ -19,6 +16,7 @@ pub enum Msg {
     Frame(SlamFrame),
 
     Detections(Vec<BoxDetection>),
+    LocalizedDetections(Vec<LocalizedDetection>),
     LandmarkClassification(HashMap<u32, HashMap<u32, u32>>),
     MapScale(f64),
     NavigatorState(NavigatorState),

@@ -30,6 +30,12 @@ pub struct BoxDetection {
     pub features: Vec<Feature>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToVariant)]
+pub struct LocalizedDetection {
+    pub class: u32,
+    pub landmarks: Vec<Landmark>,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant, FromVariant)]
 pub enum NavigationMode {
     Teleop,

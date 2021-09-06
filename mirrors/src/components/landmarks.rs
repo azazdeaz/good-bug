@@ -121,7 +121,7 @@ impl Updatable for Landmarks {
             let mesh = find_node::<Spatial>(owner, "Ground".into());
             mesh.set_translation(Vector3::new(
                 0.0,
-                (-RobotBody::get_cam_height() * viz_scale) as f32,
+                (-RobotBody::get_cam_height() * viz_scale) as f32 * 1.2,
                 0.0,
             ));
         }

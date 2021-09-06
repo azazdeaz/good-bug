@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use common::msg::Msg;
+use common::types::LocalizedDetection;
 use common::types::NavigatorState;
 use common::types::RobotParams;
 use common::types::SystemStatus;
@@ -23,6 +24,7 @@ pub struct Status {
     robot_params: Arc<RwLock<LastValue<RobotParams>>>,
     navigator_state: Arc<RwLock<LastValue<NavigatorState>>>,
     system_status: Arc<RwLock<LastValue<SystemStatus>>>,
+    localized_detections: Arc<RwLock<LastValue<Vec<LocalizedDetection>>>>,
     ui_state: tokio::sync::watch::Receiver<MirrorsState>,
     got_first_robot_params_update: Arc<RwLock<bool>>,
     viz_scale: Receiver<f64>,
@@ -34,6 +36,7 @@ impl Status {
         let robot_params = watch_msg_once!(context, Msg::RobotParams);
         let navigator_state = watch_msg_once!(context, Msg::NavigatorState);
         let system_status = watch_msg_once!(context, Msg::SystemStatus);
+        let localized_detections = watch_msg_once!(context, Msg::LocalizedDetections);
         let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
 
         // set initial value for connection address
@@ -85,6 +88,7 @@ impl Status {
             robot_params,
             navigator_state,
             system_status,
+            localized_detections,
             ui_state: context.ui_state.watch_all(),
             viz_scale,
             got_first_robot_params_update,
@@ -119,8 +123,17 @@ impl Updatable for Status {
             owner.emit_signal("navigator_state", &[navigator_state.to_variant()]);
         }
 
-        if let Some(mut system_status) = self.system_status.write().unwrap().pop() {
+        if let Some(system_status) = self.system_status.write().unwrap().pop() {
             owner.emit_signal("system_status", &[system_status.to_variant()]);
+        }
+
+        if let Some(mut localized_detections) = self.localized_detections.write().unwrap().pop() {
+            for detection in localized_detections.iter_mut() {
+                for lm in detection.landmarks.iter_mut() {
+                    lm.point *= viz_scale;
+                }
+            }
+            owner.emit_signal("localized_detections", &[localized_detections.to_variant()]);
         }
 
         // TODO only emit if changed

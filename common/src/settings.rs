@@ -54,11 +54,25 @@ pub struct Navigation {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct Detector {
+    pub enabled: bool,
+    pub model: String,
+    pub clustering_max_distance: f64,
+    pub clustering_min_landmarks: u32,
+}
+
+impl Detector {
+    pub fn get_abs_model_path(&self) -> String {
+        absolute_path(&self.model).unwrap()
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
     pub grpc_port: u16,
     pub slam: Slam,
     pub navigation: Navigation,
-    pub detector_model: Option<String>,
+    pub detector: Option<Detector>,
     // TODO add slam options
 }
 
@@ -106,12 +120,6 @@ impl Settings {
         };
         settings.slam.mask = if let Some(mask) = settings.slam.mask {
             Some(absolute_path(&mask)?)
-        } else {
-            None
-        };
-
-        settings.detector_model = if let Some(detector_model) = settings.detector_model {
-            Some(absolute_path(&detector_model)?)
         } else {
             None
         };

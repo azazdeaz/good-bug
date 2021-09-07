@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=2]
+[gd_scene load_steps=36 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -27,6 +27,8 @@
 [ext_resource path="res://scenes/Label3DViewport.gd" type="Script" id=25]
 [ext_resource path="res://scenes/DetectionFlag.gd" type="Script" id=26]
 [ext_resource path="res://scenes/DetectionMarkers.gd" type="Script" id=27]
+[ext_resource path="res://assets/fonts/UbuntuMono-Regular.ttf" type="DynamicFontData" id=28]
+[ext_resource path="res://scenes/PoseMat.tres" type="Material" id=29]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -40,6 +42,10 @@ height = 480
 
 [sub_resource type="ViewportTexture" id=5]
 viewport_path = NodePath("GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Sprite3D/Viewport")
+
+[sub_resource type="DynamicFont" id=6]
+size = 21
+font_data = ExtResource( 28 )
 
 [node name="Game" type="Node"]
 script = ExtResource( 1 )
@@ -442,21 +448,25 @@ script = ExtResource( 26 )
 [node name="CSGCylinder" type="CSGCylinder" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker"]
 radius = 0.025
 height = 4.047
+material = ExtResource( 29 )
 
 [node name="Sprite3D" type="Sprite3D" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.06983, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.93232, 0 )
+offset = Vector2( 55, 0 )
 billboard = 2
 texture = SubResource( 5 )
 
 [node name="Viewport" type="Viewport" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Sprite3D"]
-size = Vector2( 61, 14 )
+size = Vector2( 99, 22 )
 transparent_bg = true
 render_target_v_flip = true
 script = ExtResource( 25 )
 
 [node name="Label" type="Label" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Sprite3D/Viewport"]
-margin_right = 40.0
+margin_right = 53.0
 margin_bottom = 14.0
+custom_fonts/font = SubResource( 6 )
+custom_colors/font_color = Color( 1, 0.313726, 0.313726, 1 )
 text = "detection"
 
 [node name="CamTarget" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
@@ -486,5 +496,5 @@ transform = Transform( 1.31134e-10, -1.14641e-17, -0.003, -2.62268e-10, -0.003, 
 [connection signal="pressed" from="GUI/VBox/Navigation/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/Navigation/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/PanelContainer2/SaveImage/SaveImageBtn" to="GUI/VBox/PanelContainer2/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="map_click" from="GUI/ViewportContainer/Viewport/Spatial/Ground" to="GUI/VBox/Navigation" method="_on_Ground_map_click"]
-[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers" method="on_StaticBody_input_event" binds= [ -1 ]]
+[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]

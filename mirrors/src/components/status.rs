@@ -129,6 +129,7 @@ impl Updatable for Status {
 
         if let Some(mut localized_detections) = self.localized_detections.write().unwrap().pop() {
             for detection in localized_detections.iter_mut() {
+                detection.center *= viz_scale;
                 for lm in detection.landmarks.iter_mut() {
                     lm.point *= viz_scale;
                 }

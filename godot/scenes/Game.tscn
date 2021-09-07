@@ -486,5 +486,5 @@ transform = Transform( 1.31134e-10, -1.14641e-17, -0.003, -2.62268e-10, -0.003, 
 [connection signal="pressed" from="GUI/VBox/Navigation/VBox/MapHandle/SaveMapBtn" to="GUI/VBox/Navigation/VBox/MapHandle" method="_on_SaveMapBtn_pressed"]
 [connection signal="pressed" from="GUI/VBox/PanelContainer2/SaveImage/SaveImageBtn" to="GUI/VBox/PanelContainer2/SaveImage" method="_on_SaveImageBtn_pressed"]
 [connection signal="map_click" from="GUI/ViewportContainer/Viewport/Spatial/Ground" to="GUI/VBox/Navigation" method="_on_Ground_map_click"]
-[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers" method="on_StaticBody_input_event" binds= [ -1 ]]
 [connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground" method="_on_StaticBody_input_event"]
+[connection signal="input_event" from="GUI/ViewportContainer/Viewport/Spatial/Ground/GroundMesh/StaticBody" to="GUI/ViewportContainer/Viewport/Spatial/Ground/WaypointMarkers" method="on_StaticBody_input_event" binds= [ -1 ]]

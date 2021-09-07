@@ -7,10 +7,13 @@ extends TextureRect
 
 var detections = []
 var frame_scale = 1
+var font
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	font = DynamicFont.new()
+	font.font_data = load("res://assets/fonts/UbuntuMono-Regular.ttf")
+	font.size = 20
 
 func update_detections(_detections):
 	detections = _detections
@@ -41,6 +44,8 @@ func _draw():
 		draw_line(b, c, color)
 		draw_line(c, d, color)
 		draw_line(d, a, color)
+		
+		draw_string(font, a, 'Weed %d' % detection.class, color)
 		
 		for feature in detection.features:
 			var center = Vector2(

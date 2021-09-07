@@ -5,13 +5,13 @@ use tokio_stream::StreamExt;
 use common::{
     msg::{Broadcaster, Msg},
     settings::Settings,
-    types::LocalizedDetection,
+    types::{Landmark, LocalizedDetection, Point3},
 };
 
 use linfa::dataset::{DatasetBase, Labels};
 use linfa::traits::Transformer;
 use linfa_clustering::Dbscan;
-use ndarray::Array2;
+use ndarray::{array, Array2};
 
 pub struct LandmarkClassifier {}
 
@@ -69,6 +69,7 @@ impl LandmarkClassifier {
                     match msg {
                         Msg::MapScale(scale) => map_scale = scale,
                         Msg::Landmarks(landmarks) => {
+                            // store {class_id:[(landmark, score)]}
                             let mut classifieds = HashMap::new();
 
                             {
@@ -77,13 +78,13 @@ impl LandmarkClassifier {
                                     if landmark_map.contains_key(&landmark.id) {
                                         let top = landmark_map[&landmark.id]
                                             .iter()
-                                            .max_by_key(|(_, val)| val.clone());
+                                            .max_by_key(|(_, score)| score.clone());
 
-                                        if let Some((class, _)) = top {
+                                        if let Some((class, score)) = top {
                                             classifieds
                                                 .entry(class.clone())
                                                 .or_insert(Vec::new())
-                                                .push(landmark);
+                                                .push((landmark, score.clone()));
                                         }
                                     }
                                 }
@@ -91,7 +92,10 @@ impl LandmarkClassifier {
 
                             let mut result = Vec::new();
 
-                            for (class, landmarks) in classifieds {
+                            for (class, landmarks_and_weights) in classifieds {
+                                let (landmarks, weights): (Vec<Landmark>, Vec<u32>) =
+                                    landmarks_and_weights.into_iter().unzip();
+
                                 let dataset = landmarks
                                     .iter()
                                     .flat_map(|lm| lm.point.coords.as_slice().to_owned())
@@ -101,14 +105,16 @@ impl LandmarkClassifier {
                                         .unwrap();
                                 let dataset: DatasetBase<_, _> = dataset.into();
 
+                                let weights =
+                                    weights.into_iter().map(|w| w as f32).collect::<Vec<_>>();
+                                let dataset = dataset.with_weights(weights.into());
+
                                 let cluster_memberships =
                                     Dbscan::params(detector.clustering_min_landmarks as usize)
                                         .tolerance(detector.clustering_max_distance * map_scale)
                                         .transform(dataset);
 
-                                // sigle target dataset
                                 let label_count = cluster_memberships.label_count().remove(0);
-
                                 println!();
                                 println!("Result: ");
                                 for (label, count) in label_count {
@@ -121,11 +127,17 @@ impl LandmarkClassifier {
                                 let targets = cluster_memberships.targets();
                                 for label in cluster_memberships.labels() {
                                     if let Some(_) = label {
+                                        let mut center_sum = Point3::new(0.0, 0.0, 0.0);
+                                        let mut center_count = 0.0;
                                         let landmarks = landmarks
                                             .iter()
                                             .enumerate()
                                             .filter_map(|(i, lm)| {
                                                 if label == targets[i] {
+                                                    let weight =
+                                                        cluster_memberships.weight_for(i) as f64;
+                                                    center_sum += lm.point.coords * weight;
+                                                    center_count += weight;
                                                     Some(lm.clone())
                                                 } else {
                                                     None
@@ -133,11 +145,15 @@ impl LandmarkClassifier {
                                             })
                                             .collect::<Vec<_>>();
 
-                                        result.push(LocalizedDetection { landmarks, class });
+                                        let center = center_sum / center_count;
+                                        result.push(LocalizedDetection {
+                                            landmarks,
+                                            class,
+                                            center,
+                                        });
                                     }
                                 }
                             }
-                            // println!("LocalizedLandmarks {:?}", result);
                             publisher.send(Msg::LocalizedDetections(result)).ok();
                         }
                         _ => (),

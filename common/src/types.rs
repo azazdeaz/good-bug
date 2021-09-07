@@ -34,6 +34,8 @@ pub struct BoxDetection {
 pub struct LocalizedDetection {
     pub class: u32,
     pub landmarks: Vec<Landmark>,
+    #[variant(to_variant_with = "point3_to_variant")]
+    pub center: Point3,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, ToVariant, FromVariant)]

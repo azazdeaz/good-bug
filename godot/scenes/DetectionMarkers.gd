@@ -24,6 +24,6 @@ func on_localized_detections_update(detections):
 		else:
 			marker.visible = true
 			marker.set_text("Weed %d" % detections[i].class);
-			marker.translation.x = detections[i].landmarks[0].point.x
-			marker.translation.z = detections[i].landmarks[0].point.z
+			marker.translation.x = detections[i].center.x
+			marker.translation.z = detections[i].center.z
 

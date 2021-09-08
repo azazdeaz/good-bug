@@ -478,10 +478,16 @@ stabilize_horizon = true
 joystick_enabled = false
 
 [node name="RobotBody" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
-visible = false
 
 [node name="RobotBodyMesh" parent="GUI/ViewportContainer/Viewport/Spatial/RobotBody" instance=ExtResource( 24 )]
-transform = Transform( 1.31134e-10, -1.14641e-17, -0.003, -2.62268e-10, -0.003, 0, -0.003, 2.62268e-10, -1.31134e-10, 0, 0.328012, -0.015 )
+transform = Transform( -6.03983e-10, -9.1199e-17, 0.008, 1.20797e-09, -0.008, -4.29709e-23, 0.008, 1.20797e-09, 6.03983e-10, 0, 0.859805, -0.0573992 )
+
+[node name="SizeOne" type="CSGBox" parent="GUI/ViewportContainer/Viewport/Spatial/RobotBody"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0 )
+visible = false
+width = 1.0
+height = 1.0
+depth = 1.0
 
 [connection signal="system_status" from="." to="GUI/VBox/SystemStatus" method="_on_Game_system_status"]
 [connection signal="pressed" from="GUI/VBox/Connection/ReconnectBtn" to="GUI/VBox/Connection" method="_on_ReconnectBtn_pressed"]

@@ -8,16 +8,15 @@ use gdnative::api::*;
 // use gdnative::api::texture_rect::StretchMode;
 use gdnative::prelude::*;
 
-
 use tokio;
 use tokio::sync::watch::Receiver;
 
-use common::{types::BoxDetection};
-use crate::components::Context;
 use crate::components::traits::Updatable;
+use crate::components::Context;
 use crate::utils::find_node;
 use crate::utils::get_node;
 use crate::watch_msg_once;
+use common::types::BoxDetection;
 
 pub struct Frame {
     frame: Arc<RwLock<LastValue<SlamFrame>>>,
@@ -46,8 +45,7 @@ impl Frame {
         geometry.set_material_override(material);
 
         get_node::<Node>(&*owner, path).add_child(geometry, false);
-        
-        
+
         Frame {
             frame,
             detections,
@@ -59,19 +57,18 @@ impl Frame {
 
 impl Updatable for Frame {
     fn update(&self, owner: &Node) {
-        if let Some(frame) = self.frame.write().unwrap().pop()  {
+        if let Some(frame) = self.frame.write().unwrap().pop() {
             let panel = find_node::<TextureRect>(owner, "CameraImage".into());
             let im = Image::new();
-            im.load_jpg_from_buffer(TypedArray::from_vec(frame.jpeg.clone())).expect("failed to load jpeg with godot");
+            im.load_jpg_from_buffer(TypedArray::from_vec(frame.jpeg.clone()))
+                .expect("failed to load jpeg with godot");
             // im.create_from_data(1280, 960, true, Image::FORMAT_RGB8, TypedArray::from_vec(pixels));
             let imt = ImageTexture::new();
             imt.create_from_image(im, 7);
             panel.set_texture(imt);
         }
-            
 
-        if let Some(detections) = self.detections.write().unwrap().pop()  {
-            println!("Detections {:?}",detections.len());
+        if let Some(detections) = self.detections.write().unwrap().pop() {
             let landmark_mesh = get_node::<ImmediateGeometry>(owner, self.geometry_path.clone());
             landmark_mesh.clear();
             let gd_detections = detections.to_variant();
@@ -83,9 +80,9 @@ impl Updatable for Frame {
             let viz_scale = *self.viz_scale.borrow();
             landmark_mesh.begin(Mesh::PRIMITIVE_POINTS, Null::null());
             for detection in detections {
-                for Feature {landmark, ..} in detection.features {
+                for Feature { landmark, .. } in detection.features {
                     let color = Color::rgb(1.0, 0.0, 0.0);
-    
+
                     let point = Vector3::new(
                         (landmark.point.x * viz_scale) as f32,
                         (landmark.point.y * viz_scale) as f32,

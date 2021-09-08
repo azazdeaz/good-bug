@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use common::{robot_body::RobotBody, utils::LastValue};
+use common::{utils::LastValue};
 use gdnative::api::*;
 use gdnative::prelude::*;
 
 use crate::components::Context;
-use crate::utils::find_node;
 use scarlet::color::RGBColor;
 use scarlet::colormap::ListedColorMap;
 use scarlet::colorpoint::ColorPoint;
@@ -116,14 +115,6 @@ impl Updatable for Landmarks {
             }
 
             landmark_mesh.end();
-
-            // update the vertical position of the ground plane
-            let mesh = find_node::<Spatial>(owner, "Ground".into());
-            mesh.set_translation(Vector3::new(
-                0.0,
-                (-RobotBody::get_cam_height() * viz_scale) as f32 * 1.2,
-                0.0,
-            ));
         }
     }
 }

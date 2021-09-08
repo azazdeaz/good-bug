@@ -44,7 +44,6 @@ var grabbed_idx = -1
 func on_StaticBody_input_event(camera, event, click_position, click_normal, shape_idx, wp_idx):
 #	get_node("/root").set_input_as_handled()
 	if event is InputEventMouseButton:
-		print(event.button_index)
 		if event.button_index == BUTTON_LEFT:
 			if event.is_pressed():
 				grabbed_idx = wp_idx

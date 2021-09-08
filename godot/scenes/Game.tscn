@@ -40,12 +40,12 @@ height = 480
 
 [sub_resource type="CylinderShape" id=4]
 
-[sub_resource type="ViewportTexture" id=5]
-viewport_path = NodePath("GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Sprite3D/Viewport")
-
-[sub_resource type="DynamicFont" id=6]
+[sub_resource type="DynamicFont" id=5]
 size = 21
 font_data = ExtResource( 28 )
+
+[sub_resource type="ViewportTexture" id=6]
+viewport_path = NodePath("GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Viewport")
 
 [node name="Game" type="Node"]
 script = ExtResource( 1 )
@@ -450,24 +450,24 @@ radius = 0.025
 height = 4.047
 material = ExtResource( 29 )
 
-[node name="Sprite3D" type="Sprite3D" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.93232, 0 )
-offset = Vector2( 55, 0 )
-billboard = 2
-texture = SubResource( 5 )
-
-[node name="Viewport" type="Viewport" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Sprite3D"]
+[node name="Viewport" type="Viewport" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker"]
 size = Vector2( 99, 22 )
 transparent_bg = true
 render_target_v_flip = true
 script = ExtResource( 25 )
 
-[node name="Label" type="Label" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Sprite3D/Viewport"]
+[node name="Label" type="Label" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker/Viewport"]
 margin_right = 53.0
 margin_bottom = 14.0
-custom_fonts/font = SubResource( 6 )
+custom_fonts/font = SubResource( 5 )
 custom_colors/font_color = Color( 1, 0.313726, 0.313726, 1 )
 text = "detection"
+
+[node name="Sprite3D" type="Sprite3D" parent="GUI/ViewportContainer/Viewport/Spatial/Ground/Detections/DetectionMarker"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.93232, 0 )
+offset = Vector2( 55, 0 )
+billboard = 2
+texture = SubResource( 6 )
 
 [node name="CamTarget" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
 
@@ -478,6 +478,7 @@ stabilize_horizon = true
 joystick_enabled = false
 
 [node name="RobotBody" type="Spatial" parent="GUI/ViewportContainer/Viewport/Spatial"]
+visible = false
 
 [node name="RobotBodyMesh" parent="GUI/ViewportContainer/Viewport/Spatial/RobotBody" instance=ExtResource( 24 )]
 transform = Transform( -6.03983e-10, -9.1199e-17, 0.008, 1.20797e-09, -0.008, -4.29709e-23, 0.008, 1.20797e-09, 6.03983e-10, 0, 0.859805, -0.0573992 )

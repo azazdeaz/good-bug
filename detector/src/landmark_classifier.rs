@@ -11,7 +11,8 @@ use common::{
 use linfa::dataset::{DatasetBase, Labels};
 use linfa::traits::Transformer;
 use linfa_clustering::Dbscan;
-use ndarray::{array, Array2};
+use nalgebra::distance;
+use ndarray::Array2;
 
 pub struct LandmarkClassifier {}
 
@@ -62,6 +63,8 @@ impl LandmarkClassifier {
         {
             let publisher = broadcaster.publisher();
             let landmark_map = Arc::clone(&landmark_map);
+            let mut next_id: u32 = 0;
+            let mut prev_result = Vec::new();
             let mut stream = broadcaster.stream();
             tokio::spawn(async move {
                 let mut map_scale = 1.0;
@@ -83,9 +86,9 @@ impl LandmarkClassifier {
                                         if let Some((class, score)) = top {
                                             if score.clone() as f64 >= detector.min_landmark_score {
                                                 classifieds
-                                                .entry(class.clone())
-                                                .or_insert(Vec::new())
-                                                .push((landmark, score.clone()));
+                                                    .entry(class.clone())
+                                                    .or_insert(Vec::new())
+                                                    .push((landmark, score.clone()));
                                             }
                                         }
                                     }
@@ -148,7 +151,46 @@ impl LandmarkClassifier {
                                             .collect::<Vec<_>>();
 
                                         let center = center_sum / center_count;
+
+                                        let scaled_center = center * map_scale;
+
+                                        // try to find the same detection in the previous results
+                                        let prev_closest = prev_result
+                                            .iter()
+                                            .filter_map(|d: &LocalizedDetection| {
+                                                if d.class == class {
+                                                    let dist = distance(
+                                                        &scaled_center,
+                                                        &(d.center * map_scale),
+                                                    );
+                                                    Some((d, dist))
+                                                } else {
+                                                    None
+                                                }
+                                            })
+                                            .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+                                            .and_then(|(d, dist)| {
+                                                println!("CLoses dist {} <> {}", dist
+                                                , detector.clustering_max_distance * map_scale);
+                                                if dist < detector.clustering_max_distance * map_scale
+                                                {
+                                                    Some(d)
+                                                } else {
+                                                    None
+                                                }
+                                            });
+                                        
+                                        let id = if let Some(prev_closest) = prev_closest {
+                                            prev_closest.id
+                                        }
+                                        else {
+                                            next_id += 1;
+                                            next_id
+                                        };
+
+                                        
                                         result.push(LocalizedDetection {
+                                            id,
                                             landmarks,
                                             class,
                                             center,
@@ -156,6 +198,7 @@ impl LandmarkClassifier {
                                     }
                                 }
                             }
+                            prev_result = result.clone();
                             publisher.send(Msg::LocalizedDetections(result)).ok();
                         }
                         _ => (),

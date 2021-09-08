@@ -16,6 +16,7 @@ clap = "3.0.0-beta.4"
 linfa = "0.4.0"
 linfa-clustering = "0.4.0"
 ndarray = "0.14"
+nalgebra = "0.27"
 
 common = { path = "../common" }
 

@@ -81,10 +81,12 @@ impl LandmarkClassifier {
                                             .max_by_key(|(_, score)| score.clone());
 
                                         if let Some((class, score)) = top {
-                                            classifieds
+                                            if score.clone() as f64 >= detector.min_landmark_score {
+                                                classifieds
                                                 .entry(class.clone())
                                                 .or_insert(Vec::new())
                                                 .push((landmark, score.clone()));
+                                            }
                                         }
                                     }
                                 }
@@ -116,7 +118,7 @@ impl LandmarkClassifier {
 
                                 let label_count = cluster_memberships.label_count().remove(0);
                                 println!();
-                                println!("Result: ");
+                                println!("Results in class {}: ", class);
                                 for (label, count) in label_count {
                                     match label {
                                         None => println!(" - {} noise points", count),

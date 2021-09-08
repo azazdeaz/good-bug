@@ -68,7 +68,7 @@ fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
     let mut z = z.collect::<Vec<f64>>();
     z.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
     // remove the upper half of the points
-    z.drain(0..(z.len() as f32 * 0.5) as usize);
+    z.drain((z.len() as f32 * 0.5) as usize..);
     // get the median of the remaining heights
     let ground_level = z.get(z.len() / 2);
     

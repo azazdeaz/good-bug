@@ -59,6 +59,7 @@ pub struct Detector {
     pub model: String,
     pub clustering_max_distance: f64,
     pub clustering_min_landmarks: u32,
+    pub min_landmark_score: f64,
 }
 
 impl Detector {

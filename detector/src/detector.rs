@@ -121,8 +121,7 @@ impl DetectionWorker {
 
                 let mut detections = Vec::new();
                 for i in 0..num_detections[0] as usize {
-                    //DELETE THIS TEMP HACK
-                    if i>0&&min_score > detection_scores[i] {
+                    if min_score > detection_scores[i] {
                         break;
                     }
                     let rect = &detection_boxes[i * 4..i * 4 + 4];
@@ -153,7 +152,6 @@ impl DetectionWorker {
                         features,
                     });
                 }
-                println!("detections {:?}", detections);
                 response.send(detections).ok();
             }
         });

@@ -8,8 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Control",
+"class": "Joystick",
+"language": "GDScript",
+"path": "res://addons/Joystick/Joystick.gd"
+} ]
 _global_script_class_icons={
+"Joystick": ""
 }
 
 [application]
@@ -73,6 +79,10 @@ ui_zoom_in={
 "deadzone": 0.5,
 "events": [  ]
 }
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
 
 [rendering]
 

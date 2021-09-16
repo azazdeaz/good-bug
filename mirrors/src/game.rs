@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use common::types::InKey;
 use common::types::LocalizedDetection;
 use common::types::NavGoal;
 use common::types::NavigationMode;
@@ -126,6 +127,12 @@ impl Game {
                 Some(GDInput::JoyButton(InJoyButton {
                     button_index: event.button_index(),
                     pressed: event.is_pressed(),
+                }))
+            } else if let Some(event) = event.cast::<InputEventKey>() {
+                Some(GDInput::Key(InKey {
+                    scancode: event.scancode(),
+                    pressed: event.is_pressed(),
+                    echo: event.is_echo(),
                 }))
             } else {
                 None

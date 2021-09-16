@@ -162,7 +162,14 @@ pub struct InJoyButton {
     pub pressed: bool,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct InKey {
+    pub scancode: i64,
+    pub pressed: bool,
+    pub echo: bool,
+}
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum GDInput {
     JoyMotion(InJoyMotion),
     JoyButton(InJoyButton),
+    Key(InKey)
 }

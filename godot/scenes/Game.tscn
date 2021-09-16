@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=2]
+[gd_scene load_steps=38 format=2]
 
 [ext_resource path="res://native/Game.gdns" type="Script" id=1]
 [ext_resource path="res://scenes/Ground.tres" type="Material" id=2]
@@ -29,6 +29,8 @@
 [ext_resource path="res://scenes/DetectionMarkers.gd" type="Script" id=27]
 [ext_resource path="res://assets/fonts/UbuntuMono-Regular.ttf" type="DynamicFontData" id=28]
 [ext_resource path="res://scenes/PoseMat.tres" type="Material" id=29]
+[ext_resource path="res://addons/Joystick/Joystick.tscn" type="PackedScene" id=30]
+[ext_resource path="res://scenes/JoystickContainer.gd" type="Script" id=31]
 
 [sub_resource type="NoiseTexture" id=1]
 width = 640
@@ -290,7 +292,25 @@ margin_bottom = 75.0
 margin_right = 899.0
 margin_bottom = 31.0
 text = "
-Use your gamepad to control the robot"
+Use your gamepad or the keyboard arrows to control the robot"
+
+[node name="JoystickContainer" type="PanelContainer" parent="GUI/VBox/Navigation/VBox/TeleopContainer"]
+visible = false
+margin_top = 35.0
+margin_right = 899.0
+margin_bottom = 175.0
+rect_min_size = Vector2( 0, 140 )
+size_flags_horizontal = 5
+size_flags_vertical = 0
+script = ExtResource( 31 )
+
+[node name="Joystick" parent="GUI/VBox/Navigation/VBox/TeleopContainer/JoystickContainer" instance=ExtResource( 30 )]
+anchor_top = 0.0
+anchor_bottom = 0.0
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 892.0
+margin_bottom = 133.0
 
 [node name="GoalContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 79.0
@@ -355,7 +375,14 @@ margin_right = 906.0
 margin_bottom = 31.0
 script = ExtResource( 5 )
 
+[node name="Label" type="Label" parent="GUI/VBox/PanelContainer2/SaveImage"]
+margin_top = 5.0
+margin_right = 92.0
+margin_bottom = 19.0
+text = "Image Folder: "
+
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/PanelContainer2/SaveImage"]
+margin_left = 96.0
 margin_right = 810.0
 margin_bottom = 24.0
 size_flags_horizontal = 3

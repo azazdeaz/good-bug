@@ -20,6 +20,7 @@ impl LandmarkClassifier {
     pub fn run(broadcaster: &Broadcaster) {
         let detector = Settings::new().unwrap().detector;
 
+        // bail if detector is not enabled
         let detector = if let Some(detector) = detector {
             if detector.enabled {
                 detector
@@ -32,6 +33,7 @@ impl LandmarkClassifier {
 
         let landmark_map = Arc::new(RwLock::new(HashMap::new()));
 
+        // connect detection messages to landmarks
         {
             let mut detections_stream = broadcaster.stream().filter_map(|m| {
                 if let Ok(Msg::Detections(detections)) = m {
@@ -158,15 +160,11 @@ impl LandmarkClassifier {
                                         let prev_closest = prev_result
                                             .iter()
                                             .filter_map(|d: &LocalizedDetection| {
-                                                if d.class == class {
-                                                    let dist = distance(
-                                                        &scaled_center,
-                                                        &(d.center * map_scale),
-                                                    );
-                                                    Some((d, dist))
-                                                } else {
-                                                    None
-                                                }
+                                                let dist = distance(
+                                                    &scaled_center,
+                                                    &(d.center * map_scale),
+                                                );
+                                                Some((d, dist))
                                             })
                                             .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
                                             .and_then(|(d, dist)| {

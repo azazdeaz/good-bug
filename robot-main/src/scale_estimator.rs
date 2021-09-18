@@ -65,13 +65,14 @@ fn estimate_scale(landmarks: &Vec<Landmark>) -> Option<f64> {
             None
         }
     });
+
     let mut z = z.collect::<Vec<f64>>();
     z.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
-    // remove the upper half of the points
-    z.drain((z.len() as f32 * 0.5) as usize..);
+    // remove the upper 80% of the points
+    z.drain((z.len() as f32 * 0.2) as usize..);
     // get the median of the remaining heights
     let ground_level = z.get(z.len() / 2);
-    
+
     if let Some(ground_level) = ground_level {
         Some(RobotBody::get_cam_height() / ground_level.abs() as f64)
     } else {

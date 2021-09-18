@@ -30,6 +30,7 @@ struct JoyState {
     key_right: bool,
     key_down: bool,
     key_left: bool,
+    keyboard_speed: f64,
 
     weeder_speed: f64,
 }
@@ -47,12 +48,12 @@ impl JoyState {
             key_right: false,
             key_down: false,
             key_left: false,
+            keyboard_speed: 0.5,
 
             weeder_speed: 0.0,
         }
     }
     fn left_right(&self) -> (f64, f64) {
-
         match self.control_mode {
             ControlMode::Joystick => {
                 let left = if self.left_reversed {
@@ -70,26 +71,26 @@ impl JoyState {
             ControlMode::Keyboard => {
                 let mut left: f64 = 0.0;
                 let mut right: f64 = 0.0;
+                let speed = self.keyboard_speed;
                 if self.key_up {
-                    left += 1.0;
-                    right += 1.0;
+                    left += speed;
+                    right += speed;
                 }
                 if self.key_down {
-                    left -= 1.0;
-                    right -= 1.0;
+                    left -= speed;
+                    right -= speed;
                 }
                 if self.key_left {
-                    left -= 1.0;
-                    right += 1.0;
+                    left -= speed;
+                    right += speed;
                 }
                 if self.key_right {
-                    left += 1.0;
-                    right -= 1.0;
+                    left += speed;
+                    right -= speed;
                 }
-                (left.max(-1.0).min(1.0), right.max(-1.0).min(1.0))
+                (left.max(-speed).min(speed), right.max(-speed).min(speed))
             }
         }
-        
     }
 }
 
@@ -99,7 +100,7 @@ impl Teleop {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let joy_state = Arc::new(RwLock::new(JoyState::new()));
 
-        // convert user input to speed commands and broadcast them 
+        // convert user input to speed commands and broadcast them
         {
             let publisher = context.broadcaster.publisher();
             let mut input_receiver = context.subscribe_input();
@@ -113,31 +114,65 @@ impl Teleop {
                                 match inp {
                                     GDInput::JoyMotion(event) => {
                                         joy_state.control_mode = ControlMode::Joystick;
-                                        if event.axis == 6 {
+                                        if event.axis == GlobalConstants::JOY_AXIS_6 {
                                             joy_state.left = event.axis_value.min(MAX_SPEED);
-                                        } else if event.axis == 7 {
+                                        } else if event.axis == GlobalConstants::JOY_AXIS_7 {
                                             joy_state.right = event.axis_value.min(MAX_SPEED);
                                         }
                                     }
                                     GDInput::JoyButton(event) => {
                                         joy_state.control_mode = ControlMode::Joystick;
-                                        if event.button_index == 4 {
-                                            joy_state.left_reversed = event.pressed;
-                                        } else if event.button_index == 5 {
-                                            joy_state.right_reversed = event.pressed;
-                                        }
-                                        else if event.button_index == 1 {
-                                            joy_state.weeder_speed = if event.pressed { 1.0 } else { 0.0 };
+                                        match event.button_index {
+                                            GlobalConstants::JOY_BUTTON_4 => {
+                                                joy_state.left_reversed = event.pressed
+                                            }
+                                            GlobalConstants::JOY_BUTTON_5 => {
+                                                joy_state.right_reversed = event.pressed
+                                            }
+                                            GlobalConstants::JOY_BUTTON_1 => {
+                                                joy_state.weeder_speed =
+                                                    if event.pressed { 1.0 } else { 0.0 }
+                                            }
+                                            GlobalConstants::JOY_BUTTON_12
+                                            | GlobalConstants::JOY_BUTTON_13
+                                            | GlobalConstants::JOY_BUTTON_14
+                                            | GlobalConstants::JOY_BUTTON_15 => {
+                                                joy_state.control_mode = ControlMode::Keyboard;
+                                                match event.button_index {
+                                                    GlobalConstants::JOY_BUTTON_12 => {
+                                                        joy_state.key_up = event.pressed
+                                                    }
+                                                    GlobalConstants::JOY_BUTTON_15 => {
+                                                        joy_state.key_right = event.pressed
+                                                    }
+                                                    GlobalConstants::JOY_BUTTON_13 => {
+                                                        joy_state.key_down = event.pressed
+                                                    }
+                                                    GlobalConstants::JOY_BUTTON_14 => {
+                                                        joy_state.key_left = event.pressed
+                                                    }
+                                                    _ => (),
+                                                }
+                                            }
+                                            _ => (),
                                         }
                                     }
                                     GDInput::Key(event) => {
                                         joy_state.control_mode = ControlMode::Keyboard;
                                         if !event.echo {
                                             match event.scancode {
-                                                GlobalConstants::KEY_UP => joy_state.key_up = event.pressed,
-                                                GlobalConstants::KEY_RIGHT => joy_state.key_right = event.pressed,
-                                                GlobalConstants::KEY_DOWN => joy_state.key_down = event.pressed,
-                                                GlobalConstants::KEY_LEFT => joy_state.key_left = event.pressed,
+                                                GlobalConstants::KEY_UP => {
+                                                    joy_state.key_up = event.pressed
+                                                }
+                                                GlobalConstants::KEY_RIGHT => {
+                                                    joy_state.key_right = event.pressed
+                                                }
+                                                GlobalConstants::KEY_DOWN => {
+                                                    joy_state.key_down = event.pressed
+                                                }
+                                                GlobalConstants::KEY_LEFT => {
+                                                    joy_state.key_left = event.pressed
+                                                }
                                                 _ => (),
                                             }
                                         }
@@ -145,7 +180,9 @@ impl Teleop {
                                 }
                                 let (left, right) = joy_state.left_right();
                                 publisher.send(Msg::Teleop((left, right))).ok();
-                                publisher.send(Msg::SetWeederSpeed(joy_state.weeder_speed)).ok();
+                                publisher
+                                    .send(Msg::SetWeederSpeed(joy_state.weeder_speed))
+                                    .ok();
                             }
                         }
                         Err(RecvError::Lagged(lagged)) => {

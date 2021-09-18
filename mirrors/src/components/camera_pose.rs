@@ -15,31 +15,30 @@ use crate::watch_msg;
 pub struct CameraPose {
     camera_pose: Receiver<Option<Iso3>>,
     // nav_target: Receiver<Option<Point3>>,
-    viz_scale: Receiver<f64>,
+    scale: Receiver<Scale>,
     mesh_path: String,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+struct Scale {
+    viz: f64,
+    map2viz: f64,
 }
 
 impl CameraPose {
     pub fn new(owner: TRef<Node>, path: String, context: &mut Context) -> Self {
         let camera_pose = watch_msg!(context, Msg::CameraPose);
-        let viz_scale = context.ui_state.watch(|s| s.map_to_viz_scale());
-        let mesh_name = "camera_pose_box";
-        let mesh_path = format!("{}/{}", path, mesh_name);
-        let mesh = CSGBox::new();
-        mesh.set_name(mesh_name);
-        mesh.set_scale(Vector3::new(0.02, 0.02, 0.02));
-        let material = SpatialMaterial::new();
-        material.set_albedo(Color::rgb(1.0, 0.313726, 0.313726));
-        mesh.set_material_override(material);
-
-        get_node::<Node>(&*owner, path).add_child(mesh, false);
+        let scale = context.ui_state.watch(|s| Scale {
+            viz: s.viz_scale,
+            map2viz: s.map_to_viz_scale(),
+        });
 
         let camera_pose = CameraPose {
             camera_pose,
             // nav_target,
             // mesh_path,
             mesh_path: "GUI/ViewportContainer/Viewport/Spatial/RobotBody".into(),
-            viz_scale,
+            scale,
         };
 
         camera_pose
@@ -49,22 +48,22 @@ impl CameraPose {
 impl Updatable for CameraPose {
     fn update(&self, owner: &Node) {
         if let Some(camera_pose) = *self.camera_pose.borrow() {
-            let viz_scale = *self.viz_scale.borrow();
+            let scale = *self.scale.borrow();
             let mut camera_pose = camera_pose.clone();
-            camera_pose.translation.vector *= viz_scale;
+            camera_pose.translation.vector *= scale.map2viz;
 
             // set the position and scale of the robot model
             let mesh = get_node::<Spatial>(owner, self.mesh_path.clone());
             mesh.set_transform(iso3_to_gd(&camera_pose));
             mesh.set_visible(true);
-            let robot_scale = (RobotBody::get_cam_height() * viz_scale) as f32;
+            let robot_scale = (RobotBody::get_cam_height() * scale.viz) as f32;
             mesh.set_scale(Vector3::new(robot_scale, robot_scale, robot_scale));
 
             // update the vertical position of the ground plane
             let ground_mesh = find_node::<Spatial>(owner, "Ground".into());
             ground_mesh.set_translation(Vector3::new(
                 0.0,
-                (-RobotBody::get_cam_height() * viz_scale) as f32,
+                (-RobotBody::get_cam_height() * scale.viz) as f32,
                 0.0,
             ));
 

@@ -62,57 +62,57 @@ __meta__ = {
 }
 
 [node name="VBox" type="VBoxContainer" parent="GUI"]
-margin_right = 913.0
+margin_right = 917.0
 margin_bottom = 960.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Connection" type="HBoxContainer" parent="GUI/VBox"]
-margin_right = 913.0
+margin_right = 917.0
 margin_bottom = 24.0
 script = ExtResource( 11 )
 
 [node name="ConnectionAddress" type="LineEdit" parent="GUI/VBox/Connection"]
-margin_right = 770.0
+margin_right = 774.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 align = 1
 expand_to_text_length = true
 
 [node name="ConnectionHistory" type="MenuButton" parent="GUI/VBox/Connection"]
-margin_left = 774.0
-margin_right = 830.0
+margin_left = 778.0
+margin_right = 834.0
 margin_bottom = 24.0
 text = "history"
 
 [node name="ReconnectBtn" type="Button" parent="GUI/VBox/Connection"]
-margin_left = 834.0
-margin_right = 913.0
+margin_left = 838.0
+margin_right = 917.0
 margin_bottom = 24.0
 text = "Reconnect"
 
 [node name="SystemStatus" type="PanelContainer" parent="GUI/VBox"]
 margin_top = 28.0
-margin_right = 913.0
+margin_right = 917.0
 margin_bottom = 56.0
 script = ExtResource( 23 )
 
 [node name="Label" type="Label" parent="GUI/VBox/SystemStatus"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 906.0
+margin_right = 910.0
 margin_bottom = 21.0
 
 [node name="PanelContainer" type="PanelContainer" parent="GUI/VBox"]
 margin_top = 60.0
-margin_right = 913.0
+margin_right = 917.0
 margin_bottom = 114.0
 
 [node name="VBoxContainer" type="HBoxContainer" parent="GUI/VBox/PanelContainer"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 906.0
+margin_right = 910.0
 margin_bottom = 47.0
 
 [node name="EnableRaw" type="CheckButton" parent="GUI/VBox/PanelContainer/VBoxContainer"]
@@ -189,8 +189,8 @@ size_flags_horizontal = 3
 
 [node name="CameraImage" type="TextureRect" parent="GUI/VBox"]
 margin_top = 118.0
-margin_right = 913.0
-margin_bottom = 506.0
+margin_right = 917.0
+margin_bottom = 578.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = SubResource( 1 )
@@ -198,9 +198,43 @@ expand = true
 stretch_mode = 5
 script = ExtResource( 6 )
 
+[node name="Panel" type="PanelContainer" parent="GUI/VBox"]
+margin_top = 582.0
+margin_right = 917.0
+margin_bottom = 636.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBox/Panel"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 910.0
+margin_bottom = 47.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="GUI/VBox/Panel/HBoxContainer"]
+margin_top = 13.0
+margin_right = 82.0
+margin_bottom = 27.0
+text = "Weeder type"
+
+[node name="OptionButton" type="OptionButton" parent="GUI/VBox/Panel/HBoxContainer"]
+margin_left = 86.0
+margin_right = 184.0
+margin_bottom = 40.0
+text = "No weeder"
+items = [ "No weeder", null, false, 0, null, "Spray", null, false, 1, null, "Weed Whacker", null, false, 2, null ]
+selected = 0
+
+[node name="CheckButton" type="CheckButton" parent="GUI/VBox/Panel/HBoxContainer"]
+margin_left = 188.0
+margin_right = 399.0
+margin_bottom = 40.0
+text = "Enable auto weeding"
+
 [node name="Navigation" type="PanelContainer" parent="GUI/VBox"]
-margin_top = 510.0
-margin_right = 913.0
+margin_top = 640.0
+margin_right = 917.0
 margin_bottom = 918.0
 script = ExtResource( 13 )
 _teleop_container = NodePath("VBox/TeleopContainer")
@@ -212,14 +246,14 @@ _waypoint_markers = NodePath("../../ViewportContainer/Viewport/Spatial/Ground/Wa
 [node name="VBox" type="VBoxContainer" parent="GUI/VBox/Navigation"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 906.0
-margin_bottom = 401.0
+margin_right = 910.0
+margin_bottom = 271.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Header" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_right = 899.0
+margin_right = 903.0
 margin_bottom = 40.0
 __meta__ = {
 "_edit_use_anchors_": false
@@ -278,18 +312,18 @@ margin_bottom = 40.0
 
 [node name="RestartSlamBtn" type="Button" parent="GUI/VBox/Navigation/VBox/Header"]
 margin_left = 567.0
-margin_right = 659.0
+margin_right = 663.0
 margin_bottom = 40.0
-text = "Restart Slam"
+text = "Restart SLAM"
 script = ExtResource( 10 )
 
 [node name="TeleopContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 44.0
-margin_right = 899.0
+margin_right = 903.0
 margin_bottom = 75.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/TeleopContainer"]
-margin_right = 899.0
+margin_right = 903.0
 margin_bottom = 31.0
 text = "
 Use your gamepad or the keyboard arrows to control the robot"
@@ -314,11 +348,11 @@ margin_bottom = 133.0
 
 [node name="GoalContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 79.0
-margin_right = 899.0
+margin_right = 903.0
 margin_bottom = 127.0
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/GoalContainer"]
-margin_right = 899.0
+margin_right = 903.0
 margin_bottom = 48.0
 text = "
 Double click on the map to set the target
@@ -326,52 +360,62 @@ Double click on the map to set the target
 
 [node name="WaypointContainer" type="VBoxContainer" parent="GUI/VBox/Navigation/VBox"]
 margin_top = 131.0
-margin_right = 899.0
-margin_bottom = 366.0
+margin_right = 903.0
+margin_bottom = 236.0
 script = ExtResource( 21 )
 
 [node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
-margin_right = 899.0
+margin_right = 903.0
 margin_bottom = 31.0
 text = "
 Double click on the map to add new waypoints"
 
 [node name="WaypointsList" type="Tree" parent="GUI/VBox/Navigation/VBox/WaypointContainer"]
 margin_top = 35.0
-margin_right = 899.0
-margin_bottom = 235.0
-rect_min_size = Vector2( 0, 200 )
+margin_right = 903.0
+margin_bottom = 105.0
+rect_min_size = Vector2( 0, 70 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="MapHandle" type="HBoxContainer" parent="GUI/VBox/Navigation/VBox"]
-margin_top = 370.0
-margin_right = 899.0
-margin_bottom = 394.0
+margin_top = 240.0
+margin_right = 903.0
+margin_bottom = 264.0
 script = ExtResource( 12 )
 
+[node name="Label" type="Label" parent="GUI/VBox/Navigation/VBox/MapHandle"]
+margin_top = 5.0
+margin_right = 77.0
+margin_bottom = 19.0
+text = "Map Name: "
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="MapName" type="LineEdit" parent="GUI/VBox/Navigation/VBox/MapHandle"]
-margin_right = 823.0
+margin_left = 81.0
+margin_right = 827.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "new_map"
 
 [node name="SaveMapBtn" type="Button" parent="GUI/VBox/Navigation/VBox/MapHandle"]
-margin_left = 827.0
-margin_right = 899.0
+margin_left = 831.0
+margin_right = 903.0
 margin_bottom = 24.0
 text = "Save Map"
 
 [node name="PanelContainer2" type="PanelContainer" parent="GUI/VBox"]
 margin_top = 922.0
-margin_right = 913.0
+margin_right = 917.0
 margin_bottom = 960.0
 
 [node name="SaveImage" type="HBoxContainer" parent="GUI/VBox/PanelContainer2"]
 margin_left = 7.0
 margin_top = 7.0
-margin_right = 906.0
+margin_right = 910.0
 margin_bottom = 31.0
 script = ExtResource( 5 )
 
@@ -383,26 +427,26 @@ text = "Image Folder: "
 
 [node name="SaveImageFolder" type="LineEdit" parent="GUI/VBox/PanelContainer2/SaveImage"]
 margin_left = 96.0
-margin_right = 810.0
+margin_right = 814.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = "saved_images"
 
 [node name="SaveImageBtn" type="Button" parent="GUI/VBox/PanelContainer2/SaveImage"]
-margin_left = 814.0
-margin_right = 899.0
+margin_left = 818.0
+margin_right = 903.0
 margin_bottom = 24.0
 text = "Save Image"
 
 [node name="ViewportContainer" type="ViewportContainer" parent="GUI"]
-margin_left = 925.0
+margin_left = 929.0
 margin_right = 1280.0
 margin_bottom = 960.0
 stretch = true
 script = ExtResource( 8 )
 
 [node name="Viewport" type="Viewport" parent="GUI/ViewportContainer"]
-size = Vector2( 355, 960 )
+size = Vector2( 351, 960 )
 size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 3
@@ -414,7 +458,7 @@ physics_object_picking = true
 script = ExtResource( 3 )
 
 [node name="GroundMesh" type="CSGMesh" parent="GUI/ViewportContainer/Viewport/Spatial/Ground"]
-transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0, 0, 0 )
+transform = Transform( 300, 0, 0, 0, 1, 0, 0, 0, 300, 0.0213521, 0, -0.00500774 )
 mesh = SubResource( 2 )
 material = ExtResource( 2 )
 

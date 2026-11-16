@@ -153,7 +153,6 @@ There is one pepper-specific crop/weed dataset with pixel labels: Trinidad and T
 - Pepper-adjacent models that are not weed models:
   - Light-YOLO-Pepper (YOLOv8n-based, 1.82 M parameters; 168.4 FPS on GPU, 28.9 FPS on CPU) detects missing seedlings in trays. — [AGRIS record](https://agris.fao.org/search/en/providers/122413/records/6970addbbd789e57df2cb79f)
   - A YOLOv8 Chaotian pepper study targets fruit. — [PMC11397926](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11397926/)
-- No YOLO weed-detection study set in chili fields was found. — [search result set](https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2022.1053329/epub)
 
 **General crop/weed datasets**
 - CropAndWeed (WACV 2023): 74 crop and weed species, ~112k instances in >8k high-resolution images, with bounding boxes, semantic masks and stem positions. Free for academic use (github.com/cropandweed/cropandweed-dataset). The number of classes depends on the dataset variant. — [WACV paper](https://openaccess.thecvf.com/content/WACV2023/papers/Steininger_The_CropAndWeed_Dataset_A_Multi-Modal_Learning_Approach_for_Efficient_Crop_WACV_2023_paper.pdf); [supplemental](https://openaccess.thecvf.com/content/WACV2023/supplemental/Steininger_The_CropAndWeed_Dataset_WACV_2023_supplemental.pdf)
@@ -204,6 +203,7 @@ There is one pepper-specific crop/weed dataset with pixel labels: Trinidad and T
 - Image count, resolution and capture geometry of the Trinidad hot-pepper set are unknown (the page could not be fetched).
 - No DINOv3-based weed results were found, and no YOLO-World/YOLOE weed benchmarks or Orin Nano numbers.
 - Weed-AI (the Australian weed image repository) content could not be retrieved in this session.
+- No published YOLO (or other deep-learning) weed-detection study set in chili/pepper fields was found; the only pepper-specific weed resources are the datasets above.
 
 ## 4. Viewpoint and optics at 5–25 cm: FOV, GSD, perspective, depth of field, motion blur, lighting and camera choice
 
@@ -212,7 +212,6 @@ At 5–25 cm a wide lens is mandatory to see more than the chassis footprint. Fo
 
 ### Cited Findings
 - Raspberry Pi Camera Module 3 Wide (Sony IMX708): 120° diagonal angle of view (102° horizontal × 67° vertical), 2.75 mm focal length, 4608 × 2592 px with 1.4 µm pixels, HDR, phase-detection autofocus, rolling shutter. In production until at least January 2030. — [Raspberry Pi Camera Module 3 product page](https://raspberrypi.com/products/camera-module-3); [PiShop CM3 Wide listing](https://www.pishop.us/product/raspberry-pi-camera-module-3-wide/)
-- Raspberry Pi Global Shutter Camera (IMX296): 1.6 MP (1440 × 1080), C/CS mount, so the FOV depends on the chosen lens. No official datasheet was retrieved. — [search summary of distributor listings](https://raspberrypi.com/products/camera-module-3)
 - Third-party wide IMX708 modules with M12 lenses (~120° horizontal) exist from Arducam and Waveshare, with differing distortion. — [Arducam](https://www.arducam.com/blog/?p=94815); [Waveshare IMX708-120](https://www.waveshare.com/product/imx708-120-camera-module.htm)
 - In OWL's speed study, the global-shutter Arducam AR0234 kept 85.7% recall at 30 km/h. The rolling-shutter Pi HQ (IMX477) and V2 fell to 31.1% and 26.0%. — [arXiv 2305.10311 summary](https://arxiv.deeppaper.ai/papers/2305.10311v1?locale=en)
 - Blur rule of thumb: blur becomes a problem when the distance moved during exposure exceeds the ground sampling distance (GSD). — [CSU Gulbali, UAV flight planning](https://www.csu.edu.au/research/gulbali/remote-weed-detection/detecting-weeds/uav-mission-planning/planning-the-flight-path)
@@ -276,7 +275,7 @@ Multi-frame confirmation and tracking therefore needs either an accelerator or a
 
 ### Gaps
 - No study was found that measures weed detection accuracy at 5–25 cm camera height, or under-canopy light levels in pepper.
-- No official IMX296 Global Shutter Camera datasheet or CM3 minimum-focus distance was retrieved.
+- No official IMX296 Global Shutter Camera datasheet or CM3 minimum-focus distance was retrieved. A distributor listing seen in search results (URL not captured) described the Raspberry Pi Global Shutter Camera as 1.6 MP (1440 × 1080), C/CS mount, with the FOV set by the chosen lens; this is unverified.
 - No comparison was found between LED-shrouded and natural-light performance for colour indices in row crops.
 
 ## 5. Localising the weed for the tool: required accuracy, monocular ground-plane projection, latency budget, and camera-to-tool tracking
